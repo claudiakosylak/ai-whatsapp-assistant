@@ -1,6 +1,7 @@
 import OpenAI from "openai"
 import dotenv from "dotenv"
 import { OpenAIMessage } from "."
+import { MessageContent } from "whatsapp-web.js"
 
 dotenv.config()
 
@@ -10,7 +11,7 @@ const client = new OpenAI({
     apiKey: process.env.API_KEY
 })
 
-export const processResponse = async (messages: OpenAIMessage[]) => {
+export const processResponse = async (from: string, messages: OpenAIMessage[]) => {
     const thread = await client.beta.threads.create({
         messages
     })
@@ -31,5 +32,8 @@ export const processResponse = async (messages: OpenAIMessage[]) => {
     const messageResponse = await client.beta.threads.messages.list(thread.id)
     const messagesData = messageResponse.data
     const latestMessage = messagesData[0]
+    const latestMessageContent: any = latestMessage.content[0]
     console.log("response: ", latestMessage.content[0])
+    const responseString = latestMessageContent.text.value
+    return {from: from, messageString: responseString}
 }
