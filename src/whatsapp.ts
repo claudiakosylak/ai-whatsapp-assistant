@@ -26,20 +26,12 @@ export const processMessage = async (message: Message) => {
           if (isImage || isAudio || isOther) return false;
 
           const role = !msg.fromMe ? "user" : "assistant"
-        //   const name = msg.fromMe ? "ClaudiaBot" : (await getContactName(msg));
-
-          // Assemble the content as a mix of text and any included medi
-
           messageList.push({role: role, content: msg.body});
         } catch (e: any) {
           console.error(`Error reading message - msg.type:${msg.type}; msg.body:${msg.body}. Error:${e.message}`);
         }
       }
-          // If no new messages are present, return without action
+
     if (messageList.length == 0) return;
-    console.log({messageList})
     return await processResponse(message.from, messageList.reverse())
-
-    // console.log({chatData})
-
 }

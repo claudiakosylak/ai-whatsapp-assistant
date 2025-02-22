@@ -7,13 +7,6 @@ export type OpenAIMessage = {
     content: string;
 }
 
-const testMessages: OpenAIMessage[] = [
-    {
-        role: "user",
-        content: "What's the biggest star in our solar system?"
-    }
-]
-
 const client = new Client({
     authStrategy: new LocalAuth()
   });
