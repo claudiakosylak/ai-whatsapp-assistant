@@ -1,14 +1,13 @@
 import OpenAI from "openai"
 import dotenv from "dotenv"
 import { OpenAIMessage } from "."
-import { MessageContent } from "whatsapp-web.js"
 
 dotenv.config()
 
-const ASSISTANT_ID = process.env.ASSISTANT_ID as string
+const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID as string
 
 const client = new OpenAI({
-    apiKey: process.env.API_KEY
+    apiKey: process.env.OPENAI_API_KEY
 })
 
 export const processResponse = async (from: string, messages: OpenAIMessage[]) => {
