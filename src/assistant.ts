@@ -10,7 +10,7 @@ const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 })
 
-export const processResponse = async (from: string, messages: OpenAIMessage[]) => {
+export const processAssistantResponse = async (from: string, messages: OpenAIMessage[]) => {
     const thread = await client.beta.threads.create({
         messages
     })

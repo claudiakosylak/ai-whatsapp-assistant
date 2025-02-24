@@ -1,10 +1,17 @@
 import { Message, Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal"
-import { processMessage } from "./whatsapp";
+import { processAssistantMessage, processChatCompletionMessage } from "./whatsapp";
 
-type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
+export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
 
-const mode: BotMode = "OPENAI_ASSISTANT"
+export const mode = "OPEN_WEBBUI_CHAT" as BotMode;
+
+
+// const testMessage: ChatCompletionMessageParam = {
+//     role: "user",
+//     content: "Tell me about the most popular cat breeds.",
+//     name: 'Emma'
+// }
 
 export type OpenAIMessage = {
     role: "user" | "assistant",
@@ -25,7 +32,12 @@ client.on('qr', qr => {
 
   client.on('message', async (message: Message) => {
     if (mode === "OPENAI_ASSISTANT") {
-        const response = await processMessage(message)
+        const response = await processAssistantMessage(message)
+        if (response) {
+            client.sendMessage(response.from, response.messageString)
+        }
+    } else {
+        const response = await processChatCompletionMessage(message)
         if (response) {
             client.sendMessage(response.from, response.messageString)
         }
@@ -33,6 +45,11 @@ client.on('qr', qr => {
   });
 
   try {
+    // if (mode === "OPENAI_ASSISTANT") {
+    //     client.initialize();
+    // } else {
+    //     processChatCompletionResponse("Claudia", [testMessage])
+    // }
     client.initialize();
   }catch (e: any){
     console.error(`ERROR: ${e.message}`);
