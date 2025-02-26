@@ -4,14 +4,7 @@ import { processAssistantMessage, processChatCompletionMessage } from "./whatsap
 
 export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
 
-export const mode = "OPEN_WEBBUI_CHAT" as BotMode;
-
-
-// const testMessage: ChatCompletionMessageParam = {
-//     role: "user",
-//     content: "Tell me about the most popular cat breeds.",
-//     name: 'Emma'
-// }
+export const mode = "OPENAI_ASSISTANT" as BotMode;
 
 export type OpenAIMessage = {
     role: "user" | "assistant",
