@@ -1,6 +1,7 @@
 import { Message, Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal"
 import { processAssistantMessage, processChatCompletionMessage } from "./whatsapp";
+import { startControlPanel, addLog, setWhatsAppConnected } from "./controlPanel";
 
 export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
 
@@ -21,29 +22,39 @@ client.on('qr', qr => {
 
   client.on('ready', () => {
     console.log('Client is ready!');
+    addLog('WhatsApp client is ready');
+    setWhatsAppConnected(true);
+  });
+
+  client.on('disconnected', () => {
+    addLog('WhatsApp client disconnected');
+    setWhatsAppConnected(false);
   });
 
   client.on('message', async (message: Message) => {
     if (mode === "OPENAI_ASSISTANT") {
+        addLog(`Processing assistant message from ${message.from}`);
         const response = await processAssistantMessage(message)
         if (response) {
             client.sendMessage(response.from, response.messageString)
+            addLog(`Sent assistant response to ${response.from}`);
         }
     } else {
+        addLog(`Processing chat completion message from ${message.from}`);
         const response = await processChatCompletionMessage(message)
         if (response) {
             client.sendMessage(response.from, response.messageString)
+            addLog(`Sent chat completion response to ${response.from}`);
         }
     }
   });
 
   try {
-    // if (mode === "OPENAI_ASSISTANT") {
-    //     client.initialize();
-    // } else {
-    //     processChatCompletionResponse("Claudia", [testMessage])
-    // }
+    startControlPanel();
+    addLog('Starting WhatsApp client');
     client.initialize();
   }catch (e: any){
-    console.error(`ERROR: ${e.message}`);
+    const errorMsg = `ERROR: ${e.message}`;
+    console.error(errorMsg);
+    addLog(errorMsg);
   }

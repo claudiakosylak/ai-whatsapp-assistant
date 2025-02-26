@@ -3,22 +3,35 @@ import { OpenAIMessage } from ".";
 import { processAssistantResponse } from "./assistant";
 import { ChatCompletionMessageParam } from "openai/resources";
 import { processChatCompletionResponse } from "./chatCompletion";
+import { getBotName, getMessageHistoryLimit, isResetCommandEnabled, getMaxMessageAge } from "./config";
 
 export const processAssistantMessage = async (message: Message) => {
     const chatData: Chat = await message.getChat();
     // If it's a "Broadcast" message, it's not processed
     if(chatData.id.user == 'status' || chatData.id._serialized == 'status@broadcast') return false;
+
+    // Check if message is from a group
+    if (chatData.isGroup) {
+        const botName = getBotName();
+        // Check if bot name is mentioned in the message
+        if (!message.body.toLowerCase().includes(botName.toLowerCase())) {
+            return false;
+        }
+        // Remove bot name from message for processing
+        message.body = message.body.replace(new RegExp(botName, 'gi'), '').trim();
+    }
+
     const actualDate = new Date();
     const messageList: OpenAIMessage[] = []
-    const fetchedMessages = await chatData.fetchMessages({ limit: 10 });
+    const fetchedMessages = await chatData.fetchMessages({ limit: getMessageHistoryLimit() });
     // Check for "-reset" command in chat history to potentially restart context
-    const resetIndex = fetchedMessages.map(msg => msg.body).lastIndexOf("-reset");
+    const resetIndex = isResetCommandEnabled() ? fetchedMessages.map(msg => msg.body).lastIndexOf("-reset") : -1;
     const messagesToProcess = resetIndex >= 0 ? fetchedMessages.slice(resetIndex + 1) : fetchedMessages;
     for (const msg of messagesToProcess.reverse()) {
         try {
           // Validate if the message was written less than 24 (or maxHoursLimit) hours ago; if older, it's not considered
           const msgDate = new Date(msg.timestamp * 1000);
-          if ((actualDate.getTime() - msgDate.getTime()) / (1000 * 60 * 60) > 24) break;
+          if ((actualDate.getTime() - msgDate.getTime()) / (1000 * 60 * 60) > getMaxMessageAge()) break;
 
           // Check if the message includes media or if it is of another type
           const isImage = msg.type === MessageTypes.IMAGE || msg.type === MessageTypes.STICKER;
@@ -44,17 +57,29 @@ export const processChatCompletionMessage = async (message: Message) => {
     const chatData: Chat = await message.getChat();
     // If it's a "Broadcast" message, it's not processed
     if(chatData.id.user == 'status' || chatData.id._serialized == 'status@broadcast') return false;
+
+    // Check if message is from a group
+    if (chatData.isGroup) {
+        const botName = getBotName();
+        // Check if bot name is mentioned in the message
+        if (!message.body.toLowerCase().includes(botName.toLowerCase())) {
+            return false;
+        }
+        // Remove bot name from message for processing
+        message.body = message.body.replace(new RegExp(botName, 'gi'), '').trim();
+    }
+
     const actualDate = new Date();
     const messageList: ChatCompletionMessageParam[] = []
-    const fetchedMessages = await chatData.fetchMessages({ limit: 10 });
+    const fetchedMessages = await chatData.fetchMessages({ limit: getMessageHistoryLimit() });
     // Check for "-reset" command in chat history to potentially restart context
-    const resetIndex = fetchedMessages.map(msg => msg.body).lastIndexOf("-reset");
+    const resetIndex = isResetCommandEnabled() ? fetchedMessages.map(msg => msg.body).lastIndexOf("-reset") : -1;
     const messagesToProcess = resetIndex >= 0 ? fetchedMessages.slice(resetIndex + 1) : fetchedMessages;
     for (const msg of messagesToProcess.reverse()) {
         try {
           // Validate if the message was written less than 24 (or maxHoursLimit) hours ago; if older, it's not considered
           const msgDate = new Date(msg.timestamp * 1000);
-          if ((actualDate.getTime() - msgDate.getTime()) / (1000 * 60 * 60) > 24) break;
+          if ((actualDate.getTime() - msgDate.getTime()) / (1000 * 60 * 60) > getMaxMessageAge()) break;
 
           // Check if the message includes media or if it is of another type
           const isImage = msg.type === MessageTypes.IMAGE || msg.type === MessageTypes.STICKER;
