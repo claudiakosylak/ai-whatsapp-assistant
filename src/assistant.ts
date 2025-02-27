@@ -1,7 +1,7 @@
 import OpenAI from "openai"
 import dotenv from "dotenv"
-import { OpenAIMessage } from "."
 import { addLog } from "./utils/controlPanel"
+import { OpenAIMessage } from "./types"
 
 dotenv.config()
 

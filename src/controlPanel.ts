@@ -2,7 +2,6 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import fs from 'fs';
 import path from 'path';
-import { OpenAIMessage } from '.';
 import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
 import { ChatCompletionMessageParam } from 'openai/resources';
@@ -26,6 +25,7 @@ import {
   setChatHistory,
 } from './utils/controlPanel';
 import { getHTML } from './utils/html';
+import { OpenAIMessage } from './types';
 
 const app = express();
 config();
