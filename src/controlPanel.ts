@@ -8,8 +8,9 @@ import { processChatCompletionResponse } from './chatCompletion';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { config } from 'dotenv';
 import { setBotName, getBotName, getMessageHistoryLimit, setMessageHistoryLimit, isResetCommandEnabled, setResetCommandEnabled, getMaxMessageAge, setMaxMessageAge, getBotMode, setBotMode, getAudioResponseEnabled, setAudioResponseEnabled } from './config';
-import { MessageMedia } from 'whatsapp-web.js';
-import { v4 as uuidv4 } from 'uuid';
+import { AUDIO_DIR } from './constants';
+import { deleteAudioFiles } from './utils/audio';
+import { addLog, addMessageContentString, chatHistory, logs, setChatHistory, whatsappConnected } from './utils/controlPanel';
 
 const app = express();
 config()
@@ -18,97 +19,12 @@ const PORT = process.env.FRONTEND_PORT;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 // Serve the `public/audio` directory as a static folder
-app.use('/audio', express.static(path.join(__dirname, 'public/audio'), {
+app.use('/audio', express.static(AUDIO_DIR, {
     setHeaders: (res, path) => {
         res.setHeader('Accept-Ranges', 'bytes');
     }
 }));
 app.use(express.static(path.join(__dirname, 'public')));
-
-
-// Store logs in memory
-let logs: string[] = [];
-let chatHistory: { role: string; content: string; }[] = []
-let whatsappConnected = false;
-
-const AUDIO_DIR = path.join(__dirname, 'public/audio'); // Directory for storing audio files
-
-
-const deleteAudioFiles = () => {
-    // Read the contents of the audio directory
-    fs.readdir(AUDIO_DIR, (err, files) => {
-        if (err) {
-            console.error('Error reading audio directory:', err);
-            return;
-        }
-
-        // Iterate over each file and delete it
-        files.forEach(file => {
-            const filePath = path.join(AUDIO_DIR, file);
-
-            fs.unlink(filePath, (err) => {
-                if (err) {
-                    console.error(`Error deleting file ${file}:`, err);
-                } else {
-                    console.log(`Deleted file: ${file}`);
-                }
-            });
-        });
-    });
-};
-
-
-const saveAudioFile = (mediaContent: MessageMedia): string => {
-    const { mimetype, data } = mediaContent;
-
-    // Get file extension from mimetype (e.g., "audio/mp3" -> "mp3")
-    const extension = mimetype.split('/')[1];
-    const fileName = `${uuidv4()}.${extension}`;
-    const filePath = path.join(AUDIO_DIR, fileName);
-
-    // Convert base64 data to buffer and write to file
-    const buffer = Buffer.from(data, 'base64');
-    fs.writeFileSync(filePath, buffer);
-
-    // Return the accessible URL (assuming it's served statically)
-    return `/audio/${fileName}`;
-};
-
-const isAudioMessage = (content: string | MessageMedia) => {
-    if (typeof content === "string") {
-        return false;
-    }
-    return true;
-}
-
-const addMessageContentString = (content: string | MessageMedia) => {
-    const isAudio = isAudioMessage(content)
-    if (!isAudio) {
-        return content as string
-    }
-    const mediaContent = content as MessageMedia
-
-    const audioUrl = saveAudioFile(mediaContent);
-
-    return (
-        `<audio controls>` +
-        `<source src='${audioUrl}' type='${mediaContent.mimetype}' />` +
-        'Your browser does not support the audio element.' +
-        `</audio>`
-    );
-}
-
-export const addLog = (message: string) => {
-    console.log(message)
-    const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] ${message}`;
-    logs.unshift(logEntry); // Add to beginning of array
-    if (logs.length > 100) logs.pop(); // Keep only last 100 logs
-};
-
-export const setWhatsAppConnected = (connected: boolean) => {
-    whatsappConnected = connected;
-};
 
 app.get('/', (req, res) => {
     deleteAudioFiles()
@@ -376,7 +292,7 @@ app.post('/send-message', async (req, res) => {
 
         // Keep only last 50 messages
         if (chatHistory.length > 50) {
-            chatHistory = chatHistory.slice(-50);
+            setChatHistory(chatHistory.slice(-50))
         }
 
         res.json({ success: true });

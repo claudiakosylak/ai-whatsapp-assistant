@@ -1,11 +1,11 @@
 import OpenAI from "openai"
 import dotenv from "dotenv"
 import { ChatCompletionMessageParam } from "openai/resources"
-import { addLog } from "./controlPanel"
 import { MessageMedia } from "whatsapp-web.js"
 import { enableAudioResponse } from "./config"
 import {ElevenLabsClient} from 'elevenlabs'
 import { Readable } from 'stream';
+import { addLog } from "./utils/controlPanel"
 
 dotenv.config()
 
@@ -38,7 +38,7 @@ const createSpeechResponseContent = async (client: OpenAI, messageString: string
                 model_id: "eleven_multilingual_v2",
                 output_format: "mp3_44100_128"
             })
-            
+
             addLog(`[OpenAI->speech] Audio Creation OK`);
 
             // const audioBuffer = Buffer.from(await response.arrayBuffer());
