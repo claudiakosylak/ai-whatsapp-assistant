@@ -50,6 +50,6 @@ export const processAssistantResponse = async (
     if (enableAudioResponse) {
       messageContent = await createSpeechResponseContent(responseString);
     }
-  const textResponse = { from: from, messageContent };
+  const textResponse = { from: from, messageContent, rawText: responseString };
   return textResponse;
 };

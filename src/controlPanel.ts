@@ -27,6 +27,8 @@ import {
 import { getHTML } from './utils/html';
 import { OpenAIMessage } from './types';
 
+deleteAudioFiles();
+
 const app = express();
 config();
 const PORT = process.env.FRONTEND_PORT;
@@ -45,8 +47,6 @@ app.use(
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-  deleteAudioFiles();
-
   res.send(getHTML());
 });
 
@@ -85,14 +85,14 @@ app.post('/send-message', async (req, res) => {
   const { message } = req.body;
 
   // Add user message to history
-  chatHistory.push({ role: 'user', content: message });
+  chatHistory.push({ role: 'user', content: message, rawText: message });
 
   try {
     let response;
     if (getBotMode() === 'OPENAI_ASSISTANT') {
       const messages = chatHistory.map((msg) => ({
         role: msg.role as 'user' | 'assistant',
-        content: msg.content,
+        content: msg.rawText,
       }));
       response = await processAssistantResponse(
         'test',
@@ -101,7 +101,7 @@ app.post('/send-message', async (req, res) => {
     } else {
       const messages = chatHistory.map((msg) => ({
         role: msg.role,
-        content: msg.content,
+        content: msg.rawText,
         name: msg.role,
       }));
       addLog('Sending message to chat completion');
@@ -115,6 +115,7 @@ app.post('/send-message', async (req, res) => {
     chatHistory.push({
       role: 'assistant',
       content: addMessageContentString(response.messageContent),
+      rawText: response.rawText,
     });
 
     // Keep only last 50 messages

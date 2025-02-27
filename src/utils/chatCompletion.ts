@@ -38,7 +38,7 @@ export const processChatCompletionResponse = async (
     messageContent = await createSpeechResponseContent(responseString);
   }
 
-  const response = { from: from, messageContent };
+  const response = { from: from, messageContent, rawText: responseString };
 
   return response;
 };

@@ -4,7 +4,7 @@ import { ENV_PATH } from "../constants";
 import fs from 'fs';
 import path from 'path';
 
-type ChatHistoryItem = { role: string; content: string; }
+type ChatHistoryItem = { role: string; content: string; rawText: string; }
 
 // Store logs in memory
 export let logs: string[] = [];
