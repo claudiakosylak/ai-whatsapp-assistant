@@ -7,11 +7,11 @@ import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { config } from 'dotenv';
-import { setBotName, getBotName, getMessageHistoryLimit, setMessageHistoryLimit, isResetCommandEnabled, setResetCommandEnabled, getMaxMessageAge, setMaxMessageAge, getBotMode, setBotMode, getAudioResponseEnabled, setAudioResponseEnabled } from './config';
+import { setBotName, setMessageHistoryLimit, setResetCommandEnabled, setMaxMessageAge, getBotMode, setBotMode, setAudioResponseEnabled } from './config';
 import { AUDIO_DIR } from './constants';
 import { deleteAudioFiles } from './utils/audio';
-import { addLog, addMessageContentString, chatHistory, logs, setChatHistory, whatsappConnected } from './utils/controlPanel';
-import { html } from './utils/html';
+import { addLog, addMessageContentString, chatHistory, logs, setChatHistory } from './utils/controlPanel';
+import { getHTML } from './utils/html';
 
 const app = express();
 config()
@@ -30,7 +30,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
     deleteAudioFiles()
 
-    res.send(html);
+    res.send(getHTML());
 });
 
 app.post('/save-config', (req, res) => {
