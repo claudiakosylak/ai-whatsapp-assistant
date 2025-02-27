@@ -8,6 +8,8 @@ import { processChatCompletionResponse } from './chatCompletion';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { config } from 'dotenv';
 import { setBotName, getBotName, getMessageHistoryLimit, setMessageHistoryLimit, isResetCommandEnabled, setResetCommandEnabled, getMaxMessageAge, setMaxMessageAge, getBotMode, setBotMode, getAudioResponseEnabled, setAudioResponseEnabled } from './config';
+import { MessageMedia } from 'whatsapp-web.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 config()
@@ -15,11 +17,84 @@ const PORT = process.env.FRONTEND_PORT;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+// Serve the `public/audio` directory as a static folder
+app.use('/audio', express.static(path.join(__dirname, 'public/audio'), {
+    setHeaders: (res, path) => {
+        res.setHeader('Accept-Ranges', 'bytes');
+    }
+}));
 
 // Store logs in memory
 let logs: string[] = [];
-let chatHistory: { role: string; content: string; }[] = [];
+let chatHistory: { role: string; content: string; }[] = []
 let whatsappConnected = false;
+
+const AUDIO_DIR = path.join(__dirname, 'public/audio'); // Directory for storing audio files
+
+
+const deleteAudioFiles = () => {
+    // Read the contents of the audio directory
+    fs.readdir(AUDIO_DIR, (err, files) => {
+        if (err) {
+            console.error('Error reading audio directory:', err);
+            return;
+        }
+
+        // Iterate over each file and delete it
+        files.forEach(file => {
+            const filePath = path.join(AUDIO_DIR, file);
+
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error(`Error deleting file ${file}:`, err);
+                } else {
+                    console.log(`Deleted file: ${file}`);
+                }
+            });
+        });
+    });
+};
+
+
+const saveAudioFile = (mediaContent: MessageMedia): string => {
+    const { mimetype, data } = mediaContent;
+
+    // Get file extension from mimetype (e.g., "audio/mp3" -> "mp3")
+    const extension = mimetype.split('/')[1];
+    const fileName = `${uuidv4()}.${extension}`;
+    const filePath = path.join(AUDIO_DIR, fileName);
+
+    // Convert base64 data to buffer and write to file
+    const buffer = Buffer.from(data, 'base64');
+    fs.writeFileSync(filePath, buffer);
+
+    // Return the accessible URL (assuming it's served statically)
+    return `/audio/${fileName}`;
+};
+
+const isAudioMessage = (content: string | MessageMedia) => {
+    if (typeof content === "string") {
+        return false;
+    }
+    return true;
+}
+
+const addMessageContentString = (content: string | MessageMedia) => {
+    const isAudio = isAudioMessage(content)
+    if (!isAudio) {
+        return content as string
+    }
+    const mediaContent = content as MessageMedia
+
+    const audioUrl = saveAudioFile(mediaContent);
+
+    return (
+        `<audio controls>` +
+        `<source src='${audioUrl}' type='${mediaContent.mimetype}' />` +
+        'Your browser does not support the audio element.' +
+        `</audio>`
+    );
+}
 
 export const addLog = (message: string) => {
     console.log(message)
@@ -34,6 +109,7 @@ export const setWhatsAppConnected = (connected: boolean) => {
 };
 
 app.get('/', (req, res) => {
+    deleteAudioFiles()
     const envPath = path.join(process.cwd(), '.env');
     let envContent = '';
     try {
@@ -213,11 +289,9 @@ app.get('/', (req, res) => {
                         <div class="chat-container">
                             <h3>Test Chat</h3>
                             <div class="chat-messages" id="chatMessages">
-                                ${chatHistory.map(msg =>
-                                    '<div class="message ' + msg.role + '">' +
+                                ${chatHistory.map(msg => '<div class="message ' + msg.role + '">' +
                                         '<strong>' + msg.role + ':</strong> ' + msg.content +
-                                    '</div>'
-                                ).join('')}
+                                    '</div>' ).join('')}
                             </div>
                             <form class="chat-input" id="chatForm">
                                 <input type="text" id="messageInput" placeholder="Type your message..." required>
@@ -234,6 +308,7 @@ app.get('/', (req, res) => {
                 </div>
             </div>
             <script>
+            let lastChatHistory =[]
                 // Auto-refresh logs every 5 seconds
                 setInterval(() => {
                     fetch('/logs')
@@ -243,18 +318,26 @@ app.get('/', (req, res) => {
                                 data.map(log => '<div class="log-entry">' + log + '</div>').join('');
                         });
 
-                    fetch('/chat-history')
-                        .then(response => response.json())
-                        .then(data => {
+                fetch('/chat-history')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Compare chat history with the last known state
+                        if (JSON.stringify(data) !== JSON.stringify(lastChatHistory)) {
                             document.querySelector('#chatMessages').innerHTML =
                                 data.map(msg =>
                                     '<div class="message ' + msg.role + '">' +
                                         '<strong>' + msg.role + ':</strong> ' + msg.content +
                                     '</div>'
                                 ).join('');
+
+                            // Scroll to the bottom of the chat container
                             const chatMessages = document.querySelector('#chatMessages');
                             chatMessages.scrollTop = chatMessages.scrollHeight;
-                        });
+
+                            // Update the last known chat history
+                            lastChatHistory = data;
+                        }
+                    });
                 }, 5000);
 
                 document.getElementById('chatForm').addEventListener('submit', async (e) => {
@@ -334,7 +417,7 @@ app.post('/send-message', async (req, res) => {
         }
 
         // Add assistant response to history
-        chatHistory.push({ role: 'assistant', content: response.messageContent });
+        chatHistory.push({ role: 'assistant', content: addMessageContentString(response.messageContent) });
 
         // Keep only last 50 messages
         if (chatHistory.length > 50) {

@@ -4,3 +4,5 @@ dist
 .wwebjs_auth
 .wwebjs_cache
 .DS_Store
+
+src/public/audio/*
