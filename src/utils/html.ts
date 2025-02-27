@@ -1,4 +1,4 @@
-import { getAudioResponseEnabled, getBotMode, getBotName, getMaxMessageAge, getMessageHistoryLimit, isResetCommandEnabled } from "../config";
+import { getAudioResponseEnabled, getBotMode, getBotName, getMaxMessageAge, getMessageHistoryLimit, isResetCommandEnabled } from "./config";
 import { chatHistory, getEnvContent, logs, whatsappConnected } from "./controlPanel";
 
 export const getHTML = () => `

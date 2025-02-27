@@ -2,7 +2,7 @@ import { Message, Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal"
 import { processAssistantMessage, processChatCompletionMessage } from "./whatsapp";
 import { startControlPanel } from "./controlPanel";
-import { enableAudioResponse, getBotMode } from "./config";
+import { enableAudioResponse, getBotMode } from "./utils/config";
 import { addLog, setWhatsAppConnected } from "./utils/controlPanel";
 
 export type OpenAIMessage = {

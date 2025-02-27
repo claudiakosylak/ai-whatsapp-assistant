@@ -1,45 +1,9 @@
-// Bot configuration management
-let botName = "Roboto";
-let messageHistoryLimit = 10;
-let resetCommandEnabled = true;
-let maxMessageAge = 24;
+import dotenv from "dotenv"
 
-export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
+dotenv.config()
 
-export let mode = "OPEN_WEBBUI_CHAT" as BotMode;
-
-export let enableAudioResponse = true;
-
-export let disableWhatsappConnection = false;
-
-export const getAudioResponseEnabled = () => enableAudioResponse;
-
-export const setAudioResponseEnabled = (val: boolean) => enableAudioResponse = val;
-
-export const getBotName = () => botName;
-
-export const setBotName = (name: string) => {
-    botName = name;
-};
-
-export const getMessageHistoryLimit = () => messageHistoryLimit;
-
-export const setMessageHistoryLimit = (limit: number) => {
-    messageHistoryLimit = limit;
-};
-
-export const getBotMode = () => mode;
-
-export const setBotMode = (botMode: BotMode) => mode = botMode;
-
-export const isResetCommandEnabled = () => resetCommandEnabled;
-
-export const setResetCommandEnabled = (enabled: boolean) => {
-    resetCommandEnabled = enabled;
-};
-
-export const getMaxMessageAge = () => maxMessageAge;
-
-export const setMaxMessageAge = (hours: number) => {
-    maxMessageAge = hours;
-};
+export const ELEVEN_LABS_API_KEY = process.env.ELEVEN_LABS_API_KEY
+export const OPENAI_API_KEY = process.env.OPENAI_API_KEY
+export const OPEN_WEBUI_KEY = process.env.OPEN_WEBUI_KEY
+export const OPEN_WEBUI_BASE_URL = process.env.OPEN_WEBUI_BASE_URL
+export const OPEN_WEBUI_MODEL = process.env.OPEN_WEBUI_MODEL as string

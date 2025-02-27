@@ -3,8 +3,8 @@ import { OpenAIMessage } from ".";
 import { processAssistantResponse } from "./assistant";
 import { ChatCompletionMessageParam } from "openai/resources";
 import { processChatCompletionResponse } from "./chatCompletion";
-import { getBotName, getMessageHistoryLimit, isResetCommandEnabled, getMaxMessageAge } from "./config";
-import { addLog } from "./controlPanel";
+import { getBotName, getMessageHistoryLimit, isResetCommandEnabled, getMaxMessageAge } from "./utils/config";
+import { addLog } from "./utils/controlPanel";
 
 export const processAssistantMessage = async (message: Message) => {
     const chatData: Chat = await message.getChat();
