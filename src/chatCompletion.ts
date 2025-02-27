@@ -38,23 +38,7 @@ const createSpeechResponseContent = async (client: OpenAI, messageString: string
                 model_id: "eleven_multilingual_v2",
                 output_format: "mp3_44100_128"
             })
-
-            // const voice = new ElevenLabs({
-            //     apiKey: process.env.ELEVEN_LABS_API_KEY,
-            //     voiceId: "IuRRIAcbQK5AQk1XevPj" //doga turkish voice
-            //   })
-
-            // const response = await voice.textToSpeechStream({
-            //     voiceId: "IuRRIAcbQK5AQk1XevPj",
-            //     textInput: messageString,
-            //     stability: 0.5,
-            //     similarityBoost: 0.75,
-            //     style: 0.5,
-            //     speakerBoost: true,
-            //     modelId: "eleven_multilingual_v2",
-            //     responseType: "arraybuffer"
-            // } as any)
-
+            
             addLog(`[OpenAI->speech] Audio Creation OK`);
 
             // const audioBuffer = Buffer.from(await response.arrayBuffer());

@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "testmode": "nodemon --config nodemon-test.json",
     "start": "npm run build && node dist/index.js",
     "build": "tsc",
-    "dev": "ts-node src/index.ts",
+    "dev": "nodemon --config nodemon.json",
     "watch": "tsc --watch"
   },
   "keywords": [],

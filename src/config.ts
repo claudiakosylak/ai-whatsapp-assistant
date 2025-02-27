@@ -10,6 +10,12 @@ export let mode = "OPEN_WEBBUI_CHAT" as BotMode;
 
 export let enableAudioResponse = true;
 
+export let disableWhatsappConnection = false;
+
+export const getAudioResponseEnabled = () => enableAudioResponse;
+
+export const setAudioResponseEnabled = (val: boolean) => enableAudioResponse = val;
+
 export const getBotName = () => botName;
 
 export const setBotName = (name: string) => {

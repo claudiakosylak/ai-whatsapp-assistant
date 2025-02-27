@@ -7,7 +7,7 @@ import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { config } from 'dotenv';
-import { setBotName, getBotName, getMessageHistoryLimit, setMessageHistoryLimit, isResetCommandEnabled, setResetCommandEnabled, getMaxMessageAge, setMaxMessageAge, getBotMode, setBotMode } from './config';
+import { setBotName, getBotName, getMessageHistoryLimit, setMessageHistoryLimit, isResetCommandEnabled, setResetCommandEnabled, getMaxMessageAge, setMaxMessageAge, getBotMode, setBotMode, getAudioResponseEnabled, setAudioResponseEnabled } from './config';
 
 const app = express();
 config()
@@ -189,10 +189,16 @@ app.get('/', (req, res) => {
                                         </label>
                                     </div>
                                     <div>
+                                        <label>
+                                            <input type="checkbox" name="respondAsVoice" ${getAudioResponseEnabled() ? 'checked' : ''}>
+                                            Respond with voice messages
+                                        </label>
+                                    </div>
+                                    <div>
                                         <label for="chatSelector">Choose a chat mode:</label>
                                         <select id="chatSelector" name="botMode">
-                                            <option value="OPENAI_ASSISTANT">OPENAI_ASSISTANT</option>
-                                            <option value="OPEN_WEBUI_CHAT">OPEN_WEBUI_CHAT</option>
+                                            <option value="OPENAI_ASSISTANT" ${getBotMode() === "OPENAI_ASSISTANT" && "selected"}>Assistant (OpenAI)</option>
+                                            <option value="OPEN_WEBUI_CHAT" ${getBotMode() === "OPEN_WEBBUI_CHAT" && "selected"}>Chat Completions (Open WebUI Custom)</option>
                                         </select>
                                     </div>
                                     <button type="submit">Save Settings</button>
@@ -200,7 +206,6 @@ app.get('/', (req, res) => {
                             </div>
                         </form>
                         <div class="status active">
-                            <strong>Current Mode:</strong> ${getBotMode()}<br>
                             <strong>WhatsApp Status:</strong> <span style="color: ${whatsappConnected ? '#2e7d32' : '#d32f2f'}">${whatsappConnected ? 'Connected' : 'Disconnected'}</span>
                         </div>
                     </div>
@@ -353,7 +358,7 @@ app.post('/save-bot-name', (req, res) => {
 });
 
 app.post('/save-bot-settings', (req, res) => {
-    const { messageHistoryLimit, resetCommandEnabled, maxMessageAge, botMode } = req.body;
+    const { messageHistoryLimit, resetCommandEnabled, maxMessageAge, botMode, respondAsVoice } = req.body;
 
     if (messageHistoryLimit) {
         const limit = parseInt(messageHistoryLimit);
@@ -373,6 +378,9 @@ app.post('/save-bot-settings', (req, res) => {
 
     setResetCommandEnabled(!!resetCommandEnabled);
     addLog(`Reset command ${resetCommandEnabled ? 'enabled' : 'disabled'}`);
+
+    setAudioResponseEnabled(!!respondAsVoice)
+    addLog(`Respond in voice messages ${respondAsVoice ? 'enabled' : 'disabled'}`)
 
     setBotMode(botMode)
     addLog(`Bot mode changed to ${botMode}`)
