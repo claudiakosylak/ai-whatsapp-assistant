@@ -1,5 +1,8 @@
 import { MessageMedia } from "whatsapp-web.js";
 import { saveAudioFile } from "./audio";
+import { ENV_PATH } from "../constants";
+import fs from 'fs';
+import path from 'path';
 
 type ChatHistoryItem = { role: string; content: string; }
 
@@ -47,3 +50,12 @@ export const addLog = (message: string) => {
 export const setWhatsAppConnected = (connected: boolean) => {
     whatsappConnected = connected;
 };
+
+export const getEnvContent = () => {
+    let envContent = '';
+    try {
+        return envContent = fs.readFileSync(ENV_PATH, 'utf8');
+    } catch (error) {
+        return envContent = fs.readFileSync(path.join(process.cwd(), '.env.example'), 'utf8');
+    }
+}
