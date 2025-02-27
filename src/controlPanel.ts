@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import fs from 'fs';
 import path from 'path';
-import { processAssistantResponse } from './assistant';
+import { processAssistantResponse } from './utils/assistant';
 import { processChatCompletionResponse } from './utils/chatCompletion';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { config } from 'dotenv';

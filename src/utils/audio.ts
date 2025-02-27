@@ -130,3 +130,23 @@ export async function transcribeVoice(media: MessageMedia): Promise<string> {
     return '<Error transcribing voice message>';
   }
 }
+
+export const createSpeechResponseContent = async (messageString: string) => {
+  try {
+    addLog(
+      `[OpenAI->speech] Creating speech audio for: "${messageString.substring(
+        0,
+        100,
+      )}...}"`,
+    );
+
+    const response = await getBase64WithElevenLabs(messageString);
+    let audioMedia = new MessageMedia('audio/mp3', response, 'voice.mp3');
+
+    return audioMedia;
+  } catch (e: any) {
+    addLog('Trouble creating speech');
+    addLog(e);
+    throw e;
+  }
+};

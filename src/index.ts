@@ -1,8 +1,7 @@
 import { Message, Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal"
-import { handleIncomingMessage, processAssistantMessage, processChatCompletionMessage } from "./utils/whatsapp";
+import { handleIncomingMessage } from "./utils/whatsapp";
 import { startControlPanel } from "./controlPanel";
-import { enableAudioResponse, getBotMode } from "./utils/config";
 import { addLog, setWhatsAppConnected } from "./utils/controlPanel";
 
 const client = new Client({
