@@ -37,5 +37,6 @@ export const processAssistantResponse = async (from: string, messages: OpenAIMes
     const latestMessageContent: any = latestMessage.content[0]
     addLog(`Assistant response: ${latestMessageContent.text.value.substring(0, 100)}...`);
     const responseString = latestMessageContent.text.value
-    return {from: from, messageString: responseString}
+    const textResponse = {from: from, messageContent: responseString}
+    return textResponse
 }

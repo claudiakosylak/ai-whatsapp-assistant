@@ -4,6 +4,7 @@ import { processAssistantResponse } from "./assistant";
 import { ChatCompletionMessageParam } from "openai/resources";
 import { processChatCompletionResponse } from "./chatCompletion";
 import { getBotName, getMessageHistoryLimit, isResetCommandEnabled, getMaxMessageAge } from "./config";
+import { addLog } from "./controlPanel";
 
 export const processAssistantMessage = async (message: Message) => {
     const chatData: Chat = await message.getChat();
@@ -72,6 +73,7 @@ export const processChatCompletionMessage = async (message: Message) => {
     const actualDate = new Date();
     const messageList: ChatCompletionMessageParam[] = []
     const fetchedMessages = await chatData.fetchMessages({ limit: getMessageHistoryLimit() });
+    addLog(`Fetched messages: ${fetchedMessages}`)
     // Check for "-reset" command in chat history to potentially restart context
     const resetIndex = isResetCommandEnabled() ? fetchedMessages.map(msg => msg.body).lastIndexOf("-reset") : -1;
     const messagesToProcess = resetIndex >= 0 ? fetchedMessages.slice(resetIndex + 1) : fetchedMessages;

@@ -22,6 +22,7 @@ let chatHistory: { role: string; content: string; }[] = [];
 let whatsappConnected = false;
 
 export const addLog = (message: string) => {
+    console.log(message)
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] ${message}`;
     logs.unshift(logEntry); // Add to beginning of array
@@ -323,11 +324,12 @@ app.post('/send-message', async (req, res) => {
                 content: msg.content,
                 name: msg.role
             }));
+            addLog("Sending message to chat completion")
             response = await processChatCompletionResponse('test', messages as ChatCompletionMessageParam[]);
         }
 
         // Add assistant response to history
-        chatHistory.push({ role: 'assistant', content: response.messageString });
+        chatHistory.push({ role: 'assistant', content: response.messageContent });
 
         // Keep only last 50 messages
         if (chatHistory.length > 50) {

@@ -2,7 +2,7 @@ import { Message, Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal"
 import { processAssistantMessage, processChatCompletionMessage } from "./whatsapp";
 import { startControlPanel, addLog, setWhatsAppConnected } from "./controlPanel";
-import { getBotMode } from "./config";
+import { enableAudioResponse, getBotMode } from "./config";
 
 export type OpenAIMessage = {
     role: "user" | "assistant",
@@ -33,14 +33,14 @@ client.on('qr', qr => {
         addLog(`Processing assistant message from ${message.from}`);
         const response = await processAssistantMessage(message)
         if (response) {
-            client.sendMessage(response.from, response.messageString)
+            client.sendMessage(response.from, response.messageContent)
             addLog(`Sent assistant response to ${response.from}`);
         }
     } else {
         addLog(`Processing chat completion message from ${message.from}`);
         const response = await processChatCompletionMessage(message)
         if (response) {
-            client.sendMessage(response.from, response.messageString)
+            client.sendMessage(response.from, response.messageContent, {sendAudioAsVoice: enableAudioResponse})
             addLog(`Sent chat completion response to ${response.from}`);
         }
     }

@@ -6,7 +6,9 @@ let maxMessageAge = 24;
 
 export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
 
-export let mode = "OPENAI_ASSISTANT" as BotMode;
+export let mode = "OPEN_WEBBUI_CHAT" as BotMode;
+
+export let enableAudioResponse = true;
 
 export const getBotName = () => botName;
 
