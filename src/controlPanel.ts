@@ -2,15 +2,16 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import fs from 'fs';
 import path from 'path';
-import { mode, OpenAIMessage } from '.';
+import { OpenAIMessage } from '.';
 import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { config } from 'dotenv';
-import { setBotName, getBotName, getMessageHistoryLimit, setMessageHistoryLimit, isResetCommandEnabled, setResetCommandEnabled, getMaxMessageAge, setMaxMessageAge } from './config';
+import { setBotName, getBotName, getMessageHistoryLimit, setMessageHistoryLimit, isResetCommandEnabled, setResetCommandEnabled, getMaxMessageAge, setMaxMessageAge, getBotMode, setBotMode } from './config';
 
 const app = express();
-const PORT = 3000;
+config()
+const PORT = process.env.FRONTEND_PORT;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -186,12 +187,19 @@ app.get('/', (req, res) => {
                                             Enable "-reset" command
                                         </label>
                                     </div>
+                                    <div>
+                                        <label for="chatSelector">Choose a chat mode:</label>
+                                        <select id="chatSelector" name="botMode">
+                                            <option value="OPENAI_ASSISTANT">OPENAI_ASSISTANT</option>
+                                            <option value="OPEN_WEBUI_CHAT">OPEN_WEBUI_CHAT</option>
+                                        </select>
+                                    </div>
                                     <button type="submit">Save Settings</button>
                                 </form>
                             </div>
                         </form>
                         <div class="status active">
-                            <strong>Current Mode:</strong> ${mode}<br>
+                            <strong>Current Mode:</strong> ${getBotMode()}<br>
                             <strong>WhatsApp Status:</strong> <span style="color: ${whatsappConnected ? '#2e7d32' : '#d32f2f'}">${whatsappConnected ? 'Connected' : 'Disconnected'}</span>
                         </div>
                     </div>
@@ -199,7 +207,7 @@ app.get('/', (req, res) => {
                         <div class="chat-container">
                             <h3>Test Chat</h3>
                             <div class="chat-messages" id="chatMessages">
-                                ${chatHistory.map(msg => 
+                                ${chatHistory.map(msg =>
                                     '<div class="message ' + msg.role + '">' +
                                         '<strong>' + msg.role + ':</strong> ' + msg.content +
                                     '</div>'
@@ -225,15 +233,15 @@ app.get('/', (req, res) => {
                     fetch('/logs')
                         .then(response => response.json())
                         .then(data => {
-                            document.querySelector('.logs').innerHTML = 
+                            document.querySelector('.logs').innerHTML =
                                 data.map(log => '<div class="log-entry">' + log + '</div>').join('');
                         });
-                    
+
                     fetch('/chat-history')
                         .then(response => response.json())
                         .then(data => {
-                            document.querySelector('#chatMessages').innerHTML = 
-                                data.map(msg => 
+                            document.querySelector('#chatMessages').innerHTML =
+                                data.map(msg =>
                                     '<div class="message ' + msg.role + '">' +
                                         '<strong>' + msg.role + ':</strong> ' + msg.content +
                                     '</div>'
@@ -297,13 +305,13 @@ app.get('/chat-history', (req, res) => {
 
 app.post('/send-message', async (req, res) => {
     const { message } = req.body;
-    
+
     // Add user message to history
     chatHistory.push({ role: 'user', content: message });
-    
+
     try {
         let response;
-        if (mode === 'OPENAI_ASSISTANT') {
+        if (getBotMode() === 'OPENAI_ASSISTANT') {
             const messages = chatHistory.map(msg => ({
                 role: msg.role as "user" | "assistant",
                 content: msg.content
@@ -317,15 +325,15 @@ app.post('/send-message', async (req, res) => {
             }));
             response = await processChatCompletionResponse('test', messages as ChatCompletionMessageParam[]);
         }
-        
+
         // Add assistant response to history
         chatHistory.push({ role: 'assistant', content: response.messageString });
-        
+
         // Keep only last 50 messages
         if (chatHistory.length > 50) {
             chatHistory = chatHistory.slice(-50);
         }
-        
+
         res.json({ success: true });
     } catch (error) {
         addLog(`Error in test chat: ${error}`);
@@ -343,8 +351,8 @@ app.post('/save-bot-name', (req, res) => {
 });
 
 app.post('/save-bot-settings', (req, res) => {
-    const { messageHistoryLimit, resetCommandEnabled, maxMessageAge } = req.body;
-    
+    const { messageHistoryLimit, resetCommandEnabled, maxMessageAge, botMode } = req.body;
+
     if (messageHistoryLimit) {
         const limit = parseInt(messageHistoryLimit);
         if (limit >= 1 && limit <= 50) {
@@ -352,7 +360,7 @@ app.post('/save-bot-settings', (req, res) => {
             addLog(`Message history limit updated to: ${limit}`);
         }
     }
-    
+
     if (maxMessageAge) {
         const hours = parseInt(maxMessageAge);
         if (hours >= 1 && hours <= 72) {
@@ -360,10 +368,13 @@ app.post('/save-bot-settings', (req, res) => {
             addLog(`Max message age updated to: ${hours} hours`);
         }
     }
-    
+
     setResetCommandEnabled(!!resetCommandEnabled);
     addLog(`Reset command ${resetCommandEnabled ? 'enabled' : 'disabled'}`);
-    
+
+    setBotMode(botMode)
+    addLog(`Bot mode changed to ${botMode}`)
+
     res.redirect('/');
 });
 export const startControlPanel = () => {

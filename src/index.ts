@@ -2,10 +2,7 @@ import { Message, Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal"
 import { processAssistantMessage, processChatCompletionMessage } from "./whatsapp";
 import { startControlPanel, addLog, setWhatsAppConnected } from "./controlPanel";
-
-export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
-
-export const mode = "OPENAI_ASSISTANT" as BotMode;
+import { getBotMode } from "./config";
 
 export type OpenAIMessage = {
     role: "user" | "assistant",
@@ -32,7 +29,7 @@ client.on('qr', qr => {
   });
 
   client.on('message', async (message: Message) => {
-    if (mode === "OPENAI_ASSISTANT") {
+    if (getBotMode() === "OPENAI_ASSISTANT") {
         addLog(`Processing assistant message from ${message.from}`);
         const response = await processAssistantMessage(message)
         if (response) {
