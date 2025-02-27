@@ -1,14 +1,14 @@
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { MessageMedia } from 'whatsapp-web.js';
-import { enableAudioResponse } from './utils/config';
-import { addLog } from './utils/controlPanel';
-import { getBase64WithElevenLabs } from './utils/audio';
+import { enableAudioResponse } from './config';
+import { addLog } from './controlPanel';
+import { getBase64WithElevenLabs } from './audio';
 import {
   OPEN_WEBUI_BASE_URL,
   OPEN_WEBUI_KEY,
   OPEN_WEBUI_MODEL,
-} from './config';
+} from '../config';
 
 const createSpeechResponseContent = async (messageString: string) => {
   try {

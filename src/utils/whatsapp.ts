@@ -1,7 +1,7 @@
 import { Chat, Client, Message, MessageTypes } from 'whatsapp-web.js';
 import { processAssistantResponse } from '../assistant';
 import { ChatCompletionMessageParam } from 'openai/resources';
-import { processChatCompletionResponse } from '../chatCompletion';
+import { processChatCompletionResponse } from './chatCompletion';
 import {
   getBotName,
   getMessageHistoryLimit,
@@ -12,6 +12,7 @@ import {
 } from './config';
 import { addLog } from './controlPanel';
 import { OpenAIMessage } from '../types';
+import { transcribeVoice } from './audio';
 
 export const processAssistantMessage = async (message: Message) => {
   const chatData: Chat = await message.getChat();
@@ -101,7 +102,6 @@ export const processChatCompletionMessage = async (message: Message) => {
   const fetchedMessages = await chatData.fetchMessages({
     limit: getMessageHistoryLimit(),
   });
-  console.log({fetchedMessages})
   // Check for "-reset" command in chat history to potentially restart context
   const resetIndex = isResetCommandEnabled()
     ? fetchedMessages.map((msg) => msg.body).lastIndexOf('-reset')
@@ -125,10 +125,17 @@ export const processChatCompletionMessage = async (message: Message) => {
         msg.type === MessageTypes.VOICE || msg.type === MessageTypes.AUDIO;
       const isOther = !isImage && !isAudio && msg.type != 'chat';
 
-      if (isImage || isAudio || isOther) continue;
+      if (isImage || isOther) continue;
+
+      const media = isAudio ? await msg.downloadMedia() : null;
+
+      let messageBody = msg.body;
+      if (media) {
+        messageBody = await transcribeVoice(media);
+      }
 
       const role = !msg.fromMe ? 'user' : 'assistant';
-      messageList.push({ role: role, content: msg.body, name: role });
+      messageList.push({ role: role, content: messageBody, name: role });
     } catch (e: any) {
       console.error(
         `Error reading message - msg.type:${msg.type}; msg.body:${msg.body}. Error:${e.message}`,
@@ -137,7 +144,7 @@ export const processChatCompletionMessage = async (message: Message) => {
   }
 
   if (messageList.length == 0) return;
-  console.log('making it to chat completion')
+  console.log('making it to chat completion');
   return await processChatCompletionResponse(
     message.from,
     messageList.reverse(),
