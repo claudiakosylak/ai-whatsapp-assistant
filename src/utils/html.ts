@@ -217,7 +217,7 @@ export const getHTML = () => `
                             <input type="text" id="messageInput" placeholder="Type your message..." required>
                             <button type="submit">Send Message</button>
                         </div>
-                        <input type="file" id="imageInput" accept="image/*">
+                        <input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">
                     </form>
                 </div>
             </div>

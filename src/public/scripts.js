@@ -50,25 +50,26 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
 
     reader.onload = function (event) {
       const base64String = event.target.result.split(',')[1]; // Get only the Base64 part
+      const mimeType = event.target.result.split(';')[0].split(':')[1];
 
-      fetch('/send-message', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message, image: base64String, imageName: file.name }),
-      });
+        fetch('/send-message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ message, image: base64String, imageName: file.name, mimeType }),
+        });
     };
 
     reader.readAsDataURL(file);
-    return
-  }
-
+    fileInput.value = '';
+  } else {
     await fetch('/send-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, image: '', imageName: '' }),
+      body: JSON.stringify({ message, image: '', imageName: '', mimeType: '' }),
     });
+  }
 });

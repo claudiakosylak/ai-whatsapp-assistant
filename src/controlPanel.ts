@@ -85,15 +85,15 @@ app.get('/chat-history', (req, res) => {
 });
 
 app.post('/send-message', async (req, res) => {
-  const { message, image, imageName } = req.body;
+  const { message, image, imageName, mimeType } = req.body;
 
   let imageUrl;
-  if (image && imageName) {
+  if (image && imageName && mimeType) {
     imageUrl = saveImageFile(image, imageName);
   }
 
   const messageBody =
-    !image || !imageName
+    !image || !imageName || !mimeType
       ? message
       : [
           {
@@ -103,7 +103,7 @@ app.post('/send-message', async (req, res) => {
           {
             type: 'image_url',
             image_url: {
-              url: `data:image/jpeg;base64,${image}`,
+              url: `data:${mimeType};base64,${image}`,
             },
           },
         ];
