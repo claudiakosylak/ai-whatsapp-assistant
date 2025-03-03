@@ -1,5 +1,17 @@
-import { getAudioResponseEnabled, getBotMode, getBotName, getMaxMessageAge, getMessageHistoryLimit, isResetCommandEnabled } from "./config";
-import { chatHistory, getEnvContent, logs, whatsappConnected } from "./controlPanel";
+import {
+  getAudioResponseEnabled,
+  getBotMode,
+  getBotName,
+  getMaxMessageAge,
+  getMessageHistoryLimit,
+  isResetCommandEnabled,
+} from './config';
+import {
+  chatHistory,
+  getEnvContent,
+  logs,
+  whatsappConnected,
+} from './controlPanel';
 
 export const getHTML = () => `
 <!DOCTYPE html>
@@ -143,21 +155,31 @@ export const getHTML = () => `
                             </div>
                             <div>
                                 <label>
-                                    <input type="checkbox" name="resetCommandEnabled" ${isResetCommandEnabled() ? 'checked' : ''}>
+                                    <input type="checkbox" name="resetCommandEnabled" ${
+                                      isResetCommandEnabled() ? 'checked' : ''
+                                    }>
                                     Enable "-reset" command
                                 </label>
                             </div>
                             <div>
                                 <label>
-                                    <input type="checkbox" name="respondAsVoice" ${getAudioResponseEnabled() ? 'checked' : ''}>
+                                    <input type="checkbox" name="respondAsVoice" ${
+                                      getAudioResponseEnabled() ? 'checked' : ''
+                                    }>
                                     Respond with voice messages
                                 </label>
                             </div>
                             <div>
                                 <label for="chatSelector">Choose a chat mode:</label>
                                 <select id="chatSelector" name="botMode">
-                                    <option value="OPENAI_ASSISTANT" ${getBotMode() === "OPENAI_ASSISTANT" && "selected"}>Assistant (OpenAI)</option>
-                                    <option value="OPEN_WEBUI_CHAT" ${getBotMode() === "OPEN_WEBBUI_CHAT" && "selected"}>Chat Completions (Open WebUI Custom)</option>
+                                    <option value="OPENAI_ASSISTANT" ${
+                                      getBotMode() === 'OPENAI_ASSISTANT' &&
+                                      'selected'
+                                    }>Assistant (OpenAI)</option>
+                                    <option value="OPEN_WEBUI_CHAT" ${
+                                      getBotMode() === 'OPEN_WEBBUI_CHAT' &&
+                                      'selected'
+                                    }>Chat Completions (Open WebUI Custom)</option>
                                 </select>
                             </div>
                             <button type="submit">Save Settings</button>
@@ -165,20 +187,37 @@ export const getHTML = () => `
                     </div>
                 </form>
                 <div class="status active">
-                    <strong>WhatsApp Status:</strong> <span style="color: ${whatsappConnected ? '#2e7d32' : '#d32f2f'}">${whatsappConnected ? 'Connected' : 'Disconnected'}</span>
+                    <strong>WhatsApp Status:</strong> <span style="color: ${
+                      whatsappConnected ? '#2e7d32' : '#d32f2f'
+                    }">${
+  whatsappConnected ? 'Connected' : 'Disconnected'
+}</span>
                 </div>
             </div>
             <div class="panel">
                 <div class="chat-container">
                     <h3>Test Chat</h3>
                     <div class="chat-messages" id="chatMessages">
-                        ${chatHistory.map(msg => '<div class="message ' + msg.role + '">' +
-                                '<strong>' + msg.role + ':</strong> ' + msg.content +
-                            '</div>' ).join('')}
+                        ${chatHistory
+                          .map(
+                            (msg) =>
+                              '<div class="message ' +
+                              msg.role +
+                              '">' +
+                              '<strong>' +
+                              msg.role +
+                              ':</strong> ' +
+                              msg.content +
+                              '</div>',
+                          )
+                          .join('')}
                     </div>
-                    <form class="chat-input" id="chatForm">
-                        <input type="text" id="messageInput" placeholder="Type your message..." required>
-                        <button type="submit">Send Message</button>
+                    <form class="chat-input" id="chatForm" style="display:flex;flex-direction:column;gap:10px;">
+                        <div style="display:flex;">
+                            <input type="text" id="messageInput" placeholder="Type your message..." required>
+                            <button type="submit">Send Message</button>
+                        </div>
+                        <input type="file" id="imageInput" accept="image/*">
                     </form>
                 </div>
             </div>
@@ -186,7 +225,9 @@ export const getHTML = () => `
         <div class="panel">
             <h2>Logs</h2>
             <div class="logs">
-                ${logs.map(log => `<div class="log-entry">${log}</div>`).join('')}
+                ${logs
+                  .map((log) => `<div class="log-entry">${log}</div>`)
+                  .join('')}
             </div>
         </div>
     </div>

@@ -3,6 +3,9 @@ import qrcode from "qrcode-terminal"
 import { handleIncomingMessage } from "./utils/whatsapp";
 import { startControlPanel } from "./controlPanel";
 import { addLog, setWhatsAppConnected } from "./utils/controlPanel";
+import { isMessageReceivedAfterInit } from "./utils/messages";
+
+const initTime = new Date()
 
 const client = new Client({
     authStrategy: new LocalAuth()
@@ -23,11 +26,13 @@ client.on('qr', qr => {
   });
 
   client.on('message', async (message: Message) => {
+    if (!isMessageReceivedAfterInit(initTime, message)) return
     handleIncomingMessage(client, message)
   });
 
   // used for testing so that you can message yourself on whatsapp with flag -test-bot
   client.on('message_create', async (message: Message) => {
+    if (!isMessageReceivedAfterInit(initTime, message)) return
     if (!message.body.includes("-test-bot")) return;
     if (!message.id.fromMe) return;
     handleIncomingMessage(client, message)

@@ -92,7 +92,7 @@ export const getContextMessageContent = async (
         {
           type: "image_url",
           image_url: {
-            "url": media.data
+            "url": `data:${media.mimetype};base64,${media.data}`
           }
         }
       ]
@@ -107,3 +107,12 @@ export const getContextMessageContent = async (
     return { role: role, content: messageBody as string } as OpenAIMessage
   }
 };
+
+
+export const isMessageReceivedAfterInit = (initTime: Date, message: Message) => {
+  const msgDate = new Date(message.timestamp * 1000);
+  if (msgDate > initTime) {
+    return true
+  }
+  return false
+}

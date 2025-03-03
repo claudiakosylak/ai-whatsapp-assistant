@@ -20,10 +20,14 @@ export const processChatCompletionResponse = async (
     baseURL: OPEN_WEBUI_BASE_URL,
   });
 
+  console.log("message content: ", messages[0])
+
   const completion = await client.chat.completions.create({
     messages,
-    model: OPEN_WEBUI_MODEL,
+    model: OPEN_WEBUI_MODEL
   });
+
+  console.log("completion: ", completion)
   addLog(
     `Chat completion response: ${completion.choices[0].message.content?.substring(
       0,

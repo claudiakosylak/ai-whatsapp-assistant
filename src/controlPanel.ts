@@ -15,7 +15,7 @@ import {
   setBotMode,
   setAudioResponseEnabled,
 } from './utils/config';
-import { AUDIO_DIR, ENV_PATH } from './constants';
+import { AUDIO_DIR, ENV_PATH, IMAGE_DIR } from './constants';
 import { deleteAudioFiles } from './utils/audio';
 import {
   addLog,
@@ -26,17 +26,17 @@ import {
 } from './utils/controlPanel';
 import { getHTML } from './utils/html';
 import { OpenAIMessage } from './types';
+import { deleteImageFiles, saveImageFile } from './utils/images';
 
 deleteAudioFiles();
-
-console.log(getBotMode())
+deleteImageFiles();
 
 const app = express();
 config();
 const PORT = process.env.FRONTEND_PORT;
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 // Serve the `public/audio` directory as a static folder
 app.use(
   '/audio',
@@ -46,6 +46,7 @@ app.use(
     },
   }),
 );
+app.use('/images', express.static(IMAGE_DIR));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
@@ -84,10 +85,37 @@ app.get('/chat-history', (req, res) => {
 });
 
 app.post('/send-message', async (req, res) => {
-  const { message } = req.body;
+  const { message, image, imageName } = req.body;
+
+  let imageUrl;
+  if (image && imageName) {
+    imageUrl = saveImageFile(image, imageName);
+  }
+
+  const messageBody =
+    !image || !imageName
+      ? message
+      : [
+          {
+            type: 'text',
+            text: message,
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: `data:image/jpeg;base64,${image}`,
+            },
+          },
+        ];
+
+  const contentJSON = JSON.stringify(messageBody);
 
   // Add user message to history
-  chatHistory.push({ role: 'user', content: message, rawText: message });
+  chatHistory.push({
+    role: 'user',
+    content: addMessageContentString(message, imageUrl),
+    rawText: contentJSON,
+  });
 
   try {
     let response;
@@ -101,11 +129,13 @@ app.post('/send-message', async (req, res) => {
         messages as OpenAIMessage[],
       );
     } else {
-      const messages = chatHistory.map((msg) => ({
-        role: msg.role,
-        content: msg.rawText,
-        name: msg.role,
-      }));
+      const messages = chatHistory.map((msg) => {
+        return {
+          role: msg.role,
+          content: JSON.parse(msg.rawText),
+          name: msg.role,
+        };
+      });
       addLog('Sending message to chat completion');
       response = await processChatCompletionResponse(
         'test',
