@@ -85,6 +85,7 @@ app.get('/chat-history', (req, res) => {
 });
 
 app.post('/send-message', async (req, res) => {
+  console.log("Chat history at start: ", chatHistory)
   const { message, image, imageName, mimeType } = req.body;
 
   let imageUrl;
@@ -122,8 +123,9 @@ app.post('/send-message', async (req, res) => {
     if (getBotMode() === 'OPENAI_ASSISTANT') {
       const messages = chatHistory.map((msg) => ({
         role: msg.role as 'user' | 'assistant',
-        content: msg.rawText,
+        content: JSON.parse(msg.rawText),
       }));
+      addLog("Sending message to assistant")
       response = await processAssistantResponse(
         'test',
         messages as OpenAIMessage[],
@@ -132,7 +134,7 @@ app.post('/send-message', async (req, res) => {
       const messages = chatHistory.map((msg) => {
         return {
           role: msg.role,
-          content: JSON.parse(msg.rawText),
+          content: msg.rawText,
           name: msg.role,
         };
       });

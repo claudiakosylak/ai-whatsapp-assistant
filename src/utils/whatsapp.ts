@@ -1,6 +1,10 @@
 import { Chat, Client, Message, MessageTypes } from 'whatsapp-web.js';
 import { processAssistantResponse } from './assistant';
-import { ChatCompletionAssistantMessageParam, ChatCompletionMessageParam, ChatCompletionUserMessageParam } from 'openai/resources';
+import {
+  ChatCompletionAssistantMessageParam,
+  ChatCompletionMessageParam,
+  ChatCompletionUserMessageParam,
+} from 'openai/resources';
 import { processChatCompletionResponse } from './chatCompletion';
 import { enableAudioResponse, getBotMode } from './config';
 import { addLog } from './controlPanel';
@@ -13,7 +17,9 @@ import {
   shouldProcessMessage,
 } from './messages';
 
-export type ProcessMessageParam = ChatCompletionUserMessageParam | ChatCompletionAssistantMessageParam
+export type ProcessMessageParam =
+  | ChatCompletionUserMessageParam
+  | ChatCompletionAssistantMessageParam;
 
 export const processMessage = async (message: Message) => {
   const chatData: Chat = await message.getChat();
@@ -55,7 +61,7 @@ export const processMessage = async (message: Message) => {
         isAudio,
       );
 
-      addLog(`Message List Item: ${messageListItem}`)
+      addLog(`Message List Item: ${messageListItem}`);
 
       messageList.push(messageListItem);
     } catch (e: any) {
@@ -84,6 +90,19 @@ export const handleIncomingMessage = async (
   client: Client,
   message: Message,
 ) => {
+  const isImage =
+    message.type === MessageTypes.IMAGE ||
+    message.type === MessageTypes.STICKER;
+  if (isImage && getBotMode() === 'OPENAI_ASSISTANT') {
+    client.sendMessage(
+      message.from,
+      'Assistant mode cannot process images at this time.',
+      {
+        sendAudioAsVoice: enableAudioResponse,
+      },
+    );
+    return;
+  }
   const response = await processMessage(message);
   if (response) {
     client.sendMessage(response.from, response.messageContent, {

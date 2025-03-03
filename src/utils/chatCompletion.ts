@@ -40,7 +40,7 @@ export const processChatCompletionResponse = async (
     messageContent = await createSpeechResponseContent(responseString);
   }
 
-  const response = { from: from, messageContent, rawText: responseString };
+  const response = { from: from, messageContent, rawText: JSON.stringify(responseString) };
 
   return response;
 };
