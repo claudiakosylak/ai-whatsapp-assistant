@@ -14,6 +14,7 @@ export const processChatCompletionResponse = async (
   from: string,
   messages: ChatCompletionMessageParam[],
 ) => {
+  addLog("Processing chat completion response.")
   const client = new OpenAI({
     apiKey: OPEN_WEBUI_KEY,
     baseURL: OPEN_WEBUI_BASE_URL,

@@ -1,6 +1,6 @@
 // Bot configuration management
 let botName = "Roboto";
-let messageHistoryLimit = 10;
+let messageHistoryLimit = 1;
 let resetCommandEnabled = true;
 let maxMessageAge = 24;
 
@@ -8,7 +8,7 @@ export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
 
 export let mode = "OPEN_WEBBUI_CHAT" as BotMode;
 
-export let enableAudioResponse = true;
+export let enableAudioResponse = false;
 
 export let disableWhatsappConnection = false;
 

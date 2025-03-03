@@ -29,6 +29,8 @@ import { OpenAIMessage } from './types';
 
 deleteAudioFiles();
 
+console.log(getBotMode())
+
 const app = express();
 config();
 const PORT = process.env.FRONTEND_PORT;

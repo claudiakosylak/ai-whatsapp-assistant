@@ -1,59 +1,38 @@
 import { Chat, Client, Message, MessageTypes } from 'whatsapp-web.js';
 import { processAssistantResponse } from './assistant';
-import { ChatCompletionMessageParam } from 'openai/resources';
+import { ChatCompletionAssistantMessageParam, ChatCompletionMessageParam, ChatCompletionUserMessageParam } from 'openai/resources';
 import { processChatCompletionResponse } from './chatCompletion';
-import {
-  getBotName,
-  getMessageHistoryLimit,
-  isResetCommandEnabled,
-  getMaxMessageAge,
-  enableAudioResponse,
-  getBotMode,
-} from './config';
+import { enableAudioResponse, getBotMode } from './config';
 import { addLog } from './controlPanel';
 import { OpenAIMessage } from '../types';
-import { transcribeVoice } from './audio';
+import {
+  getContextMessageContent,
+  getMessagesToProcess,
+  isMessageAgeValid,
+  removeBotName,
+  shouldProcessMessage,
+} from './messages';
+
+export type ProcessMessageParam = ChatCompletionUserMessageParam | ChatCompletionAssistantMessageParam
 
 export const processMessage = async (message: Message) => {
   const chatData: Chat = await message.getChat();
-  // If it's a "Broadcast" message, it's not processed
-  if (
-    chatData.id.user == 'status' ||
-    chatData.id._serialized == 'status@broadcast'
-  )
-    return false;
 
-  // Check if message is from a group
-  if (chatData.isGroup) {
-    const botName = getBotName();
-    // Check if bot name is mentioned in the message
-    if (!message.body.toLowerCase().includes(botName.toLowerCase())) {
-      return false;
-    }
-    // Remove bot name from message for processing
-    message.body = message.body.replace(new RegExp(botName, 'gi'), '').trim();
-  }
+  //check if message should be processed
+  if (!shouldProcessMessage(chatData, message)) return false;
+  addLog(`Processing message from ${message.from}`);
 
-  const actualDate = new Date();
-  const messageList: ChatCompletionMessageParam[] | OpenAIMessage[] = [];
-  const fetchedMessages = await chatData.fetchMessages({
-    limit: getMessageHistoryLimit(),
-  });
-  // Check for "-reset" command in chat history to potentially restart context
-  const resetIndex = isResetCommandEnabled()
-    ? fetchedMessages.map((msg) => msg.body).lastIndexOf('-reset')
-    : -1;
-  const messagesToProcess =
-    resetIndex >= 0 ? fetchedMessages.slice(resetIndex + 1) : fetchedMessages;
+  //remove bot name from the message
+  removeBotName(message);
+
+  const messageList: Array<ProcessMessageParam | OpenAIMessage> = [];
+  const messagesToProcess = await getMessagesToProcess(chatData);
+  let imageCount: number = 0;
+
   for (const msg of messagesToProcess.reverse()) {
     try {
-      // Validate if the message was written less than 24 (or maxHoursLimit) hours ago; if older, it's not considered
-      const msgDate = new Date(msg.timestamp * 1000);
-      if (
-        (actualDate.getTime() - msgDate.getTime()) / (1000 * 60 * 60) >
-        getMaxMessageAge()
-      )
-        break;
+      // Validate if the message was written less than maxHoursLimit hours ago; if older, it's not considered
+      if (!isMessageAgeValid(msg)) break;
 
       // Check if the message includes media or if it is of another type
       const isImage =
@@ -62,21 +41,23 @@ export const processMessage = async (message: Message) => {
         msg.type === MessageTypes.VOICE || msg.type === MessageTypes.AUDIO;
       const isOther = !isImage && !isAudio && msg.type != 'chat';
 
-      if (isImage || isOther) continue;
+      if (isOther) continue;
 
-      const media = isAudio ? await msg.downloadMedia() : null;
+      const media =
+        (isImage && imageCount < 2) || isAudio
+          ? await msg.downloadMedia()
+          : null;
+      if (media && isImage) imageCount++;
 
-      let messageBody = msg.body;
-      if (media) {
-        messageBody = await transcribeVoice(media);
-      }
+      const messageListItem = await getContextMessageContent(
+        msg,
+        media,
+        isAudio,
+      );
 
-      const role = !msg.fromMe ? 'user' : 'assistant';
-      if (getBotMode() === 'OPEN_WEBBUI_CHAT') {
-        messageList.push({ role: role, content: messageBody, name: role });
-      } else {
-        messageList.push({ role: role, content: msg.body });
-      }
+      addLog(`Message List Item: ${messageListItem}`)
+
+      messageList.push(messageListItem);
     } catch (e: any) {
       console.error(
         `Error reading message - msg.type:${msg.type}; msg.body:${msg.body}. Error:${e.message}`,
@@ -103,7 +84,6 @@ export const handleIncomingMessage = async (
   client: Client,
   message: Message,
 ) => {
-  addLog(`Processing message from ${message.from}`);
   const response = await processMessage(message);
   if (response) {
     client.sendMessage(response.from, response.messageContent, {
