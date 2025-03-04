@@ -80,10 +80,15 @@ export const getContextMessageContent = async (
   isAudio: boolean,
 ) => {
   let messageBody: string | ImageMessageContentItem[] = msg.body;
-  if (media && getBotMode() === 'OPEN_WEBBUI_CHAT') {
+  if (media) {
     if (isAudio) {
-      messageBody = await transcribeVoice(media);
-    } else {
+      try {
+        messageBody = await transcribeVoice(media);
+      } catch (error) {
+        console.error("Error transcribing voice:", error);
+        messageBody = "Audio transcription failed.";
+      }
+    } else if (getBotMode() === 'OPEN_WEBBUI_CHAT') {
       messageBody = [
         {
           type: "text",

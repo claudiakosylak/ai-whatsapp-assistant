@@ -2,7 +2,6 @@ import { Chat, Client, Message, MessageTypes } from 'whatsapp-web.js';
 import { processAssistantResponse } from './assistant';
 import {
   ChatCompletionAssistantMessageParam,
-  ChatCompletionMessageParam,
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
 import { processChatCompletionResponse } from './chatCompletion';
@@ -22,67 +21,86 @@ export type ProcessMessageParam =
   | ChatCompletionAssistantMessageParam;
 
 export const processMessage = async (message: Message) => {
-  const chatData: Chat = await message.getChat();
+  try {
+    const chatData: Chat = await message.getChat();
 
-  //check if message should be processed
-  if (!shouldProcessMessage(chatData, message)) return false;
-  addLog(`Processing message from ${message.from}`);
+    //check if message should be processed
+    if (!shouldProcessMessage(chatData, message)) return false;
+    addLog(`Processing message from ${message.from}`);
 
-  //remove bot name from the message
-  removeBotName(message);
+    //remove bot name from the message
+    removeBotName(message);
 
-  const messageList: Array<ProcessMessageParam | OpenAIMessage> = [];
-  const messagesToProcess = await getMessagesToProcess(chatData);
-  let imageCount: number = 0;
-
-  for (const msg of messagesToProcess.reverse()) {
+    const messageList: Array<ProcessMessageParam | OpenAIMessage> = [];
+    let messagesToProcess;
     try {
-      // Validate if the message was written less than maxHoursLimit hours ago; if older, it's not considered
-      if (!isMessageAgeValid(msg)) break;
-
-      // Check if the message includes media or if it is of another type
-      const isImage =
-        msg.type === MessageTypes.IMAGE || msg.type === MessageTypes.STICKER;
-      const isAudio =
-        msg.type === MessageTypes.VOICE || msg.type === MessageTypes.AUDIO;
-      const isOther = !isImage && !isAudio && msg.type != 'chat';
-
-      if (isOther) continue;
-
-      const media =
-        (isImage && imageCount < 2) || isAudio
-          ? await msg.downloadMedia()
-          : null;
-      if (media && isImage) imageCount++;
-
-      const messageListItem = await getContextMessageContent(
-        msg,
-        media,
-        isAudio,
-      );
-
-      addLog(`Message List Item: ${messageListItem}`);
-
-      messageList.push(messageListItem);
-    } catch (e: any) {
-      console.error(
-        `Error reading message - msg.type:${msg.type}; msg.body:${msg.body}. Error:${e.message}`,
-      );
+      messagesToProcess = await getMessagesToProcess(chatData);
+    } catch (error) {
+      addLog(`Error retrieving messages to process: ${error}`);
+      return;
     }
-  }
+    let imageCount: number = 0;
 
-  if (messageList.length == 0) return;
+    for (const msg of messagesToProcess.reverse()) {
+      try {
+        // Validate if the message was written less than maxHoursLimit hours ago; if older, it's not considered
+        if (!isMessageAgeValid(msg)) break;
 
-  if (getBotMode() === 'OPEN_WEBBUI_CHAT') {
-    return await processChatCompletionResponse(
-      message.from,
-      messageList.reverse(),
-    );
-  } else {
-    return await processAssistantResponse(
-      message.from,
-      (messageList as OpenAIMessage[]).reverse(),
-    );
+        // Check if the message includes media or if it is of another type
+        const isImage =
+          msg.type === MessageTypes.IMAGE || msg.type === MessageTypes.STICKER;
+        const isAudio =
+          msg.type === MessageTypes.VOICE || msg.type === MessageTypes.AUDIO;
+        const isOther = !isImage && !isAudio && msg.type != 'chat';
+
+        if (isOther || (isImage && getBotMode() === 'OPENAI_ASSISTANT'))
+          continue;
+
+        let media = null;
+        try {
+          media =
+            (isImage && imageCount < 2) || isAudio
+              ? await msg.downloadMedia()
+              : null;
+          if (media && isImage) imageCount++;
+        } catch (error) {
+          console.error(`Error downloading media: ${error}`);
+          continue;
+        }
+
+        const messageListItem = await getContextMessageContent(
+          msg,
+          media,
+          isAudio,
+        );
+
+        messageList.push(messageListItem);
+      } catch (e: any) {
+        console.error(
+          `Error reading message - msg.type:${msg.type}; msg.body:${msg.body}. Error:${e.message}`,
+        );
+      }
+    }
+
+    if (messageList.length == 0) return;
+
+    try {
+      if (getBotMode() === 'OPEN_WEBBUI_CHAT') {
+        return await processChatCompletionResponse(
+          message.from,
+          messageList.reverse(),
+        );
+      } else {
+        return await processAssistantResponse(
+          message.from,
+          (messageList as OpenAIMessage[]).reverse(),
+        );
+      }
+    } catch (error) {
+      addLog(`Error processing assistant/chat completion response: ${error}`);
+    }
+  } catch (error) {
+    addLog(`Error processing context messages: ${error}`);
   }
 };
 

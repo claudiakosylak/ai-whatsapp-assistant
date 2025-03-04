@@ -108,7 +108,7 @@ export async function transcribeVoice(media: MessageMedia): Promise<string> {
     );
     const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp3' });
 
-    addLog(`[ChatGTP->transcribeVoice] Starting audio transcription`);
+    addLog(`[ElevenLabs] Starting audio transcription`);
 
     const transcription = await client.speechToText.convert({
         file: audioBlob,
@@ -118,7 +118,7 @@ export async function transcribeVoice(media: MessageMedia): Promise<string> {
     });
 
     // Log the transcribed text
-    addLog(`[ChatGTP->transcribeVoice] Transcribed text: ${transcription.text.substring(
+    addLog(`[ElevenLabs] Transcribed text: ${transcription.text.substring(
         0,
         100,
       )}`);

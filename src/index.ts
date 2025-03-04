@@ -26,6 +26,7 @@ client.on('qr', qr => {
   });
 
   client.on('message', async (message: Message) => {
+    // check that the new message was received after bot initiated 
     if (!isMessageReceivedAfterInit(initTime, message)) return
     handleIncomingMessage(client, message)
   });
