@@ -4,7 +4,7 @@ let messageHistoryLimit = 1;
 let resetCommandEnabled = true;
 let maxMessageAge = 24;
 
-export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
+export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT" | "DIVY_CHAT"
 
 export let mode = "OPEN_WEBBUI_CHAT" as BotMode;
 

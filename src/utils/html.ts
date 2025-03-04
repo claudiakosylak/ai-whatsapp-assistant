@@ -180,6 +180,11 @@ export const getHTML = () => `
                                       getBotMode() === 'OPEN_WEBBUI_CHAT' &&
                                       'selected'
                                     }>Chat Completions (Open WebUI Custom)</option>
+                                    <option value="DIVY_CHAT" ${
+                                        getBotMode() ===
+                                        'DIVY_CHAT' &&
+                                        'selected'
+                                    }>Divy Chatbot</option>
                                 </select>
                             </div>
                             <button type="submit">Save Settings</button>
@@ -218,9 +223,9 @@ export const getHTML = () => `
                             <button type="submit">Send Message</button>
                         </div>
                         ${
-                          getBotMode() === 'OPENAI_ASSISTANT'
-                            ? ''
-                            : '<input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">'
+                          getBotMode() === 'OPEN_WEBBUI_CHAT'
+                          ? '<input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">'
+                          : ''
                         }
                     </form>
                 </div>
