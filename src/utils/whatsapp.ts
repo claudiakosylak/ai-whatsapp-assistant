@@ -45,7 +45,7 @@ export const processMessage = async (message: Message) => {
 
     // Add custom prompt if exists
     const customPrompt = getCustomPrompt();
-    if (customPrompt && getBotMode() === 'OPENAI_ASSISTANT') {
+    if (customPrompt) {
       messageList.push({ role: 'user', content: customPrompt });
     }
 

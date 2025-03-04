@@ -3,7 +3,7 @@ import { convertToAudioResponse, saveAudioFile } from './audio';
 import { ENV_PATH } from '../constants';
 import fs from 'fs';
 import path from 'path';
-import { enableAudioResponse, getBotMode, getMessageHistoryLimit } from './config';
+import { enableAudioResponse, getBotMode, getCustomPrompt, getMessageHistoryLimit } from './config';
 import { processAssistantResponse } from './assistant';
 import { ChatHistoryItem, MockChatHistoryMessage, OpenAIMessage, WhatsappResponse } from '../types';
 import { processChatCompletionResponse } from './chatCompletion';
@@ -101,6 +101,9 @@ export const getResponse = async (): Promise<WhatsappResponse> => {
     }
     // grab only the messages defined by our settings context length
     const contextChatHistory = chatHistory.slice(-(getMessageHistoryLimit()))
+    if (getCustomPrompt()) {
+      contextChatHistory.push({ role: 'user', content: getCustomPrompt(), rawText: JSON.stringify(getCustomPrompt()) });
+    }
     switch (getBotMode()) {
       case 'OPENAI_ASSISTANT':
         messages = contextChatHistory.map((msg) => ({

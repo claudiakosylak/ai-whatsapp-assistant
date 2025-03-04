@@ -42,8 +42,6 @@ export const processAssistantResponse = async (
       };
     }
 
-    addLog(`Created new run: ${run.id}`);
-
     try {
       while (run.status !== 'completed') {
         run = await client.beta.threads.runs.retrieve(thread.id, run.id);

@@ -1,5 +1,6 @@
 import { DIFY_API_KEY, DIFY_BASE_URL } from '../config';
 import { WhatsappResponseAsText } from '../types';
+import { getCustomPrompt } from './config';
 import { addLog } from './controlPanel';
 
 const conversationCache = new Map<string, string>();
@@ -38,6 +39,10 @@ export const processDifyResponse = async (
     };
   }
 
+  const messageQuery = getCustomPrompt()
+    ? messages[messages.length - 2].content + messages[messages.length - 1].content
+    : messages[messages.length - 1].content;
+
   try {
     const isFirstMessage = !conversationCache.has(from);
     const requestBody: any = {
@@ -46,7 +51,7 @@ export const processDifyResponse = async (
         content: msg.content,
       })),
       inputs: {},
-      query: messages[messages.length - 1].content,
+      query: messageQuery,
       user: from,
       response_mode: 'streaming',
     };
