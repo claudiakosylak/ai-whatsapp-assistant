@@ -174,12 +174,12 @@ export const getHTML = () => `
                                 <label for="chatSelector">Choose a chat mode:</label>
                                 <select id="chatSelector" name="botMode">
                                     <option value="OPENAI_ASSISTANT" ${
-                                      getBotMode() === 'OPENAI_ASSISTANT' &&
-                                      'selected'
+                                      getBotMode() === 'OPENAI_ASSISTANT' ?
+                                      'selected' : ''
                                     }>Assistant (OpenAI)</option>
                                     <option value="OPEN_WEBUI_CHAT" ${
-                                      getBotMode() === 'OPEN_WEBBUI_CHAT' &&
-                                      'selected'
+                                      getBotMode() === 'OPEN_WEBUI_CHAT' ?
+                                      'selected' : ''
                                     }>Chat Completions (Open WebUI Custom)</option>
                                     <option value="DIFY_CHAT" ${getBotMode() === 'DIFY_CHAT' ? 'selected' : ''}>Dify</option>
                                 </select>
@@ -227,7 +227,7 @@ export const getHTML = () => `
                             <button type="submit">Send Message</button>
                         </div>
                         ${
-                          getBotMode() === 'OPEN_WEBBUI_CHAT'
+                          getBotMode() === 'OPEN_WEBUI_CHAT'
                           ? '<input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">'
                           : ''
                         }

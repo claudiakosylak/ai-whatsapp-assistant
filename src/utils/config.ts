@@ -4,9 +4,9 @@ let messageHistoryLimit = 1;
 let resetCommandEnabled = true;
 let maxMessageAge = 24;
 
-export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT" | "DIFY_CHAT"
+export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBUI_CHAT" | "DIFY_CHAT"
 
-export let mode = "DIFY_CHAT" as BotMode;
+export let mode = "OPEN_WEBUI_CHAT" as BotMode;
 
 let customPrompt = '';
 

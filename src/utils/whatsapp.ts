@@ -7,7 +7,7 @@ import {
 import { processChatCompletionResponse } from './chatCompletion';
 import { enableAudioResponse, getBotMode, getCustomPrompt } from './config';
 import { addLog } from './controlPanel';
-import { OpenAIMessage } from '../types';
+import { OpenAIMessage, ProcessMessageParam } from '../types';
 import {
   getContextMessageContent,
   getMessagesToProcess,
@@ -18,11 +18,7 @@ import {
 } from './messages';
 import { processDifyResponse } from './dify';
 
-const imageProcessingModes = ['OPEN_WEBBUI_CHAT'];
-
-export type ProcessMessageParam =
-  | ChatCompletionUserMessageParam
-  | ChatCompletionAssistantMessageParam;
+const imageProcessingModes = ['OPEN_WEBUI_CHAT'];
 
 export const processMessage = async (message: Message) => {
   try {
@@ -103,7 +99,7 @@ export const processMessage = async (message: Message) => {
     if (messageList.length == 0) return;
 
     try {
-      if (getBotMode() === 'OPEN_WEBBUI_CHAT') {
+      if (getBotMode() === 'OPEN_WEBUI_CHAT') {
         return await processChatCompletionResponse(
           message.from,
           messageList.reverse(),

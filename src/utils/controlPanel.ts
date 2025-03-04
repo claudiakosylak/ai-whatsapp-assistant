@@ -3,7 +3,7 @@ import { saveAudioFile } from './audio';
 import { ENV_PATH } from '../constants';
 import fs from 'fs';
 import path from 'path';
-import { getBotMode } from './config';
+import { getBotMode, getMessageHistoryLimit } from './config';
 import { processAssistantResponse } from './assistant';
 import { ChatHistoryItem, MockChatHistoryMessage, OpenAIMessage, WhatsappResponse } from '../types';
 import { processChatCompletionResponse } from './chatCompletion';
@@ -88,6 +88,7 @@ export const getResponse = async (): Promise<WhatsappResponse> => {
   try {
     let response;
     let messages = [];
+    // check if last message was a command and handle
     let lastMessage = chatHistory[chatHistory.length - 1]
     let mockMessage: MockChatHistoryMessage = {
       from: 'test',
@@ -98,9 +99,11 @@ export const getResponse = async (): Promise<WhatsappResponse> => {
     if (commandResponse !== false) {
       return commandResponse as WhatsappResponse
     }
+    // grab only the messages defined by our settings context length
+    const contextChatHistory = chatHistory.slice(-(getMessageHistoryLimit()))
     switch (getBotMode()) {
       case 'OPENAI_ASSISTANT':
-        messages = chatHistory.map((msg) => ({
+        messages = contextChatHistory.map((msg) => ({
           role: msg.role as 'user' | 'assistant',
           content: msg.rawText,
         }));
@@ -110,8 +113,8 @@ export const getResponse = async (): Promise<WhatsappResponse> => {
           messages as OpenAIMessage[],
         );
         break;
-      case 'OPEN_WEBBUI_CHAT':
-        messages = chatHistory.map((msg) => {
+      case 'OPEN_WEBUI_CHAT':
+        messages = contextChatHistory.map((msg) => {
           return {
             role: msg.role,
             content: JSON.parse(msg.rawText),
@@ -125,7 +128,7 @@ export const getResponse = async (): Promise<WhatsappResponse> => {
         );
         break;
       case 'DIFY_CHAT':
-        messages = chatHistory.map((msg) => {
+        messages = contextChatHistory.map((msg) => {
           return {
             role: msg.role,
             content: msg.rawText

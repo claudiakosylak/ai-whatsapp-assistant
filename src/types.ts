@@ -1,3 +1,4 @@
+import { ChatCompletionAssistantMessageParam, ChatCompletionUserMessageParam } from "openai/resources";
 import { MessageMedia } from "whatsapp-web.js";
 
 export type OpenAIMessage = {
@@ -22,3 +23,7 @@ export type WhatsappResponse = {
     messageContent: MessageMedia | string;
     rawText: string;
 }
+
+export type ProcessMessageParam =
+  | ChatCompletionUserMessageParam
+  | ChatCompletionAssistantMessageParam;

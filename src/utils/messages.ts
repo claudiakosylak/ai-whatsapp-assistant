@@ -10,8 +10,12 @@ import {
   setCustomPrompt,
 } from './config';
 import { transcribeVoice } from './audio';
-import { MockChatHistoryMessage, OpenAIMessage, WhatsappResponse } from '../types';
-import { ProcessMessageParam } from './whatsapp';
+import {
+  MockChatHistoryMessage,
+  OpenAIMessage,
+  ProcessMessageParam,
+  WhatsappResponse,
+} from '../types';
 import { addLog } from './controlPanel';
 
 export const shouldProcessMessage = (chatData: Chat, message: Message) => {
@@ -92,7 +96,7 @@ export const getContextMessageContent = async (
         console.error('Error transcribing voice:', error);
         messageBody = 'Audio transcription failed.';
       }
-    } else if (getBotMode() === 'OPEN_WEBBUI_CHAT') {
+    } else if (getBotMode() === 'OPEN_WEBUI_CHAT') {
       messageBody = [
         {
           type: 'text',
@@ -109,7 +113,7 @@ export const getContextMessageContent = async (
   }
 
   const role = !msg.fromMe || (media && !isAudio) ? 'user' : 'assistant';
-  if (getBotMode() === 'OPEN_WEBBUI_CHAT') {
+  if (getBotMode() === 'OPEN_WEBUI_CHAT') {
     return {
       role: role,
       content: messageBody,
@@ -159,7 +163,7 @@ export const changeBotMode = (message: Message | MockChatHistoryMessage) => {
       messageString = 'Switched to OpenAI Assistant mode';
       break;
     case 'webui':
-      setBotMode('OPEN_WEBBUI_CHAT');
+      setBotMode('OPEN_WEBUI_CHAT');
       messageString = 'Switched to Open WebUI Chat mode';
       break;
     case 'dify':
@@ -191,7 +195,9 @@ export const updatePromptFromCommand = (
   };
 };
 
-export const handleCommands = (message: Message | MockChatHistoryMessage): WhatsappResponse | false => {
+export const handleCommands = (
+  message: Message | MockChatHistoryMessage,
+): WhatsappResponse | false => {
   switch (message.body) {
     case '-help':
       return {
