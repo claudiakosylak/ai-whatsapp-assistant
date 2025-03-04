@@ -86,6 +86,8 @@ export const processDifyResponse = async (from: string, messages: { role: string
             throw new Error('Response body is null');
         }
 
+        addLog(`Response body: ${response.body}`)
+
         // Handle streaming response
         const reader = response.body.getReader();
         let responseText = '';
@@ -94,9 +96,9 @@ export const processDifyResponse = async (from: string, messages: { role: string
         let buffer = '';
         let lastChunkTime = Date.now();
         let streamEnded = false;
-        
+
         addLog(`Processing Dify streaming response for ${from}`);
-        
+
         // Set up a timeout to prevent hanging indefinitely
         const timeoutPromise = new Promise<void>((_resolve, reject) => {
             setTimeout(() => {
@@ -105,7 +107,7 @@ export const processDifyResponse = async (from: string, messages: { role: string
                 }
             }, RESPONSE_TIMEOUT);
         });
-        
+
         // Process the stream with timeout protection
         const processStreamPromise = (async () => {
             try {
@@ -113,33 +115,34 @@ export const processDifyResponse = async (from: string, messages: { role: string
                 while (true) {
                     const { done, value } = await reader.read();
                     lastChunkTime = Date.now();
-                    
+
                     if (done) {
                         streamEnded = true;
                         addLog(`Stream completed, done=true`);
                         break;
                     }
-                    
+
                     const chunk = new TextDecoder().decode(value);
+                    // addLog(`Chunk: ${chunk}`)
                     buffer += chunk;
-                    
+
                     // Process complete SSE messages
                     const messages = buffer.split('\n\n');
                     buffer = messages.pop() || ''; // Keep the last incomplete chunk in the buffer
-                    
+
                     for (const message of messages) {
                         if (!message.trim()) continue;
-                        
+
                         const lines = message.split('\n');
                         for (const line of lines) {
                             if (!line.trim() || !line.startsWith('data: ')) continue;
-                            
+
                             try {
                                 const jsonStr = line.substring(6); // Remove 'data: ' prefix
-                                addLog(`Dify raw response: ${jsonStr.substring(0, 100)}${jsonStr.length > 100 ? '...' : ''}`);
-                                
+                                // addLog(`Dify raw response: ${jsonStr.substring(0, 100)}${jsonStr.length > 100 ? '...' : ''}`);
+
                                 const data = safeJsonParse(jsonStr);
-                                
+
                                 if (data.event === 'message') {
                                     if (data.answer) {
                                         responseText += data.answer;
@@ -173,13 +176,13 @@ export const processDifyResponse = async (from: string, messages: { role: string
                                     if (!newConversationId && data.conversation_id) {
                                         newConversationId = data.conversation_id;
                                     }
-                                } else if (data.event === 'agent_thinking') {
+                                } else if (data.event === 'agent_thought') {
                                     // Just log this event, no response to extract
                                     addLog(`Agent thinking: ${JSON.stringify(data).substring(0, 100)}...`);
                                 } else {
                                     // Handle any other event types
                                     addLog(`Unknown Dify event: ${data.event}, data: ${JSON.stringify(data).substring(0, 100)}${JSON.stringify(data).length > 100 ? '...' : ''}`);
-                                    
+
                                     // Try to extract content from any fields that might contain the response
                                     if (data.answer) {
                                         responseText += data.answer;
@@ -194,9 +197,9 @@ export const processDifyResponse = async (from: string, messages: { role: string
                                         // Do a deep search for any property that might contain text
                                         const findTextInObject = (obj: any): string => {
                                             if (!obj || typeof obj !== 'object') return '';
-                                            
+
                                             for (const [key, value] of Object.entries(obj)) {
-                                                if (typeof value === 'string' && 
+                                                if (typeof value === 'string' &&
                                                     (key.includes('text') || key.includes('content') || key.includes('answer') || key.includes('message'))) {
                                                     addLog(`Found potential response text in field '${key}': ${value.substring(0, 50)}${value.length > 50 ? '...' : ''}`);
                                                     return value;
@@ -207,7 +210,7 @@ export const processDifyResponse = async (from: string, messages: { role: string
                                             }
                                             return '';
                                         };
-                                        
+
                                         const foundText = findTextInObject(data);
                                         if (foundText) {
                                             responseText += foundText;
@@ -218,7 +221,7 @@ export const processDifyResponse = async (from: string, messages: { role: string
                                 const error = e instanceof Error ? e.message : String(e);
                                 addLog(`Error parsing Dify response chunk: ${error}`);
                                 addLog(`Problematic chunk: ${line.substring(0, 100)}${line.length > 100 ? '...' : ''}`);
-                                
+
                                 // Try to recover by extracting any text that looks like it might be a response
                                 try {
                                     const textMatch = line.match(/"(answer|content|text)"\s*:\s*"([^"]+)"/);
@@ -234,10 +237,10 @@ export const processDifyResponse = async (from: string, messages: { role: string
                         }
                     }
                 }
-                
+
                 // If we reached this point, the stream has completed normally
                 streamEnded = true;
-                
+
                 // Process any remaining buffer
                 if (buffer.trim()) {
                     addLog(`Processing remaining buffer after stream end: ${buffer.substring(0, 100)}${buffer.length > 100 ? '...' : ''}`);
@@ -247,11 +250,11 @@ export const processDifyResponse = async (from: string, messages: { role: string
                             if (line.trim() && line.startsWith('data: ')) {
                                 const jsonStr = line.substring(6);
                                 const data = safeJsonParse(jsonStr);
-                                
+
                                 if (data.answer) responseText += data.answer;
                                 else if (data.content) responseText += data.content;
                                 else if (data.text) responseText += data.text;
-                                
+
                                 if (!newConversationId && data.conversation_id) {
                                     newConversationId = data.conversation_id;
                                 }
@@ -261,36 +264,36 @@ export const processDifyResponse = async (from: string, messages: { role: string
                         addLog(`Error processing remaining buffer: ${e}`);
                     }
                 }
-                
+
                 // Wait a short time to ensure all processing is complete
                 await new Promise(resolve => setTimeout(resolve, COMPLETION_DELAY));
-                
+
                 addLog(`Stream processing completed with ${responseText.length} chars of text`);
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : String(error);
                 addLog(`Error during stream processing: ${errorMessage}`);
-                
+
                 if (!streamEnded) {
                     streamEnded = true;
                     reader.cancel().catch(e => addLog(`Error canceling reader: ${e}`));
                 }
-                
+
                 throw error;
             }
         })();
-        
+
         // Wait for either the stream to complete or the timeout to occur
         try {
             await Promise.race([processStreamPromise, timeoutPromise]);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             addLog(`Stream processing interrupted: ${errorMessage}`);
-            
+
             if (!streamEnded) {
                 streamEnded = true;
                 reader.cancel().catch(e => addLog(`Error canceling reader: ${e}`));
             }
-            
+
             // If we have partial content, return it rather than an error
             if (responseText.trim()) {
                 addLog(`Returning partial response (${responseText.length} chars) after error`);
@@ -299,16 +302,16 @@ export const processDifyResponse = async (from: string, messages: { role: string
                 return { from, messageString: "Sorry, I encountered an error processing your request." };
             }
         }
-        
+
         // Save the conversation ID for future messages
         if (newConversationId) {
             conversationCache.set(from, newConversationId);
             addLog(`Saved new conversation ID: ${newConversationId} for ${from}`);
         }
-        
+
         addLog(`Dify streaming response completed for ${messageId || 'unknown'}`);
         addLog(`Final response text (${responseText.length} chars): ${responseText.substring(0, 100)}${responseText.length > 100 ? '...' : ''}`);
-        
+
         if (!responseText.trim()) {
             addLog(`Warning: Empty response received from Dify`);
             return {
@@ -316,7 +319,7 @@ export const processDifyResponse = async (from: string, messages: { role: string
                 messageString: "I apologize, but I couldn't generate a response. Please try again later."
             };
         }
-        
+
         return {
             from,
             messageString: responseText.trim()

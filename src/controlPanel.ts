@@ -24,6 +24,7 @@ let testConversationId = randomUUID();
 let whatsappConnected = false;
 
 export const addLog = (message: string) => {
+    console.log(message)
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] ${message}`;
     logs.unshift(logEntry); // Add to beginning of array
@@ -217,7 +218,7 @@ app.get('/', (req, res) => {
                         <div class="chat-container">
                             <h3>Test Chat</h3>
                             <div class="chat-messages" id="chatMessages">
-                                ${chatHistory.map(msg => 
+                                ${chatHistory.map(msg =>
                                     '<div class="message ' + msg.role + '">' +
                                         '<strong>' + msg.role + ':</strong> ' + msg.content +
                                     '</div>'
@@ -243,15 +244,15 @@ app.get('/', (req, res) => {
                     fetch('/logs')
                         .then(response => response.json())
                         .then(data => {
-                            document.querySelector('.logs').innerHTML = 
+                            document.querySelector('.logs').innerHTML =
                                 data.map(log => '<div class="log-entry">' + log + '</div>').join('');
                         });
-                    
+
                     fetch('/chat-history')
                         .then(response => response.json())
                         .then(data => {
-                            document.querySelector('#chatMessages').innerHTML = 
-                                data.map(msg => 
+                            document.querySelector('#chatMessages').innerHTML =
+                                data.map(msg =>
                                     '<div class="message ' + msg.role + '">' +
                                         '<strong>' + msg.role + ':</strong> ' + msg.content +
                                     '</div>'
@@ -315,10 +316,10 @@ app.get('/chat-history', (req, res) => {
 
 app.post('/send-message', async (req, res) => {
     const { message } = req.body;
-    
+
     // Add user message to history
     chatHistory.push({ role: 'user', content: message });
-    
+
     try {
         let response;
         if (getBotMode() === 'OPENAI_ASSISTANT') {
@@ -341,15 +342,15 @@ app.post('/send-message', async (req, res) => {
             }));
             response = await processChatCompletionResponse('test', messages as ChatCompletionMessageParam[]);
         }
-        
+
         // Add assistant response to history
         chatHistory.push({ role: 'assistant', content: response.messageString });
-        
+
         // Keep only last 50 messages
         if (chatHistory.length > 50) {
             chatHistory = chatHistory.slice(-50);
         }
-        
+
         res.json({ success: true });
     } catch (error) {
         addLog(`Error in test chat: ${error}`);
@@ -376,7 +377,7 @@ app.post('/save-custom-prompt', (req, res) => {
 });
 app.post('/save-bot-settings', (req, res) => {
     const { messageHistoryLimit, resetCommandEnabled, maxMessageAge, botMode } = req.body;
-    
+
     if (messageHistoryLimit) {
         const limit = parseInt(messageHistoryLimit);
         if (limit >= 1 && limit <= 50) {
@@ -384,7 +385,7 @@ app.post('/save-bot-settings', (req, res) => {
             addLog(`Message history limit updated to: ${limit}`);
         }
     }
-    
+
     if (maxMessageAge) {
         const hours = parseInt(maxMessageAge);
         if (hours >= 1 && hours <= 72) {
@@ -392,15 +393,15 @@ app.post('/save-bot-settings', (req, res) => {
             addLog(`Max message age updated to: ${hours} hours`);
         }
     }
-    
+
     setResetCommandEnabled(!!resetCommandEnabled);
     addLog(`Reset command ${resetCommandEnabled ? 'enabled' : 'disabled'}`);
-    
+
     if (botMode && (botMode === 'OPENAI_ASSISTANT' || botMode === 'OPEN_WEBBUI_CHAT' || botMode === 'DIFY')) {
         setBotMode(botMode);
         addLog(`Bot mode updated to: ${botMode}`);
     }
-    
+
     res.redirect('/');
 });
 export const startControlPanel = () => {

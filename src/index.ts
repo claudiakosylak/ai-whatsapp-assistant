@@ -56,7 +56,7 @@ client.on('qr', qr => {
   try {
     startControlPanel();
     addLog('Starting WhatsApp client');
-    client.initialize();
+    // client.initialize();
   }catch (e: any){
     const errorMsg = `ERROR: ${e.message}`;
     console.error(errorMsg);
