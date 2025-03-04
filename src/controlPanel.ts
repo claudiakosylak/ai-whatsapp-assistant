@@ -85,7 +85,6 @@ app.get('/chat-history', (req, res) => {
 });
 
 app.post('/send-message', async (req, res) => {
-  console.log("Chat history at start: ", chatHistory)
   const { message, image, imageName, mimeType } = req.body;
 
   let imageUrl;
