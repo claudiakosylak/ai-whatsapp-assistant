@@ -2,6 +2,7 @@ import {
   getAudioResponseEnabled,
   getBotMode,
   getBotName,
+  getCustomPrompt,
   getMaxMessageAge,
   getMessageHistoryLimit,
   isResetCommandEnabled,
@@ -180,10 +181,18 @@ export const getHTML = () => `
                                       getBotMode() === 'OPEN_WEBBUI_CHAT' &&
                                       'selected'
                                     }>Chat Completions (Open WebUI Custom)</option>
+                                    <option value="DIFY_CHAT" ${getBotMode() === 'DIFY_CHAT' ? 'selected' : ''}>Dify</option>
                                 </select>
                             </div>
                             <button type="submit">Save Settings</button>
                         </form>
+                             <div style="margin-top: 20px;">
+                                    <h3>Custom Prompt</h3>
+                                    <form action="/save-custom-prompt" method="POST">
+                                        <textarea name="customPrompt" style="width: 100%; height: 100px;">${getCustomPrompt()}</textarea>
+                                        <button type="submit">Update Prompt</button>
+                                    </form>
+                                </div>
                     </div>
                 </form>
                 <div class="status active">

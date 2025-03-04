@@ -5,16 +5,20 @@ import {
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
 import { processChatCompletionResponse } from './chatCompletion';
-import { enableAudioResponse, getBotMode } from './config';
+import { enableAudioResponse, getBotMode, getCustomPrompt } from './config';
 import { addLog } from './controlPanel';
 import { OpenAIMessage } from '../types';
 import {
   getContextMessageContent,
   getMessagesToProcess,
+  handleCommands,
   isMessageAgeValid,
   removeBotName,
   shouldProcessMessage,
 } from './messages';
+import { processDifyResponse } from './dify';
+
+const imageProcessingModes = ['OPEN_WEBBUI_CHAT'];
 
 export type ProcessMessageParam =
   | ChatCompletionUserMessageParam
@@ -27,6 +31,11 @@ export const processMessage = async (message: Message) => {
     //check if message should be processed
     if (!shouldProcessMessage(chatData, message)) return false;
     addLog(`Processing message from ${message.from}`);
+
+    // check for and handle commands
+    if (handleCommands(message)) {
+      return handleCommands(message);
+    }
 
     //remove bot name from the message
     removeBotName(message);
@@ -41,6 +50,12 @@ export const processMessage = async (message: Message) => {
     }
     let imageCount: number = 0;
 
+    // Add custom prompt if exists
+    const customPrompt = getCustomPrompt();
+    if (customPrompt && getBotMode() === 'OPENAI_ASSISTANT') {
+      messageList.push({ role: 'user', content: customPrompt });
+    }
+
     for (const msg of messagesToProcess.reverse()) {
       try {
         // Validate if the message was written less than maxHoursLimit hours ago; if older, it's not considered
@@ -53,7 +68,10 @@ export const processMessage = async (message: Message) => {
           msg.type === MessageTypes.VOICE || msg.type === MessageTypes.AUDIO;
         const isOther = !isImage && !isAudio && msg.type != 'chat';
 
-        if (isOther || (isImage && getBotMode() === 'OPENAI_ASSISTANT'))
+        if (
+          isOther ||
+          (isImage && !imageProcessingModes.includes(getBotMode()))
+        )
           continue;
 
         let media = null;
@@ -90,6 +108,11 @@ export const processMessage = async (message: Message) => {
           message.from,
           messageList.reverse(),
         );
+      } else if (getBotMode() === 'DIFY_CHAT') {
+        return await processDifyResponse(
+          message.from,
+          messageList as { role: string; content: string }[],
+        );
       } else {
         return await processAssistantResponse(
           message.from,
@@ -111,10 +134,10 @@ export const handleIncomingMessage = async (
   const isImage =
     message.type === MessageTypes.IMAGE ||
     message.type === MessageTypes.STICKER;
-  if (isImage && getBotMode() === 'OPENAI_ASSISTANT') {
+  if (isImage && !imageProcessingModes.includes(getBotMode())) {
     client.sendMessage(
       message.from,
-      'Assistant mode cannot process images at this time.',
+      `Selected bot mode cannot process images at this time.`,
       {
         sendAudioAsVoice: enableAudioResponse,
       },

@@ -8,6 +8,8 @@ export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT" | "DIFY_CHAT"
 
 export let mode = "DIFY_CHAT" as BotMode;
 
+let customPrompt = '';
+
 export let enableAudioResponse = false;
 
 export let disableWhatsappConnection = false;
@@ -43,3 +45,9 @@ export const getMaxMessageAge = () => maxMessageAge;
 export const setMaxMessageAge = (hours: number) => {
     maxMessageAge = hours;
 };
+
+export const getCustomPrompt = () => customPrompt;
+
+export const setCustomPrompt = (prompt: string) => {
+    customPrompt = prompt;
+}

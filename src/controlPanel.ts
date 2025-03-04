@@ -10,6 +10,7 @@ import {
   setMaxMessageAge,
   setBotMode,
   setAudioResponseEnabled,
+  setCustomPrompt,
 } from './utils/config';
 import { AUDIO_DIR, ENV_PATH, IMAGE_DIR } from './constants';
 import { deleteAudioFiles } from './utils/audio';
@@ -23,7 +24,6 @@ import {
 } from './utils/controlPanel';
 import { getHTML } from './utils/html';
 import { deleteImageFiles, saveImageFile } from './utils/images';
-import { DIFY_API_KEY, DIFY_BASE_URL } from './config';
 
 deleteAudioFiles();
 deleteImageFiles();
@@ -70,32 +70,6 @@ app.post('/save-config', (req, res) => {
       error instanceof Error ? error.message : 'Unknown error';
     addLog(`Error saving configuration: ${errorMessage}`);
     res.status(500).send('Error saving configuration');
-  }
-});
-
-app.post('/proxy/dify', async (req, res) => {
-  addLog('hitting proxy route')
-  addLog(`Req body: ${JSON.stringify(req.body)}`)
-  try {
-    const response = await fetch(`${DIFY_BASE_URL}/chat-messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${DIFY_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: {},
-        query: req.body.query,
-        response_mode: 'blocking',
-      }),
-    });
-    addLog(`Res body: ${JSON.stringify(response.body)}`)
-    res.json(response.body)
-  } catch (error: any) {
-    addLog("hitting proxy route catch")
-    res
-      .status(error?.response?.status || 500)
-      .json(error.response?.data || { error: 'Something went wrong' });
   }
 });
 
@@ -167,6 +141,15 @@ app.post('/save-bot-name', (req, res) => {
   if (botName && botName.trim()) {
     setBotName(botName.trim());
     addLog(`Bot name updated to: ${botName}`);
+  }
+  res.redirect('/');
+});
+
+app.post('/save-custom-prompt', (req, res) => {
+  const { customPrompt } = req.body;
+  if (customPrompt !== undefined) {
+      setCustomPrompt(customPrompt);
+      addLog(`Custom prompt updated from control panel`);
   }
   res.redirect('/');
 });

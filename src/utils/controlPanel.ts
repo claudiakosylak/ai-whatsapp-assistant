@@ -5,16 +5,17 @@ import fs from 'fs';
 import path from 'path';
 import { getBotMode } from './config';
 import { processAssistantResponse } from './assistant';
-import { OpenAIMessage } from '../types';
+import { ChatHistoryItem, MockChatHistoryMessage, OpenAIMessage, WhatsappResponse } from '../types';
 import { processChatCompletionResponse } from './chatCompletion';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { processDifyResponse } from './dify';
-
-type ChatHistoryItem = { role: string; content: string; rawText: string };
+import { randomUUID } from 'crypto';
+import { handleCommands } from './messages';
 
 // Store logs in memory
 export let logs: string[] = [];
 export let chatHistory: ChatHistoryItem[] = [];
+export let testConversationId = randomUUID();
 export let whatsappConnected = false;
 
 export const setChatHistory = (newChatHistory: ChatHistoryItem[]) => {
@@ -83,10 +84,20 @@ export const getEnvContent = () => {
   }
 };
 
-export const getResponse = async () => {
+export const getResponse = async (): Promise<WhatsappResponse> => {
   try {
     let response;
     let messages = [];
+    let lastMessage = chatHistory[chatHistory.length - 1]
+    let mockMessage: MockChatHistoryMessage = {
+      from: 'test',
+      body: lastMessage.content,
+      role: 'user'
+    }
+    let commandResponse = handleCommands(mockMessage)
+    if (commandResponse !== false) {
+      return commandResponse as WhatsappResponse
+    }
     switch (getBotMode()) {
       case 'OPENAI_ASSISTANT':
         messages = chatHistory.map((msg) => ({
@@ -117,14 +128,13 @@ export const getResponse = async () => {
         messages = chatHistory.map((msg) => {
           return {
             role: msg.role,
-            content: msg.rawText,
-            name: msg.role,
+            content: msg.rawText
           };
         });
         addLog('Sending message to Divy Chatbot');
         response = await processDifyResponse(
-          'test',
-          messages as ChatCompletionMessageParam[],
+          testConversationId,
+          messages,
         );
         break;
     }

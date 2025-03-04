@@ -2,13 +2,17 @@ import { Chat, Message, MessageMedia } from 'whatsapp-web.js';
 import {
   getBotMode,
   getBotName,
+  getCustomPrompt,
   getMaxMessageAge,
   getMessageHistoryLimit,
   isResetCommandEnabled,
+  setBotMode,
+  setCustomPrompt,
 } from './config';
 import { transcribeVoice } from './audio';
-import { OpenAIMessage } from '../types';
+import { MockChatHistoryMessage, OpenAIMessage, WhatsappResponse } from '../types';
 import { ProcessMessageParam } from './whatsapp';
+import { addLog } from './controlPanel';
 
 export const shouldProcessMessage = (chatData: Chat, message: Message) => {
   // If it's a "Broadcast" message, it's not processed
@@ -85,39 +89,128 @@ export const getContextMessageContent = async (
       try {
         messageBody = await transcribeVoice(media);
       } catch (error) {
-        console.error("Error transcribing voice:", error);
-        messageBody = "Audio transcription failed.";
+        console.error('Error transcribing voice:', error);
+        messageBody = 'Audio transcription failed.';
       }
     } else if (getBotMode() === 'OPEN_WEBBUI_CHAT') {
       messageBody = [
         {
-          type: "text",
-          text: msg.body
+          type: 'text',
+          text: msg.body,
         },
         {
-          type: "image_url",
+          type: 'image_url',
           image_url: {
-            "url": `data:${media.mimetype};base64,${media.data}`
-          }
-        }
-      ]
-
+            url: `data:${media.mimetype};base64,${media.data}`,
+          },
+        },
+      ];
     }
   }
 
-  const role = (!msg.fromMe || (media && !isAudio)) ? 'user' : 'assistant';
+  const role = !msg.fromMe || (media && !isAudio) ? 'user' : 'assistant';
   if (getBotMode() === 'OPEN_WEBBUI_CHAT') {
-    return { role: role, content: messageBody, name: role } as ProcessMessageParam
+    return {
+      role: role,
+      content: messageBody,
+      name: role,
+    } as ProcessMessageParam;
   } else {
-    return { role: role, content: messageBody as string } as OpenAIMessage
+    return { role: role, content: messageBody as string } as OpenAIMessage;
   }
 };
 
-
-export const isMessageReceivedAfterInit = (initTime: Date, message: Message) => {
+export const isMessageReceivedAfterInit = (
+  initTime: Date,
+  message: Message,
+) => {
   const msgDate = new Date(message.timestamp * 1000);
   if (msgDate > initTime) {
-    return true
+    return true;
   }
-  return false
-}
+  return false;
+};
+
+export const getHelpMessage = () => {
+  return `Available commands:
+- -help: Show this help message
+- -reset: Reset conversation context
+- -update [prompt]: Update the custom prompt
+- -mode [assistant|webui|dify]: Switch between OpenAI Assistant, Open WebUI Chat, and Dify modes
+- -status: Show current bot settings`;
+};
+
+export const getStatusMessage = () => {
+  return `Current bot settings:
+- Name: ${getBotName()}
+- Mode: ${getBotMode()}
+- Message History Limit: ${getMessageHistoryLimit()}
+- Max Message Age: ${getMaxMessageAge()} hours
+- Reset Command: ${isResetCommandEnabled() ? 'Enabled' : 'Disabled'}
+- Custom Prompt: ${getCustomPrompt() ? 'Set' : 'Not set'}`;
+};
+
+export const changeBotMode = (message: Message | MockChatHistoryMessage) => {
+  const newMode = message.body.substring(6).trim().toLowerCase();
+  let messageString = '';
+  switch (newMode) {
+    case 'assistant':
+      setBotMode('OPENAI_ASSISTANT');
+      messageString = 'Switched to OpenAI Assistant mode';
+      break;
+    case 'webui':
+      setBotMode('OPEN_WEBBUI_CHAT');
+      messageString = 'Switched to Open WebUI Chat mode';
+      break;
+    case 'dify':
+      setBotMode('DIFY_CHAT');
+      messageString = 'Switched to Dify mode';
+      break;
+    default:
+      messageString = 'Invalid mode. Use "assistant", "webui", or "dify".';
+      break;
+  }
+  addLog(messageString);
+  return {
+    from: message.from,
+    messageContent: messageString,
+    rawText: messageString,
+  };
+};
+
+export const updatePromptFromCommand = (
+  message: Message | MockChatHistoryMessage,
+) => {
+  const newPrompt = message.body.substring(8).trim();
+  setCustomPrompt(newPrompt);
+  addLog(`Updated custom prompt: ${newPrompt}`);
+  return {
+    from: message.from,
+    messageContent: 'Prompt updated successfully!',
+    rawText: 'Prompt updated successfully!',
+  };
+};
+
+export const handleCommands = (message: Message | MockChatHistoryMessage): WhatsappResponse | false => {
+  switch (message.body) {
+    case '-help':
+      return {
+        from: message.from,
+        messageContent: getHelpMessage(),
+        rawText: getHelpMessage(),
+      };
+    case '-status':
+      return {
+        from: message.from,
+        messageContent: getStatusMessage(),
+        rawText: getStatusMessage(),
+      };
+    default:
+      if (message.body.startsWith('-mode ')) {
+        return changeBotMode(message);
+      } else if (message.body.startsWith('-update ')) {
+        return updatePromptFromCommand(message);
+      }
+  }
+  return false;
+};
