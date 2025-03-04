@@ -44,7 +44,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   const message = input.value;
   input.value = '';
   const fileInput = document.getElementById('imageInput');
-  if (fileInput.files.length) {
+  if (fileInput && fileInput.files.length) {
     const file = fileInput.files[0];
     const reader = new FileReader();
 

@@ -52,6 +52,11 @@ export const processChatCompletionResponse = async (
         messageContent = await createSpeechResponseContent(responseString);
       } catch (error) {
         addLog(`Error creating speech response: ${error}`);
+        return {
+          from,
+          messageContent: `There was an error in creating an audio response. Here is the response as text: ${responseString}`,
+          rawText: JSON.stringify(responseString)
+        }
       }
     }
 

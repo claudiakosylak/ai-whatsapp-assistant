@@ -87,6 +87,8 @@ app.get('/chat-history', (req, res) => {
 app.post('/send-message', async (req, res) => {
   const { message, image, imageName, mimeType } = req.body;
 
+  addLog("Message in post")
+
   let imageUrl;
   if (image && imageName && mimeType) {
     imageUrl = saveImageFile(image, imageName);

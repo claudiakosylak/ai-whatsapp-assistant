@@ -55,23 +55,40 @@ export async function streamToBase64(stream: Readable): Promise<string> {
   }
   return Buffer.concat(chunks).toString('base64');
 }
-
 export const getBase64WithElevenLabs = async (messageString: string) => {
-  const elevenLabsClient = new ElevenLabsClient({
-    apiKey: ELEVEN_LABS_API_KEY,
-  });
+  try {
+    const elevenLabsClient = new ElevenLabsClient({
+      apiKey: ELEVEN_LABS_API_KEY,
+    });
 
-  const response = await elevenLabsClient.textToSpeech.convert(
-    'IuRRIAcbQK5AQk1XevPj',
-    {
-      text: messageString,
-      model_id: 'eleven_multilingual_v2',
-      output_format: 'mp3_44100_128',
-    },
-  );
-  addLog(`[OpenAI->speech] Audio Creation OK`);
-  const base64Audio = await streamToBase64(response);
-  return base64Audio;
+    let response;
+    try {
+      response = await elevenLabsClient.textToSpeech.convert(
+        'IuRRIAcbQK5AQk1XevPj',
+        {
+          text: messageString,
+          model_id: 'eleven_multilingual_v2',
+          output_format: 'mp3_44100_128',
+        },
+      );
+    } catch (error) {
+      addLog(`[ElevenLabs->speech] Error generating audio: ${error}`);
+      throw(error)
+    }
+
+    addLog(`[ElevenLabs->speech] Audio Creation OK`);
+
+    try {
+      const base64Audio = await streamToBase64(response);
+      return base64Audio;
+    } catch (error) {
+      addLog(`[ElevenLabs->speech] Error converting stream to Base64: ${error}`);
+      throw(error)
+    }
+  } catch (error) {
+    addLog(`[ElevenLabs->speech] Unexpected error in getting audio: ${error}`);
+    throw(error)
+  }
 };
 
 export const getBase64WithOpenAI = async (messageString: string) => {
@@ -134,7 +151,7 @@ export async function transcribeVoice(media: MessageMedia): Promise<string> {
 export const createSpeechResponseContent = async (messageString: string) => {
   try {
     addLog(
-      `[OpenAI->speech] Creating speech audio for: "${messageString.substring(
+      `[ElevenLabs] Creating speech audio for: "${messageString.substring(
         0,
         100,
       )}...}"`,
