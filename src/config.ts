@@ -8,5 +8,5 @@ export const OPEN_WEBUI_KEY = process.env.OPEN_WEBUI_KEY;
 export const OPEN_WEBUI_BASE_URL = process.env.OPEN_WEBUI_BASE_URL;
 export const OPEN_WEBUI_MODEL = process.env.OPEN_WEBUI_MODEL as string;
 export const OPENAI_ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID
-export const DIVY_BASE_URL = process.env.DIVY_BASE_URL;
-export const DIVY_API_KEY = process.env.DIVY_API_KEY;
+export const DIFY_BASE_URL = process.env.DIFY_BASE_URL;
+export const DIFY_API_KEY = process.env.DIFY_API_KEY;

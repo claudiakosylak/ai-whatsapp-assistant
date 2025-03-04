@@ -180,11 +180,6 @@ export const getHTML = () => `
                                       getBotMode() === 'OPEN_WEBBUI_CHAT' &&
                                       'selected'
                                     }>Chat Completions (Open WebUI Custom)</option>
-                                    <option value="DIVY_CHAT" ${
-                                        getBotMode() ===
-                                        'DIVY_CHAT' &&
-                                        'selected'
-                                    }>Divy Chatbot</option>
                                 </select>
                             </div>
                             <button type="submit">Save Settings</button>

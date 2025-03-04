@@ -3,6 +3,12 @@ import { saveAudioFile } from './audio';
 import { ENV_PATH } from '../constants';
 import fs from 'fs';
 import path from 'path';
+import { getBotMode } from './config';
+import { processAssistantResponse } from './assistant';
+import { OpenAIMessage } from '../types';
+import { processChatCompletionResponse } from './chatCompletion';
+import { ChatCompletionMessageParam } from 'openai/resources';
+import { processDifyResponse } from './dify';
 
 type ChatHistoryItem = { role: string; content: string; rawText: string };
 
@@ -74,5 +80,56 @@ export const getEnvContent = () => {
       path.join(process.cwd(), '.env.example'),
       'utf8',
     ));
+  }
+};
+
+export const getResponse = async () => {
+  try {
+    let response;
+    let messages = [];
+    switch (getBotMode()) {
+      case 'OPENAI_ASSISTANT':
+        messages = chatHistory.map((msg) => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.rawText,
+        }));
+        addLog('Sending message to assistant');
+        response = await processAssistantResponse(
+          'test',
+          messages as OpenAIMessage[],
+        );
+        break;
+      case 'OPEN_WEBBUI_CHAT':
+        messages = chatHistory.map((msg) => {
+          return {
+            role: msg.role,
+            content: JSON.parse(msg.rawText),
+            name: msg.role,
+          };
+        });
+        addLog('Sending message to chat completion');
+        response = await processChatCompletionResponse(
+          'test',
+          messages as ChatCompletionMessageParam[],
+        );
+        break;
+      case 'DIFY_CHAT':
+        messages = chatHistory.map((msg) => {
+          return {
+            role: msg.role,
+            content: msg.rawText,
+            name: msg.role,
+          };
+        });
+        addLog('Sending message to Divy Chatbot');
+        response = await processDifyResponse(
+          'test',
+          messages as ChatCompletionMessageParam[],
+        );
+        break;
+    }
+    return response;
+  } catch (error) {
+    throw error;
   }
 };

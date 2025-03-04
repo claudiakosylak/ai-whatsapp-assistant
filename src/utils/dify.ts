@@ -1,20 +1,20 @@
 import { ChatCompletionMessageParam } from 'openai/resources';
-import { DIVY_API_KEY, DIVY_BASE_URL } from '../config';
 import { addLog } from './controlPanel';
+import { DIFY_API_KEY, DIFY_BASE_URL } from '../config';
 
 const headers = {
-  Authorization: `Bearer ${DIVY_API_KEY}`,
+  Authorization: `Bearer ${DIFY_API_KEY}`,
   'Content-Type': 'application/json',
 };
 
-export const processDivyResponse = async (
+export const processDifyResponse = async (
   from: string,
   messages: ChatCompletionMessageParam[],
 ) => {
   addLog('Processing divy response.');
   const lastMessage = messages[messages.length - 1];
   const messageContent = lastMessage.content as string;
-  const response = await fetch(`${DIVY_BASE_URL}/chat-messages`, {
+  const response = await fetch(`${DIFY_BASE_URL}/chat-messages`, {
     method: 'POST',
     headers,
     body: JSON.stringify({

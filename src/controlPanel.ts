@@ -21,6 +21,7 @@ import {
   addLog,
   addMessageContentString,
   chatHistory,
+  getResponse,
   logs,
   setChatHistory,
 } from './utils/controlPanel';
@@ -118,31 +119,7 @@ app.post('/send-message', async (req, res) => {
   });
 
   try {
-    let response;
-    if (getBotMode() === 'OPENAI_ASSISTANT') {
-      const messages = chatHistory.map((msg) => ({
-        role: msg.role as 'user' | 'assistant',
-        content: msg.rawText,
-      }));
-      addLog("Sending message to assistant")
-      response = await processAssistantResponse(
-        'test',
-        messages as OpenAIMessage[],
-      );
-    } else {
-      const messages = chatHistory.map((msg) => {
-        return {
-          role: msg.role,
-          content: JSON.parse(msg.rawText),
-          name: msg.role,
-        };
-      });
-      addLog('Sending message to chat completion');
-      response = await processChatCompletionResponse(
-        'test',
-        messages as ChatCompletionMessageParam[],
-      );
-    }
+    const response = await getResponse()
 
     // Add assistant response to history
     chatHistory.push({
