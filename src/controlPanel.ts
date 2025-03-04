@@ -8,6 +8,8 @@ import { processChatCompletionResponse } from './chatCompletion';
 import { processDifyResponse } from './dify';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { config } from 'dotenv';
+import { setBotName, getBotName, getMessageHistoryLimit, setMessageHistoryLimit, isResetCommandEnabled, setResetCommandEnabled, getMaxMessageAge, setMaxMessageAge, getCustomPrompt, setCustomPrompt, getBotMode, setBotMode } from './config';
+import { randomUUID } from 'crypto';
 
 const app = express();
 const PORT = 3000;
@@ -188,7 +190,9 @@ app.get('/', (req, res) => {
                                         </label>
                                     </div>
                                     <div>
-                                            <option value="OPEN_WEBUI_CHAT">OPEN_WEBUI_CHAT</option>
+                                        <label>Bot Mode:</label>
+                                        <select name="botMode" style="margin-left: 10px; padding: 5px;">
+                                            <option value="OPENAI_ASSISTANT" ${getBotMode() === 'OPENAI_ASSISTANT' ? 'selected' : ''}>OpenAI Assistant</option>
                                             <option value="OPEN_WEBBUI_CHAT" ${getBotMode() === 'OPEN_WEBBUI_CHAT' ? 'selected' : ''}>Open WebUI Chat</option>
                                             <option value="DIFY" ${getBotMode() === 'DIFY' ? 'selected' : ''}>Dify</option>
                                         </select>
