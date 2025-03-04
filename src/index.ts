@@ -1,11 +1,13 @@
 import { Message, Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal"
-import { processAssistantMessage, processChatCompletionMessage } from "./whatsapp";
+import { processAssistantMessage, processChatCompletionMessage, MessageResponse } from "./whatsapp";
+import { processDifyResponse } from "./dify";
 import { startControlPanel, addLog, setWhatsAppConnected } from "./controlPanel";
+
 import { getBotMode } from "./config";
 
 export type OpenAIMessage = {
-    role: "user" | "assistant",
+    role: "user" | "assistant" | "system",
     content: string;
 }
 
@@ -31,14 +33,19 @@ client.on('qr', qr => {
   client.on('message', async (message: Message) => {
     if (getBotMode() === "OPENAI_ASSISTANT") {
         addLog(`Processing assistant message from ${message.from}`);
-        const response = await processAssistantMessage(message)
+        const response: MessageResponse | false = await processAssistantMessage(message)
         if (response) {
             client.sendMessage(response.from, response.messageString)
             addLog(`Sent assistant response to ${response.from}`);
         }
+    } else if (getBotMode() === "DIFY") {
+        addLog(`Processing Dify message from ${message.from}`);
+        const response = await processDifyResponse(message.from, [{ role: 'user', content: message.body }]);
+        client.sendMessage(response.from, response.messageString);
+        addLog(`Sent Dify response to ${response.from}`);
     } else {
         addLog(`Processing chat completion message from ${message.from}`);
-        const response = await processChatCompletionMessage(message)
+        const response: MessageResponse | false = await processChatCompletionMessage(message)
         if (response) {
             client.sendMessage(response.from, response.messageString)
             addLog(`Sent chat completion response to ${response.from}`);

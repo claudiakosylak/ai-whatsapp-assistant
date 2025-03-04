@@ -3,10 +3,14 @@ let botName = "Roboto";
 let messageHistoryLimit = 10;
 let resetCommandEnabled = true;
 let maxMessageAge = 24;
+let customPrompt = '';
+let botMode: "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT" | "DIFY" = "OPENAI_ASSISTANT";
 
-export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT"
+export const getBotMode = () => botMode;
 
-export let mode = "OPENAI_ASSISTANT" as BotMode;
+export const setBotMode = (mode: "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT" | "DIFY") => {
+    botMode = mode;
+};
 
 export const getBotName = () => botName;
 
@@ -20,10 +24,6 @@ export const setMessageHistoryLimit = (limit: number) => {
     messageHistoryLimit = limit;
 };
 
-export const getBotMode = () => mode;
-
-export const setBotMode = (botMode: BotMode) => mode = botMode;
-
 export const isResetCommandEnabled = () => resetCommandEnabled;
 
 export const setResetCommandEnabled = (enabled: boolean) => {
@@ -35,3 +35,9 @@ export const getMaxMessageAge = () => maxMessageAge;
 export const setMaxMessageAge = (hours: number) => {
     maxMessageAge = hours;
 };
+
+export const getCustomPrompt = () => customPrompt;
+
+export const setCustomPrompt = (prompt: string) => {
+    customPrompt = prompt;
+}

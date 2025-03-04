@@ -5,13 +5,12 @@ import path from 'path';
 import { OpenAIMessage } from '.';
 import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
+import { processDifyResponse } from './dify';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { config } from 'dotenv';
-import { setBotName, getBotName, getMessageHistoryLimit, setMessageHistoryLimit, isResetCommandEnabled, setResetCommandEnabled, getMaxMessageAge, setMaxMessageAge, getBotMode, setBotMode } from './config';
 
 const app = express();
-config()
-const PORT = process.env.FRONTEND_PORT;
+const PORT = 3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -19,6 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Store logs in memory
 let logs: string[] = [];
 let chatHistory: { role: string; content: string; }[] = [];
+let testConversationId = randomUUID();
 let whatsappConnected = false;
 
 export const addLog = (message: string) => {
@@ -188,14 +188,20 @@ app.get('/', (req, res) => {
                                         </label>
                                     </div>
                                     <div>
-                                        <label for="chatSelector">Choose a chat mode:</label>
-                                        <select id="chatSelector" name="botMode">
-                                            <option value="OPENAI_ASSISTANT">OPENAI_ASSISTANT</option>
                                             <option value="OPEN_WEBUI_CHAT">OPEN_WEBUI_CHAT</option>
+                                            <option value="OPEN_WEBBUI_CHAT" ${getBotMode() === 'OPEN_WEBBUI_CHAT' ? 'selected' : ''}>Open WebUI Chat</option>
+                                            <option value="DIFY" ${getBotMode() === 'DIFY' ? 'selected' : ''}>Dify</option>
                                         </select>
                                     </div>
                                     <button type="submit">Save Settings</button>
                                 </form>
+                                <div style="margin-top: 20px;">
+                                    <h3>Custom Prompt</h3>
+                                    <form action="/save-custom-prompt" method="POST">
+                                        <textarea name="customPrompt" style="width: 100%; height: 100px;">${getCustomPrompt()}</textarea>
+                                        <button type="submit">Update Prompt</button>
+                                    </form>
+                                </div>
                             </div>
                         </form>
                         <div class="status active">
@@ -207,7 +213,7 @@ app.get('/', (req, res) => {
                         <div class="chat-container">
                             <h3>Test Chat</h3>
                             <div class="chat-messages" id="chatMessages">
-                                ${chatHistory.map(msg =>
+                                ${chatHistory.map(msg => 
                                     '<div class="message ' + msg.role + '">' +
                                         '<strong>' + msg.role + ':</strong> ' + msg.content +
                                     '</div>'
@@ -233,15 +239,15 @@ app.get('/', (req, res) => {
                     fetch('/logs')
                         .then(response => response.json())
                         .then(data => {
-                            document.querySelector('.logs').innerHTML =
+                            document.querySelector('.logs').innerHTML = 
                                 data.map(log => '<div class="log-entry">' + log + '</div>').join('');
                         });
-
+                    
                     fetch('/chat-history')
                         .then(response => response.json())
                         .then(data => {
-                            document.querySelector('#chatMessages').innerHTML =
-                                data.map(msg =>
+                            document.querySelector('#chatMessages').innerHTML = 
+                                data.map(msg => 
                                     '<div class="message ' + msg.role + '">' +
                                         '<strong>' + msg.role + ':</strong> ' + msg.content +
                                     '</div>'
@@ -305,10 +311,10 @@ app.get('/chat-history', (req, res) => {
 
 app.post('/send-message', async (req, res) => {
     const { message } = req.body;
-
+    
     // Add user message to history
     chatHistory.push({ role: 'user', content: message });
-
+    
     try {
         let response;
         if (getBotMode() === 'OPENAI_ASSISTANT') {
@@ -317,6 +323,12 @@ app.post('/send-message', async (req, res) => {
                 content: msg.content
             }));
             response = await processAssistantResponse('test', messages as OpenAIMessage[]);
+        } else if (getBotMode() === 'DIFY') {
+            const messages = chatHistory.map(msg => ({
+                role: msg.role,
+                content: msg.content
+            }));
+            response = await processDifyResponse(testConversationId, messages);
         } else {
             const messages = chatHistory.map(msg => ({
                 role: msg.role,
@@ -325,15 +337,15 @@ app.post('/send-message', async (req, res) => {
             }));
             response = await processChatCompletionResponse('test', messages as ChatCompletionMessageParam[]);
         }
-
+        
         // Add assistant response to history
         chatHistory.push({ role: 'assistant', content: response.messageString });
-
+        
         // Keep only last 50 messages
         if (chatHistory.length > 50) {
             chatHistory = chatHistory.slice(-50);
         }
-
+        
         res.json({ success: true });
     } catch (error) {
         addLog(`Error in test chat: ${error}`);
@@ -350,9 +362,17 @@ app.post('/save-bot-name', (req, res) => {
     res.redirect('/');
 });
 
+app.post('/save-custom-prompt', (req, res) => {
+    const { customPrompt } = req.body;
+    if (customPrompt !== undefined) {
+        setCustomPrompt(customPrompt);
+        addLog(`Custom prompt updated from control panel`);
+    }
+    res.redirect('/');
+});
 app.post('/save-bot-settings', (req, res) => {
     const { messageHistoryLimit, resetCommandEnabled, maxMessageAge, botMode } = req.body;
-
+    
     if (messageHistoryLimit) {
         const limit = parseInt(messageHistoryLimit);
         if (limit >= 1 && limit <= 50) {
@@ -360,7 +380,7 @@ app.post('/save-bot-settings', (req, res) => {
             addLog(`Message history limit updated to: ${limit}`);
         }
     }
-
+    
     if (maxMessageAge) {
         const hours = parseInt(maxMessageAge);
         if (hours >= 1 && hours <= 72) {
@@ -368,13 +388,15 @@ app.post('/save-bot-settings', (req, res) => {
             addLog(`Max message age updated to: ${hours} hours`);
         }
     }
-
+    
     setResetCommandEnabled(!!resetCommandEnabled);
     addLog(`Reset command ${resetCommandEnabled ? 'enabled' : 'disabled'}`);
-
-    setBotMode(botMode)
-    addLog(`Bot mode changed to ${botMode}`)
-
+    
+    if (botMode && (botMode === 'OPENAI_ASSISTANT' || botMode === 'OPEN_WEBBUI_CHAT' || botMode === 'DIFY')) {
+        setBotMode(botMode);
+        addLog(`Bot mode updated to: ${botMode}`);
+    }
+    
     res.redirect('/');
 });
 export const startControlPanel = () => {

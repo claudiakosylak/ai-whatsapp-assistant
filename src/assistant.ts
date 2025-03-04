@@ -9,11 +9,13 @@ export const processAssistantResponse = async (from: string, messages: OpenAIMes
     const client = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
     });
-
     const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID as string;
 
     const thread = await client.beta.threads.create({
-        messages
+        messages: messages.map(msg => ({
+            role: msg.role === "system" ? "user" : msg.role,
+            content: msg.content
+        }))
     })
 
     addLog(`Created new thread: ${thread.id}`);
