@@ -6,7 +6,7 @@ let maxMessageAge = 24;
 
 export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBBUI_CHAT" | "DIFY_CHAT"
 
-export let mode = "OPEN_WEBBUI_CHAT" as BotMode;
+export let mode = "DIFY_CHAT" as BotMode;
 
 export let enableAudioResponse = false;
 

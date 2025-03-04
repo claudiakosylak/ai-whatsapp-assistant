@@ -2,16 +2,12 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import fs from 'fs';
 import path from 'path';
-import { processAssistantResponse } from './utils/assistant';
-import { processChatCompletionResponse } from './utils/chatCompletion';
-import { ChatCompletionMessageParam } from 'openai/resources';
 import { config } from 'dotenv';
 import {
   setBotName,
   setMessageHistoryLimit,
   setResetCommandEnabled,
   setMaxMessageAge,
-  getBotMode,
   setBotMode,
   setAudioResponseEnabled,
 } from './utils/config';
@@ -26,8 +22,8 @@ import {
   setChatHistory,
 } from './utils/controlPanel';
 import { getHTML } from './utils/html';
-import { OpenAIMessage } from './types';
 import { deleteImageFiles, saveImageFile } from './utils/images';
+import { DIFY_API_KEY, DIFY_BASE_URL } from './config';
 
 deleteAudioFiles();
 deleteImageFiles();
@@ -77,6 +73,32 @@ app.post('/save-config', (req, res) => {
   }
 });
 
+app.post('/proxy/dify', async (req, res) => {
+  addLog('hitting proxy route')
+  addLog(`Req body: ${JSON.stringify(req.body)}`)
+  try {
+    const response = await fetch(`${DIFY_BASE_URL}/chat-messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${DIFY_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: {},
+        query: req.body.query,
+        response_mode: 'blocking',
+      }),
+    });
+    addLog(`Res body: ${JSON.stringify(response.body)}`)
+    res.json(response.body)
+  } catch (error: any) {
+    addLog("hitting proxy route catch")
+    res
+      .status(error?.response?.status || 500)
+      .json(error.response?.data || { error: 'Something went wrong' });
+  }
+});
+
 app.get('/logs', (req, res) => {
   res.json(logs);
 });
@@ -119,7 +141,7 @@ app.post('/send-message', async (req, res) => {
   });
 
   try {
-    const response = await getResponse()
+    const response = await getResponse();
 
     // Add assistant response to history
     chatHistory.push({

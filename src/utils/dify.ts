@@ -11,44 +11,52 @@ export const processDifyResponse = async (
   from: string,
   messages: ChatCompletionMessageParam[],
 ) => {
-  addLog('Processing divy response.');
-  const lastMessage = messages[messages.length - 1];
-  const messageContent = lastMessage.content as string;
-  const response = await fetch(`${DIFY_BASE_URL}/chat-messages`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      inputs: {},
-      query: messageContent,
-      response_mode: 'blocking',
-      conversation_id: '',
-      user: from,
-      //   files: [
-      //     {
-      //       type: "image",
-      //       transfer_method: "remote_url",
-      //       url: "https://cloud.dify.ai/logo/logo-site.png"
-      //     }
-      //   ]
-    }),
-  });
+  try {
+    addLog('Processing divy response.');
+    const lastMessage = messages[messages.length - 1];
+    const messageContent = lastMessage.content as string;
+    const response = await fetch(`http://localhost:3001/proxy/dify`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        inputs: {},
+        query: messageContent,
+        response_mode: 'blocking',
+        // conversation_id: '',
+        // user: from,
+      }),
+    });
 
-  let responseString = 'There was a problem with your request.';
-  if (!response.ok) {
-    addLog(
-      `Error getting divy response: ${response.status} - ${response.statusText}`,
-    );
+    const tempData = await response.json()
+
+    addLog(`response: ${JSON.stringify(tempData)}`)
+
+    // let responseString = 'There was a problem with your request.';
+    // if (!response.ok) {
+    //   addLog(
+    //     `Error getting divy response: ${response.status} - ${response.statusText}`,
+    //   );
+    //   throw new Error();
+    // }
+
+    // const data = await response.json();
+
+    // addLog(`Divy response: ${data.answer.substring(0, 100)}...`);
+
+    // responseString = data.answer;
+
+    // return {
+    //   from,
+    //   messageContent: responseString,
+    //   rawText: responseString,
+    // };
+    return {
+      from,
+      messageContent: 'test',
+      rawText: 'test',
+    };
+  } catch (error) {
+    addLog("catch in process helper")
+    throw error;
   }
-
-  const data = await response.json();
-
-  addLog(`Divy response: ${data.answer.substring(0, 100)}...`);
-
-  responseString = data.answer;
-
-  return {
-    from,
-    messageContent: responseString,
-    rawText: responseString,
-  };
 };
