@@ -1,15 +1,12 @@
 import OpenAI from 'openai';
 import { addLog } from './controlPanel';
-import { OpenAIMessage } from '../types';
+import { OpenAIMessage, WhatsappResponseAsText } from '../types';
 import { OPENAI_API_KEY, OPENAI_ASSISTANT_ID } from '../config';
-import { MessageMedia } from 'whatsapp-web.js';
-import { enableAudioResponse } from './config';
-import { createSpeechResponseContent } from './audio';
 
 export const processAssistantResponse = async (
   from: string,
   messages: OpenAIMessage[],
-) => {
+): Promise<WhatsappResponseAsText> => {
   try {
     const client = new OpenAI({
       apiKey: OPENAI_API_KEY,
@@ -79,19 +76,7 @@ export const processAssistantResponse = async (
       )}...`,
     );
     const responseString = latestMessageContent.text.value;
-    let messageContent: MessageMedia | string = responseString;
-    if (enableAudioResponse) {
-      try {
-        messageContent = await createSpeechResponseContent(responseString);
-      } catch (error) {
-        addLog(`Error creating speech response: ${error}`);
-        return {
-          from,
-          messageContent: `There was an error in creating an audio response. Here is the response as text: ${responseString}`,
-          rawText: JSON.stringify(responseString)
-        }
-      }
-    }
+    let messageContent = responseString
     const textResponse = {
       from: from,
       messageContent,

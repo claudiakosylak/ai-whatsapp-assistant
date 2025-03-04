@@ -24,6 +24,12 @@ export type WhatsappResponse = {
     rawText: string;
 }
 
+export type WhatsappResponseAsText = {
+  from: string,
+  messageContent: string;
+  rawText: string;
+}
+
 export type ProcessMessageParam =
   | ChatCompletionUserMessageParam
   | ChatCompletionAssistantMessageParam;

@@ -1,9 +1,9 @@
 import { MessageMedia } from 'whatsapp-web.js';
-import { saveAudioFile } from './audio';
+import { convertToAudioResponse, saveAudioFile } from './audio';
 import { ENV_PATH } from '../constants';
 import fs from 'fs';
 import path from 'path';
-import { getBotMode, getMessageHistoryLimit } from './config';
+import { enableAudioResponse, getBotMode, getMessageHistoryLimit } from './config';
 import { processAssistantResponse } from './assistant';
 import { ChatHistoryItem, MockChatHistoryMessage, OpenAIMessage, WhatsappResponse } from '../types';
 import { processChatCompletionResponse } from './chatCompletion';
@@ -140,6 +140,9 @@ export const getResponse = async (): Promise<WhatsappResponse> => {
           messages,
         );
         break;
+    }
+    if (enableAudioResponse) {
+      return await convertToAudioResponse(response)
     }
     return response;
   } catch (error) {

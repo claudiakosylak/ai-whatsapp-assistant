@@ -1,9 +1,5 @@
 import { Chat, Client, Message, MessageTypes } from 'whatsapp-web.js';
 import { processAssistantResponse } from './assistant';
-import {
-  ChatCompletionAssistantMessageParam,
-  ChatCompletionUserMessageParam,
-} from 'openai/resources';
 import { processChatCompletionResponse } from './chatCompletion';
 import { enableAudioResponse, getBotMode, getCustomPrompt } from './config';
 import { addLog } from './controlPanel';
@@ -17,6 +13,7 @@ import {
   shouldProcessMessage,
 } from './messages';
 import { processDifyResponse } from './dify';
+import { convertToAudioResponse } from './audio';
 
 const imageProcessingModes = ['OPEN_WEBUI_CHAT'];
 
@@ -99,24 +96,33 @@ export const processMessage = async (message: Message) => {
     if (messageList.length == 0) return;
 
     try {
-      if (getBotMode() === 'OPEN_WEBUI_CHAT') {
-        return await processChatCompletionResponse(
-          message.from,
-          messageList.reverse(),
-        );
-      } else if (getBotMode() === 'DIFY_CHAT') {
-        return await processDifyResponse(
-          message.from,
-          messageList as { role: string; content: string }[],
-        );
-      } else {
-        return await processAssistantResponse(
-          message.from,
-          (messageList as OpenAIMessage[]).reverse(),
-        );
+      let response;
+      switch (getBotMode()) {
+        case 'OPEN_WEBUI_CHAT':
+          response = await processChatCompletionResponse(
+            message.from,
+            messageList.reverse(),
+          );
+          break;
+        case 'DIFY_CHAT':
+          response = await processDifyResponse(
+            message.from,
+            messageList as { role: string; content: string }[],
+          );
+          break;
+        case 'OPENAI_ASSISTANT':
+          response = await processAssistantResponse(
+            message.from,
+            (messageList as OpenAIMessage[]).reverse(),
+          );
+          break;
       }
+      if (enableAudioResponse) {
+        return await convertToAudioResponse(response);
+      }
+      return response;
     } catch (error) {
-      addLog(`Error processing assistant/chat completion response: ${error}`);
+      addLog(`Error processing response: ${error}`);
     }
   } catch (error) {
     addLog(`Error processing context messages: ${error}`);
@@ -131,13 +137,9 @@ export const handleIncomingMessage = async (
     message.type === MessageTypes.IMAGE ||
     message.type === MessageTypes.STICKER;
   if (isImage && !imageProcessingModes.includes(getBotMode())) {
-    client.sendMessage(
-      message.from,
-      `Selected bot mode cannot process images at this time.`,
-      {
-        sendAudioAsVoice: enableAudioResponse,
-      },
-    );
+    client.sendMessage(message.from, `I cannot process images at this time.`, {
+      sendAudioAsVoice: enableAudioResponse,
+    });
     return;
   }
   const response = await processMessage(message);

@@ -1,19 +1,17 @@
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
-import { MessageMedia } from 'whatsapp-web.js';
-import { enableAudioResponse } from './config';
 import { addLog } from './controlPanel';
 import {
   OPEN_WEBUI_BASE_URL,
   OPEN_WEBUI_KEY,
   OPEN_WEBUI_MODEL,
 } from '../config';
-import { createSpeechResponseContent } from './audio';
+import {  WhatsappResponseAsText } from '../types';
 
 export const processChatCompletionResponse = async (
   from: string,
   messages: ChatCompletionMessageParam[],
-) => {
+): Promise<WhatsappResponseAsText> => {
   try {
     addLog('Processing chat completion response.');
     const client = new OpenAI({
@@ -45,20 +43,7 @@ export const processChatCompletionResponse = async (
     const responseString =
       completion.choices[0].message.content ||
       'There was a problem with your request.';
-
-    let messageContent: MessageMedia | string = responseString;
-    if (enableAudioResponse) {
-      try {
-        messageContent = await createSpeechResponseContent(responseString);
-      } catch (error) {
-        addLog(`Error creating speech response: ${error}`);
-        return {
-          from,
-          messageContent: `There was an error in creating an audio response. Here is the response as text: ${responseString}`,
-          rawText: JSON.stringify(responseString)
-        }
-      }
-    }
+    let messageContent = responseString;
 
     const response = {
       from: from,

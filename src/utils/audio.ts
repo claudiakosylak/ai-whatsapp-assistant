@@ -8,6 +8,7 @@ import { ElevenLabsClient } from 'elevenlabs';
 import { ELEVEN_LABS_API_KEY, OPENAI_API_KEY } from '../config';
 import { addLog } from './controlPanel';
 import OpenAI from 'openai';
+import { WhatsappResponse, WhatsappResponseAsText } from '../types';
 
 export const deleteAudioFiles = () => {
   // Read the contents of the audio directory
@@ -167,3 +168,24 @@ export const createSpeechResponseContent = async (messageString: string) => {
     throw e;
   }
 };
+
+
+export const convertToAudioResponse = async (textResponse: WhatsappResponseAsText): Promise<WhatsappResponse> => {
+  try {
+    let audioContent = await createSpeechResponseContent(
+      textResponse.messageContent,
+    );
+    return {
+      from: textResponse.from,
+      messageContent: audioContent,
+      rawText: textResponse.rawText,
+    };
+  } catch (error) {
+    addLog(`Error creating speech response: ${error}`);
+    return {
+      from: textResponse.from,
+      messageContent: `There was an error in creating an audio response. Here is the response as text: ${textResponse.messageContent}`,
+      rawText: textResponse.rawText,
+    };
+  }
+}

@@ -1,11 +1,6 @@
 import { DIFY_API_KEY, DIFY_BASE_URL } from '../config';
+import { WhatsappResponseAsText } from '../types';
 import { addLog } from './controlPanel';
-
-type DifyMessageResponse = {
-  from: string;
-  messageContent: string;
-  rawText: string;
-};
 
 const conversationCache = new Map<string, string>();
 
@@ -27,7 +22,7 @@ const safeJsonParse = (jsonString: string) => {
 export const processDifyResponse = async (
   from: string,
   messages: { role: string; content: string }[],
-): Promise<DifyMessageResponse> => {
+): Promise<WhatsappResponseAsText> => {
   const apiKey = DIFY_API_KEY;
   const baseUrl = DIFY_BASE_URL;
   const RESPONSE_TIMEOUT = 60000; // 60 seconds timeout
