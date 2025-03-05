@@ -1,6 +1,6 @@
 // Bot configuration management
 let botName = "Roboto";
-let messageHistoryLimit = 1;
+let messageHistoryLimit = 3;
 let resetCommandEnabled = true;
 let maxMessageAge = 24;
 

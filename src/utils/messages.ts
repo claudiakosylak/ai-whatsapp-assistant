@@ -17,6 +17,7 @@ import {
   WhatsappResponse,
 } from '../types';
 import { addLog } from './controlPanel';
+import { deleteFromDifyCache } from './dify';
 
 export const shouldProcessMessage = (chatData: Chat, message: Message) => {
   // If it's a "Broadcast" message, it's not processed
@@ -195,6 +196,27 @@ export const updatePromptFromCommand = (
   };
 };
 
+export const resetContextFromCommand = (
+  message: Message | MockChatHistoryMessage,
+) => {
+  if (!isResetCommandEnabled()) {
+    return {
+      from: message.from,
+      messageContent: 'Reset command is not currently enabled.',
+      rawText: 'Reset command is not currently enabled.',
+    };
+  }
+  if (getBotMode() === 'DIFY_CHAT') {
+    deleteFromDifyCache(message.from);
+  }
+  addLog("Conversation context has been reset.")
+  return {
+    from: message.from,
+    messageContent: 'Conversation context has been reset.',
+    rawText: 'Conversation context has been reset.',
+  };
+};
+
 export const handleCommands = (
   message: Message | MockChatHistoryMessage,
 ): WhatsappResponse | false => {
@@ -211,6 +233,8 @@ export const handleCommands = (
         messageContent: getStatusMessage(),
         rawText: getStatusMessage(),
       };
+    case '-reset':
+      return resetContextFromCommand(message);
     default:
       if (message.body.startsWith('-mode ')) {
         return changeBotMode(message);

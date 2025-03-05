@@ -86,13 +86,13 @@ document.getElementById("clearChatButton").addEventListener("click", async () =>
       });
 
       if (response.ok) {
-          alert("Item deleted successfully!");
+          alert("Chat cleared successfully!");
       } else {
           const errorData = await response.json();
           alert(`Error: ${errorData.message}`);
       }
   } catch (error) {
       console.error("Request failed", error);
-      alert("Failed to delete the item.");
+      alert("Failed to clear chat history.");
   }
 });

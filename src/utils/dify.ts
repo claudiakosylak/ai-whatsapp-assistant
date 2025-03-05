@@ -4,6 +4,9 @@ import { getCustomPrompt } from './config';
 import { addLog } from './controlPanel';
 
 const conversationCache = new Map<string, string>();
+export const getDifyConversationCache = () => conversationCache;
+export const deleteFromDifyCache = (from: string) =>
+  conversationCache.delete(from);
 
 // Helper to decode JSON safely with better error handling
 const safeJsonParse = (jsonString: string) => {
@@ -39,9 +42,11 @@ export const processDifyResponse = async (
     };
   }
 
+  const lastMessage = messages[messages.length - 1].content;
+
   const messageQuery = getCustomPrompt()
-    ? messages[messages.length - 2].content + messages[messages.length - 1].content
-    : messages[messages.length - 1].content;
+    ? messages[messages.length - 2].content + lastMessage
+    : lastMessage;
 
   try {
     const isFirstMessage = !conversationCache.has(from);
