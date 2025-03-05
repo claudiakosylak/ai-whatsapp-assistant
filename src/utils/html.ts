@@ -44,6 +44,11 @@ export const getHTML = () => `
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
+        @media (max-width: 768px) {
+            .top-panels {
+                grid-template-columns: 1fr;
+            }
+        }
         textarea {
             width: 100%;
             height: 200px;
@@ -74,6 +79,14 @@ export const getHTML = () => `
         }
         button:hover {
             background: #45a049;
+        }
+        input, select {
+            height: 35px;
+            padding: 0 10px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-radius: 2px;
         }
         .status {
             margin-top: 10px;
@@ -112,19 +125,19 @@ export const getHTML = () => `
         }
         .chat-input {
             display: flex;
+            flex-direction: column;
             padding: 10px;
             background: white;
             border-top: 1px solid #ddd;
+            margin-bottom: 10px;
         }
         .chat-input input {
             flex: 1;
-            padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            margin-right: 10px;
         }
         .chat-input button {
-            white-space: nowrap;
+            align-self: center;
         }
     </style>
 </head>
@@ -133,30 +146,26 @@ export const getHTML = () => `
     <div class="container">
         <div class="top-panels">
             <div class="panel">
-                <h2>Configuration</h2>
-                <form action="/save-config" method="POST">
-                    <textarea name="config">${getEnvContent()}</textarea>
-                    <button type="submit">Save Configuration</button>
                     <div style="margin-top: 20px;">
                         <h3>Bot Name</h3>
                         <form action="/save-bot-name" method="POST" style="display: flex; gap: 10px;">
-                            <input type="text" name="botName" value="${getBotName()}" placeholder="Enter bot name" style="flex: 1; padding: 8px;">
+                            <input type="text" name="botName" value="${getBotName()}" placeholder="Enter bot name" style="flex: 1;">
                             <button type="submit">Update Name</button>
                         </form>
                     </div>
                     <div style="margin-top: 20px;">
                         <h3>Bot Settings</h3>
-                        <form action="/save-bot-settings" method="POST" style="display: grid; gap: 10px;">
-                            <div>
+                        <form action="/save-bot-settings" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <label>Message History Limit:</label>
                                 <input type="number" name="messageHistoryLimit" value="${getMessageHistoryLimit()}" min="1" max="50" style="width: 80px; margin-left: 10px;">
                             </div>
-                            <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <label>Max Message Age (hours):</label>
                                 <input type="number" name="maxMessageAge" value="${getMaxMessageAge()}" min="1" max="72" style="width: 80px; margin-left: 10px;">
                             </div>
                             <div>
-                                <label>
+                                <label style="display: flex; align-items: center; gap: 20px;">
                                     <input type="checkbox" name="resetCommandEnabled" ${
                                       isResetCommandEnabled() ? 'checked' : ''
                                     }>
@@ -164,51 +173,63 @@ export const getHTML = () => `
                                 </label>
                             </div>
                             <div>
-                                <label>
+                                <label style="display: flex; align-items: center; gap: 20px;">
                                     <input type="checkbox" name="respondAsVoice" ${
                                       getAudioResponseEnabled() ? 'checked' : ''
                                     }>
                                     Respond with voice messages
                                 </label>
                             </div>
-                            <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <label for="chatSelector">Choose a chat mode:</label>
                                 <select id="chatSelector" name="botMode">
                                     <option value="OPENAI_ASSISTANT" ${
-                                      getBotMode() === 'OPENAI_ASSISTANT' ?
-                                      'selected' : ''
+                                      getBotMode() === 'OPENAI_ASSISTANT'
+                                        ? 'selected'
+                                        : ''
                                     }>Assistant (OpenAI)</option>
                                     <option value="OPEN_WEBUI_CHAT" ${
-                                      getBotMode() === 'OPEN_WEBUI_CHAT' ?
-                                      'selected' : ''
+                                      getBotMode() === 'OPEN_WEBUI_CHAT'
+                                        ? 'selected'
+                                        : ''
                                     }>Chat Completions (Open WebUI Custom)</option>
-                                    <option value="DIFY_CHAT" ${getBotMode() === 'DIFY_CHAT' ? 'selected' : ''}>Dify</option>
+                                    <option value="DIFY_CHAT" ${
+                                      getBotMode() === 'DIFY_CHAT'
+                                        ? 'selected'
+                                        : ''
+                                    }>Dify</option>
                                 </select>
                             </div>
                             <button type="submit">Save Settings</button>
                         </form>
-                             <div style="margin-top: 20px;">
-                                    <h3>Custom Prompt</h3>
-                                    <form action="/save-custom-prompt" method="POST">
-                                        <textarea name="customPrompt" style="width: 100%; height: 100px;">${getCustomPrompt()}</textarea>
-                                        <button type="submit">Update Prompt</button>
-                                    </form>
-                                </div>
+                            <div style="margin-top: 20px;">
+                            <h3>Custom Prompt</h3>
+                            <form action="/save-custom-prompt" method="POST">
+                                <textarea name="customPrompt" style="width: 100%; height: 100px;">${getCustomPrompt()}</textarea>
+                                <button type="submit">Update Prompt</button>
+                            </form>
+                         </div>
                     </div>
+                     <div style="margin-top: 20px;">
+                     <h3>Configuration</h3>
+                <form action="/save-config" method="POST">
+                    <textarea name="config">${getEnvContent()}</textarea>
+                    <button type="submit">Save Configuration</button>
                 </form>
-                <div class="status active">
+                </div>
+            </div>
+            <div class="panel">
+                            <div class="status active">
                     <strong>WhatsApp Status:</strong> <span style="color: ${
                       whatsappConnected ? '#2e7d32' : '#d32f2f'
                     }">${
   whatsappConnected ? 'Connected' : 'Disconnected'
 }</span>
                 </div>
-            </div>
-            <div class="panel">
                 <div class="chat-container">
                     <div style="display:flex;justify-content:space-between;padding:10px;align-items:center;">
                         <h3>Test Chat</h3>
-                        <button type="button" id="clearChatButton">Clear chat</button>
+                        <button type="button" id="clearChatButton">Clear</button>
                     </div>
                     <div class="chat-messages" id="chatMessages">
                         ${chatHistory
@@ -226,14 +247,14 @@ export const getHTML = () => `
                           .join('')}
                     </div>
                     <form class="chat-input" id="chatForm" style="display:flex;flex-direction:column;gap:10px;">
-                        <div style="display:flex;">
+                        <div style="display:flex;align-items: center;gap: 5px;">
                             <input type="text" id="messageInput" placeholder="Type your message..." required>
-                            <button type="submit">Send Message</button>
+                            <button type="submit">Send</button>
                         </div>
                         ${
                           imageProcessingModes.includes(getBotMode())
-                          ? '<input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">'
-                          : ''
+                            ? '<input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">'
+                            : ''
                         }
                     </form>
                 </div>

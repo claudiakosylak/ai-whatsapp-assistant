@@ -43,6 +43,10 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   const input = document.getElementById('messageInput');
   const message = input.value;
   input.value = '';
+  const newDiv = document.createElement("div");
+  newDiv.className = "message user";
+  newDiv.textContent = message;
+  document.querySelector('#chatMessages').appendChild(newDiv)
   const fileInput = document.getElementById('imageInput');
   if (fileInput && fileInput.files.length) {
     const file = fileInput.files[0];
@@ -58,7 +62,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ message, image: base64String, imageName: file.name, mimeType }),
-      });
+      })
     };
 
     reader.readAsDataURL(file);
@@ -88,7 +92,7 @@ document
       });
 
       if (response.ok) {
-        alert('Chat cleared successfully!');
+        document.querySelector('#chatMessages').innerHTML = ''
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.message}`);

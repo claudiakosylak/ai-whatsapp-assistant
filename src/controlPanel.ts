@@ -46,10 +46,6 @@ app.use(
 );
 app.use('/images', express.static(IMAGE_DIR));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use("/scripts.js", (req, res) => {
-  res.type("application/javascript");
-  res.sendFile(path.join(__dirname, "public", "scripts.js"));
-});
 
 app.get('/', (req, res) => {
   res.send(getHTML());
