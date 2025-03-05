@@ -29,14 +29,11 @@ export const shouldProcessMessage = (chatData: Chat, message: Message) => {
 
   // Check if message is from a group
   if (chatData.isGroup) {
-    //   const botName = getBotName();
-    //   // Check if bot name is mentioned in the message
-    //   if (!message.body.toLowerCase().includes(botName.toLowerCase())) {
-    //     return false;
-    //   }
-    // }
-    // return true;
-    return false;
+    const botName = getBotName();
+    // Check if bot name is mentioned in the message
+    if (!message.body.toLowerCase().includes(botName.toLowerCase())) {
+      return false;
+    }
   }
   return true;
 };
@@ -209,7 +206,7 @@ export const resetContextFromCommand = (
   if (getBotMode() === 'DIFY_CHAT') {
     deleteFromDifyCache(message.from);
   }
-  addLog("Conversation context has been reset.")
+  addLog('Conversation context has been reset.');
   return {
     from: message.from,
     messageContent: 'Conversation context has been reset.',
