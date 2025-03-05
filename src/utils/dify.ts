@@ -1,9 +1,7 @@
-import { Message } from 'whatsapp-web.js';
 import { DIFY_API_KEY, DIFY_BASE_URL } from '../config';
-import { MockChatHistoryMessage, WhatsappResponseAsText } from '../types';
+import { WhatsappResponseAsText } from '../types';
 import { getCustomPrompt } from './config';
 import { addLog } from './controlPanel';
-import { Readable } from 'stream';
 
 const conversationCache = new Map<string, string>();
 export const getDifyConversationCache = () => conversationCache;
@@ -30,6 +28,7 @@ const baseUrl = DIFY_BASE_URL;
 export const processDifyResponse = async (
   from: string,
   messages: { role: string; content: string }[],
+  imageFileId?: string,
 ): Promise<WhatsappResponseAsText> => {
   const RESPONSE_TIMEOUT = 60000; // 60 seconds timeout
   const COMPLETION_DELAY = 500; // 500ms delay after stream ends
@@ -50,6 +49,8 @@ export const processDifyResponse = async (
     ? messages[messages.length - 2].content + lastMessage
     : lastMessage;
 
+  addLog(`Message query: ${messageQuery}`)
+
   try {
     const isFirstMessage = !conversationCache.has(from);
     const requestBody: any = {
@@ -62,6 +63,16 @@ export const processDifyResponse = async (
       user: from,
       response_mode: 'streaming',
     };
+
+    if (imageFileId) {
+      requestBody['files'] = [
+        {
+          type: 'image',
+          transfer_method: 'local_file',
+          upload_file_id: imageFileId,
+        },
+      ];
+    }
 
     // Only include conversation_id if it's not the first message
     if (!isFirstMessage) {
@@ -470,10 +481,8 @@ export const uploadImageToDify = async (
   // Create FormData
   const formData = new FormData();
   formData.append('file', fileBlob);
-  formData.append('type', mimeType)
+  formData.append('type', mimeType);
   formData.append('user', from); // Append user ID
-
-  addLog(`Form Data: ${formData}`)
 
   // Send the request
   const response = await fetch(`${baseUrl}/files/upload`, {
@@ -481,7 +490,7 @@ export const uploadImageToDify = async (
     body: formData,
     headers: {
       Authorization: `Bearer ${apiKey}`,
-    } // Ensure multipart/form-data headers
+    }, // Ensure multipart/form-data headers
   });
   return response;
 };

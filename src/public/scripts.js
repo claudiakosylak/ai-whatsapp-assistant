@@ -52,21 +52,13 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
       const base64String = event.target.result.split(',')[1]; // Get only the Base64 part
       const mimeType = event.target.result.split(';')[0].split(':')[1];
 
-      fetch('/upload-dify-image', {
+      fetch('/send-message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ image: base64String, mimeType }),
+        body: JSON.stringify({ message, image: base64String, imageName: file.name, mimeType }),
       });
-
-      // fetch('/send-message', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({ message, image: base64String, imageName: file.name, mimeType }),
-      // });
     };
 
     reader.readAsDataURL(file);

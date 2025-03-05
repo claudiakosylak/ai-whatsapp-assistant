@@ -7,6 +7,7 @@ export type OpenAIMessage = {
 };
 
 export type ChatHistoryItem = {
+  id: string;
   role: string;
   content: string;
   rawText: string;

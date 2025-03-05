@@ -107,7 +107,7 @@ export const getContextMessageContent = async (
           },
         },
       ];
-    }
+    } 
   }
 
   const role = !msg.fromMe || (media && !isAudio) ? 'user' : 'assistant';

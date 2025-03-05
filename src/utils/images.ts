@@ -32,3 +32,12 @@ export const deleteImageFiles = () => {
     });
   });
 };
+
+export function getMimeTypeFromBase64(base64String: string) {
+  const matches = base64String.match(/^data:(.+);base64,/);
+  if (matches && matches[1]) {
+      return matches[1];  // Return the MIME type
+  } else {
+      throw new Error("Invalid base64 string");
+  }
+}

@@ -25,6 +25,7 @@ import {
 import { getHTML } from './utils/html';
 import { deleteImageFiles, saveImageFile } from './utils/images';
 import { uploadImageToDify } from './utils/dify';
+import { randomUUID } from 'crypto';
 
 deleteAudioFiles();
 deleteImageFiles();
@@ -88,19 +89,6 @@ app.get('/chat-history', (req, res) => {
   res.json(chatHistory);
 });
 
-app.post("/upload-dify-image", async (req, res) => {
-  const {image, mimeType} = req.body;
-
-  const response = await uploadImageToDify('test', image, mimeType)
-  const data = await response.json()
-  addLog(JSON.stringify(data))
-  if (response.ok) {
-    res.status(201).json(data)
-  } else {
-    res.status(500).send("There was a problem")
-  }
-})
-
 app.post('/send-message', async (req, res) => {
   const { message, image, imageName, mimeType } = req.body;
 
@@ -129,6 +117,7 @@ app.post('/send-message', async (req, res) => {
 
   // Add user message to history
   chatHistory.push({
+    id: randomUUID(),
     role: 'user',
     content: addMessageContentString(message, imageUrl),
     rawText: contentJSON,
@@ -139,9 +128,10 @@ app.post('/send-message', async (req, res) => {
 
     // Add assistant response to history
     chatHistory.push({
+      id: randomUUID(),
       role: 'assistant',
       content: addMessageContentString(response.messageContent),
-      rawText: response.rawText,
+      rawText: JSON.stringify(response.rawText),
     });
 
     // Keep only last 50 messages

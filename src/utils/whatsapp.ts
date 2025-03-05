@@ -12,7 +12,7 @@ import {
   removeBotName,
   shouldProcessMessage,
 } from './messages';
-import { processDifyResponse } from './dify';
+import { processDifyResponse, uploadImageToDify } from './dify';
 import { convertToAudioResponse } from './audio';
 
 export const imageProcessingModes = ['OPEN_WEBUI_CHAT', 'DIFY_CHAT'];
@@ -70,7 +70,8 @@ export const processMessage = async (message: Message) => {
         let media = null;
         try {
           media =
-            (isImage && imageCount < 2) || isAudio
+            (isImage && imageCount < 2 && getBotMode() !== 'DIFY_CHAT') ||
+            isAudio
               ? await msg.downloadMedia()
               : null;
           if (media && isImage) imageCount++;
@@ -105,9 +106,27 @@ export const processMessage = async (message: Message) => {
           );
           break;
         case 'DIFY_CHAT':
+          const isImage =
+            message.type === MessageTypes.IMAGE ||
+            message.type === MessageTypes.STICKER;
+          let fileUploadId;
+          if (isImage) {
+            const media = await message.downloadMedia();
+            const response = await uploadImageToDify(
+              message.from,
+              media.data,
+              media.mimetype,
+            );
+            if (response.ok) {
+              const data = await response.json();
+              addLog(`Successfully uploaded image to dify with ID: ${data.id}`);
+              fileUploadId = data.id;
+            }
+          }
           response = await processDifyResponse(
             message.from,
             messageList as { role: string; content: string }[],
+            fileUploadId,
           );
           break;
         case 'OPENAI_ASSISTANT':

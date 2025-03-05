@@ -3,14 +3,25 @@ import { convertToAudioResponse, saveAudioFile } from './audio';
 import { ENV_PATH } from '../constants';
 import fs from 'fs';
 import path from 'path';
-import { enableAudioResponse, getBotMode, getCustomPrompt, getMessageHistoryLimit } from './config';
+import {
+  enableAudioResponse,
+  getBotMode,
+  getCustomPrompt,
+  getMessageHistoryLimit,
+} from './config';
 import { processAssistantResponse } from './assistant';
-import { ChatHistoryItem, MockChatHistoryMessage, OpenAIMessage, WhatsappResponse } from '../types';
+import {
+  ChatHistoryItem,
+  MockChatHistoryMessage,
+  OpenAIMessage,
+  WhatsappResponse,
+} from '../types';
 import { processChatCompletionResponse } from './chatCompletion';
 import { ChatCompletionMessageParam } from 'openai/resources';
-import { processDifyResponse } from './dify';
+import { processDifyResponse, uploadImageToDify } from './dify';
 import { randomUUID } from 'crypto';
 import { handleCommands } from './messages';
+import { getMimeTypeFromBase64 } from './images';
 
 // Store logs in memory
 export let logs: string[] = [];
@@ -84,25 +95,36 @@ export const getEnvContent = () => {
   }
 };
 
+const getMessageTextFromRawText = (rawText: string): string => {
+  const content = JSON.parse(rawText);
+  if (!Array.isArray(content)) return rawText;
+  return content[0].text;
+};
+
 export const getResponse = async (): Promise<WhatsappResponse> => {
   try {
     let response;
     let messages = [];
     // check if last message was a command and handle
-    let lastMessage = chatHistory[chatHistory.length - 1]
+    let lastMessage = chatHistory[chatHistory.length - 1];
     let mockMessage: MockChatHistoryMessage = {
       from: 'test',
       body: lastMessage.content,
-      role: 'user'
-    }
-    let commandResponse = handleCommands(mockMessage)
+      role: 'user',
+    };
+    let commandResponse = handleCommands(mockMessage);
     if (commandResponse !== false) {
-      return commandResponse as WhatsappResponse
+      return commandResponse as WhatsappResponse;
     }
     // grab only the messages defined by our settings context length
-    const contextChatHistory = chatHistory.slice(-(getMessageHistoryLimit()))
+    const contextChatHistory = chatHistory.slice(-getMessageHistoryLimit());
     if (getCustomPrompt()) {
-      contextChatHistory.push({ role: 'user', content: getCustomPrompt(), rawText: JSON.stringify(getCustomPrompt()) });
+      contextChatHistory.push({
+        role: 'user',
+        content: getCustomPrompt(),
+        rawText: JSON.stringify(getCustomPrompt()),
+        id: randomUUID(),
+      });
     }
     switch (getBotMode()) {
       case 'OPENAI_ASSISTANT':
@@ -131,21 +153,41 @@ export const getResponse = async (): Promise<WhatsappResponse> => {
         );
         break;
       case 'DIFY_CHAT':
+        const lastMessageContent = JSON.parse(lastMessage.rawText);
+        let fileUploadId;
+        if (Array.isArray(lastMessageContent)) {
+          addLog('Uploading image to Dify:');
+          const mimeType = getMimeTypeFromBase64(
+            lastMessageContent[1].image_url.url,
+          );
+          const uploadResponse = await uploadImageToDify(
+            'test',
+            lastMessageContent[1].image_url.url,
+            mimeType,
+          );
+          if (uploadResponse.ok) {
+            const data = await uploadResponse.json();
+            addLog(`Successfully uploaded image to dify with ID: ${data.id}`);
+            fileUploadId = data.id;
+          }
+        }
         messages = contextChatHistory.map((msg) => {
+          const messageContent = getMessageTextFromRawText(msg.rawText);
           return {
             role: msg.role,
-            content: msg.rawText
+            content: messageContent,
           };
         });
-        addLog('Sending message to Divy Chatbot');
+        addLog('Sending message to Divy Agent');
         response = await processDifyResponse(
           testConversationId,
           messages,
+          fileUploadId,
         );
         break;
     }
     if (enableAudioResponse) {
-      return await convertToAudioResponse(response)
+      return await convertToAudioResponse(response);
     }
     return response;
   } catch (error) {
