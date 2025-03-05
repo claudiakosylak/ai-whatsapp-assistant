@@ -200,19 +200,29 @@ export const processMessage = async (message: Message) => {
     if (messageList.length == 0) return;
 
     try {
-      const response = await typeWhileWaiting(
-        getResponseText,
-        message,
-        messageList,
-        chatData,
-      );
+      chatData.sendStateTyping();
+      const response = await getResponseText(message, messageList);
+      chatData.clearState();
+      // const response = await typeWhileWaiting(
+      //   getResponseText,
+      //   message,
+      //   messageList,
+      //   chatData,
+      // );
+      // if (enableAudioResponse) {
+      //   return await showRecordingWhileWaiting(
+      //     convertToAudioResponse,
+      //     response,
+      //     chatData,
+      //   );
+      // }
       if (enableAudioResponse) {
-        return await showRecordingWhileWaiting(
-          convertToAudioResponse,
-          response,
-          chatData,
-        );
+        chatData.sendStateRecording();
+        const audioResponse = await convertToAudioResponse(response);
+        chatData.clearState();
+        return audioResponse;
       }
+
       return response;
     } catch (error) {
       addLog(`Error processing response: ${error}`);
