@@ -15,7 +15,7 @@ import {
 import { processDifyResponse } from './dify';
 import { convertToAudioResponse } from './audio';
 
-const imageProcessingModes = ['OPEN_WEBUI_CHAT'];
+export const imageProcessingModes = ['OPEN_WEBUI_CHAT', 'DIFY_CHAT'];
 
 export const processMessage = async (message: Message) => {
   try {

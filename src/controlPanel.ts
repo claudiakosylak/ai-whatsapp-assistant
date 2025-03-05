@@ -24,6 +24,7 @@ import {
 } from './utils/controlPanel';
 import { getHTML } from './utils/html';
 import { deleteImageFiles, saveImageFile } from './utils/images';
+import { uploadImageToDify } from './utils/dify';
 
 deleteAudioFiles();
 deleteImageFiles();
@@ -86,6 +87,19 @@ app.delete('/chat-history', (req, res) => {
 app.get('/chat-history', (req, res) => {
   res.json(chatHistory);
 });
+
+app.post("/upload-dify-image", async (req, res) => {
+  const {image, mimeType} = req.body;
+
+  const response = await uploadImageToDify('test', image, mimeType)
+  const data = await response.json()
+  addLog(JSON.stringify(data))
+  if (response.ok) {
+    res.status(201).json(data)
+  } else {
+    res.status(500).send("There was a problem")
+  }
+})
 
 app.post('/send-message', async (req, res) => {
   const { message, image, imageName, mimeType } = req.body;

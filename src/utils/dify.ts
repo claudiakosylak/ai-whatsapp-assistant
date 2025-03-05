@@ -1,7 +1,9 @@
+import { Message } from 'whatsapp-web.js';
 import { DIFY_API_KEY, DIFY_BASE_URL } from '../config';
-import { WhatsappResponseAsText } from '../types';
+import { MockChatHistoryMessage, WhatsappResponseAsText } from '../types';
 import { getCustomPrompt } from './config';
 import { addLog } from './controlPanel';
+import { Readable } from 'stream';
 
 const conversationCache = new Map<string, string>();
 export const getDifyConversationCache = () => conversationCache;
@@ -22,13 +24,13 @@ const safeJsonParse = (jsonString: string) => {
     }
   }
 };
+const apiKey = DIFY_API_KEY;
+const baseUrl = DIFY_BASE_URL;
 
 export const processDifyResponse = async (
   from: string,
   messages: { role: string; content: string }[],
 ): Promise<WhatsappResponseAsText> => {
-  const apiKey = DIFY_API_KEY;
-  const baseUrl = DIFY_BASE_URL;
   const RESPONSE_TIMEOUT = 60000; // 60 seconds timeout
   const COMPLETION_DELAY = 500; // 500ms delay after stream ends
 
@@ -449,4 +451,37 @@ export const processDifyResponse = async (
       rawText: 'Error',
     };
   }
+};
+
+export const uploadImageToDify = async (
+  // base64: string,
+  // message: Message | MockChatHistoryMessage,
+  // mimeType: string,
+  from: string,
+  base64: string,
+  mimeType: string,
+) => {
+  const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
+  const imageBuffer = Buffer.from(base64Data, 'base64');
+
+  // Convert Buffer to Blob (Required for strict TypeScript environments)
+  const fileBlob = new Blob([imageBuffer], { type: mimeType });
+
+  // Create FormData
+  const formData = new FormData();
+  formData.append('file', fileBlob);
+  formData.append('type', mimeType)
+  formData.append('user', from); // Append user ID
+
+  addLog(`Form Data: ${formData}`)
+
+  // Send the request
+  const response = await fetch(`${baseUrl}/files/upload`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    } // Ensure multipart/form-data headers
+  });
+  return response;
 };

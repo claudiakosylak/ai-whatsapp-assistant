@@ -52,13 +52,21 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
       const base64String = event.target.result.split(',')[1]; // Get only the Base64 part
       const mimeType = event.target.result.split(';')[0].split(':')[1];
 
-        fetch('/send-message', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ message, image: base64String, imageName: file.name, mimeType }),
-        });
+      fetch('/upload-dify-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: base64String, mimeType }),
+      });
+
+      // fetch('/send-message', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({ message, image: base64String, imageName: file.name, mimeType }),
+      // });
     };
 
     reader.readAsDataURL(file);
@@ -74,25 +82,27 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   }
 });
 
-document.getElementById("clearChatButton").addEventListener("click", async () => {
-  const endpoint = "/chat-history";
+document
+  .getElementById('clearChatButton')
+  .addEventListener('click', async () => {
+    const endpoint = '/chat-history';
 
-  try {
+    try {
       const response = await fetch(endpoint, {
-          method: "DELETE",
-          headers: {
-              "Content-Type": "application/json",
-          }
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
-          alert("Chat cleared successfully!");
+        alert('Chat cleared successfully!');
       } else {
-          const errorData = await response.json();
-          alert(`Error: ${errorData.message}`);
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message}`);
       }
-  } catch (error) {
-      console.error("Request failed", error);
-      alert("Failed to clear chat history.");
-  }
-});
+    } catch (error) {
+      console.error('Request failed', error);
+      alert('Failed to clear chat history.');
+    }
+  });

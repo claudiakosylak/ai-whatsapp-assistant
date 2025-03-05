@@ -13,6 +13,7 @@ import {
   logs,
   whatsappConnected,
 } from './controlPanel';
+import { imageProcessingModes } from './whatsapp';
 
 export const getHTML = () => `
 <!DOCTYPE html>
@@ -230,7 +231,7 @@ export const getHTML = () => `
                             <button type="submit">Send Message</button>
                         </div>
                         ${
-                          getBotMode() === 'OPEN_WEBUI_CHAT'
+                          imageProcessingModes.includes(getBotMode())
                           ? '<input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">'
                           : ''
                         }
