@@ -200,9 +200,6 @@ export const processMessage = async (message: Message) => {
     if (messageList.length == 0) return;
 
     try {
-      chatData.sendStateTyping();
-      const response = await getResponseText(message, messageList);
-      chatData.clearState();
       // const response = await typeWhileWaiting(
       //   getResponseText,
       //   message,
@@ -216,6 +213,9 @@ export const processMessage = async (message: Message) => {
       //     chatData,
       //   );
       // }
+      chatData.sendStateTyping();
+      const response = await getResponseText(message, messageList);
+      chatData.clearState();
       if (enableAudioResponse) {
         chatData.sendStateRecording();
         const audioResponse = await convertToAudioResponse(response);
