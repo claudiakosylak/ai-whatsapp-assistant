@@ -73,3 +73,26 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
     });
   }
 });
+
+document.getElementById("clearChatButton").addEventListener("click", async () => {
+  const endpoint = "/chat-history";
+
+  try {
+      const response = await fetch(endpoint, {
+          method: "DELETE",
+          headers: {
+              "Content-Type": "application/json",
+          }
+      });
+
+      if (response.ok) {
+          alert("Item deleted successfully!");
+      } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.message}`);
+      }
+  } catch (error) {
+      console.error("Request failed", error);
+      alert("Failed to delete the item.");
+  }
+});

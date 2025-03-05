@@ -77,6 +77,12 @@ app.get('/logs', (req, res) => {
   res.json(logs);
 });
 
+app.delete('/chat-history', (req, res) => {
+  setChatHistory([])
+  res.status(201).send("Chat history cleared!")
+  res.redirect('/');
+})
+
 app.get('/chat-history', (req, res) => {
   res.json(chatHistory);
 });

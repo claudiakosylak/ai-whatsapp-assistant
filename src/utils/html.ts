@@ -205,7 +205,10 @@ export const getHTML = () => `
             </div>
             <div class="panel">
                 <div class="chat-container">
-                    <h3>Test Chat</h3>
+                    <div style="display:flex;justify-content:space-between;padding:10px;align-items:center;">
+                        <h3>Test Chat</h3>
+                        <button type="button" id="clearChatButton">Clear chat</button>
+                    </div>
                     <div class="chat-messages" id="chatMessages">
                         ${chatHistory
                           .map(
