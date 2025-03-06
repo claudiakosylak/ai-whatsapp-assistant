@@ -1,4 +1,5 @@
 let lastChatHistory = [];
+let lastWhatsappStatus = false;
 // Auto-refresh logs every 5 seconds
 setInterval(() => {
   fetch('/logs')
@@ -7,6 +8,17 @@ setInterval(() => {
       document.querySelector('.logs').innerHTML = data
         .map((log) => '<div class="log-entry">' + log + '</div>')
         .join('');
+    });
+
+  fetch('/whatsapp-connection')
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.connected !== lastWhatsappStatus) {
+        document.querySelector('#whatsapp-status').innerHTML = data.connected
+        ? '<strong>WhatsApp Status:</strong> <span style="color: #2e7d32;">Connected</span>'
+        : '<strong>WhatsApp Status:</strong> <span style="color: #d32f2f;">Disconnected</span>';
+        lastWhatsappStatus = data.connected
+      }
     });
 
   fetch('/chat-history')
@@ -43,10 +55,10 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   const input = document.getElementById('messageInput');
   const message = input.value;
   input.value = '';
-  const newDiv = document.createElement("div");
-  newDiv.className = "message user";
+  const newDiv = document.createElement('div');
+  newDiv.className = 'message user';
   newDiv.textContent = message;
-  document.querySelector('#chatMessages').appendChild(newDiv)
+  document.querySelector('#chatMessages').appendChild(newDiv);
   const fileInput = document.getElementById('imageInput');
   if (fileInput && fileInput.files.length) {
     const file = fileInput.files[0];
@@ -61,8 +73,13 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message, image: base64String, imageName: file.name, mimeType }),
-      })
+        body: JSON.stringify({
+          message,
+          image: base64String,
+          imageName: file.name,
+          mimeType,
+        }),
+      });
     };
 
     reader.readAsDataURL(file);
@@ -92,7 +109,7 @@ document
       });
 
       if (response.ok) {
-        document.querySelector('#chatMessages').innerHTML = ''
+        document.querySelector('#chatMessages').innerHTML = '';
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.message}`);

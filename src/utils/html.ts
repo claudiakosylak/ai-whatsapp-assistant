@@ -219,7 +219,7 @@ export const getHTML = () => `
                 </div>
             </div>
             <div class="panel">
-                            <div class="status active">
+                            <div class="status active" id="whatsapp-status">
                     <strong>WhatsApp Status:</strong> <span style="color: ${
                       whatsappConnected ? '#2e7d32' : '#d32f2f'
                     }">${

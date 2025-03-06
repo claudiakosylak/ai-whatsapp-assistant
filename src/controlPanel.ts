@@ -21,6 +21,7 @@ import {
   getResponse,
   logs,
   setChatHistory,
+  whatsappConnected,
 } from './utils/controlPanel';
 import { getHTML } from './utils/html';
 import { deleteImageFiles, saveImageFile } from './utils/images';
@@ -78,11 +79,15 @@ app.get('/logs', (req, res) => {
   res.json(logs);
 });
 
+app.get('/whatsapp-connection', (req, res) => {
+  res.json({ connected: whatsappConnected });
+});
+
 app.delete('/chat-history', (req, res) => {
-  setChatHistory([])
-  res.status(201).send("Chat history cleared!")
+  setChatHistory([]);
+  res.status(201).send('Chat history cleared!');
   res.redirect('/');
-})
+});
 
 app.get('/chat-history', (req, res) => {
   res.json(chatHistory);
@@ -157,8 +162,8 @@ app.post('/save-bot-name', (req, res) => {
 app.post('/save-custom-prompt', (req, res) => {
   const { customPrompt } = req.body;
   if (customPrompt !== undefined) {
-      setCustomPrompt(customPrompt);
-      addLog(`Custom prompt updated from control panel`);
+    setCustomPrompt(customPrompt);
+    addLog(`Custom prompt updated from control panel`);
   }
   res.redirect('/');
 });
