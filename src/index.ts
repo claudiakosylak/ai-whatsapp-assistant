@@ -3,7 +3,7 @@ import qrcode from "qrcode-terminal"
 import { handleIncomingMessage } from "./utils/whatsapp";
 import { startControlPanel } from "./controlPanel";
 import { addLog, setWhatsAppConnected } from "./utils/controlPanel";
-import { isMessageReceivedAfterInit } from "./utils/messages";
+import { getIsAudio, isMessageReceivedAfterInit } from "./utils/messages";
 
 const initTime = new Date()
 
@@ -35,6 +35,7 @@ client.on('qr', qr => {
   client.on('message_create', async (message: Message) => {
     if (!isMessageReceivedAfterInit(initTime, message)) return
     if (!message.body.includes("-test-bot")) return;
+    // if (!getIsAudio(message)) return;
     if (!message.id.fromMe) return;
     handleIncomingMessage(client, message)
   })

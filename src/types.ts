@@ -1,5 +1,8 @@
-import { ChatCompletionAssistantMessageParam, ChatCompletionUserMessageParam } from "openai/resources";
-import { MessageMedia } from "whatsapp-web.js";
+import {
+  ChatCompletionAssistantMessageParam,
+  ChatCompletionUserMessageParam,
+} from 'openai/resources';
+import { MessageMedia } from 'whatsapp-web.js';
 
 export type OpenAIMessage = {
   role: 'user' | 'assistant';
@@ -20,17 +23,21 @@ export type MockChatHistoryMessage = {
 };
 
 export type WhatsappResponse = {
-    from: string,
-    messageContent: MessageMedia | string;
-    rawText: string;
-}
+  from: string;
+  messageContent: MessageMedia | string;
+  rawText: string;
+};
 
 export type WhatsappResponseAsText = {
-  from: string,
+  from: string;
   messageContent: string;
   rawText: string;
-}
+};
 
 export type ProcessMessageParam =
   | ChatCompletionUserMessageParam
   | ChatCompletionAssistantMessageParam;
+
+export type BotMode = 'OPENAI_ASSISTANT' | 'OPEN_WEBUI_CHAT' | 'DIFY_CHAT';
+
+export type AudioMode = 'ELEVEN_LABS' | 'OPENAI';

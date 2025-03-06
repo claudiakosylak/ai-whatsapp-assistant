@@ -11,6 +11,7 @@ import {
   setBotMode,
   setAudioResponseEnabled,
   setCustomPrompt,
+  setAudioMode,
 } from './utils/config';
 import { AUDIO_DIR, ENV_PATH, IMAGE_DIR } from './constants';
 import { deleteAudioFiles } from './utils/audio';
@@ -175,6 +176,8 @@ app.post('/save-bot-settings', (req, res) => {
     maxMessageAge,
     botMode,
     respondAsVoice,
+    botName,
+    audioMode,
   } = req.body;
 
   if (messageHistoryLimit) {
@@ -204,8 +207,15 @@ app.post('/save-bot-settings', (req, res) => {
   setBotMode(botMode);
   addLog(`Bot mode changed to ${botMode}`);
 
+  setBotName(botName)
+  addLog(`Bot name changed to ${botName}`);
+
+  setAudioMode(audioMode)
+  addLog(`Audio handling changed to ${audioMode}`)
+
   res.redirect('/');
 });
+
 export const startControlPanel = () => {
   app.listen(PORT, () => {
     console.log(`Control panel is running at http://localhost:${PORT}`);

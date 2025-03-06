@@ -1,4 +1,5 @@
 import {
+    getAudioMode,
   getAudioResponseEnabled,
   getBotMode,
   getBotName,
@@ -180,16 +181,14 @@ export const getHTML = () => `
     <div class="container">
         <div class="top-panels">
             <div class="panel">
-                    <div style="margin-top: 20px;">
-                        <h3>Bot Name</h3>
-                        <form action="/save-bot-name" method="POST" style="display: flex; gap: 10px;">
-                            <input type="text" name="botName" value="${getBotName()}" placeholder="Enter bot name" style="flex: 1;">
-                            <button type="submit">Update Name</button>
-                        </form>
-                    </div>
-                    <div style="margin-top: 20px;">
+
+            <div style="margin-top: 20px;">
                         <h3>Bot Settings</h3>
                         <form action="/save-bot-settings" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <label>Bot Name:</label>
+                                <input type="text" name="botName" value="${getBotName()}" placeholder="Enter bot name" style="width: 180px; margin-left: 10px;">
+                            </div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <label>Message History Limit:</label>
                                 <input type="number" name="messageHistoryLimit" value="${getMessageHistoryLimit()}" min="1" max="50" style="width: 80px; margin-left: 10px;">
@@ -215,7 +214,7 @@ export const getHTML = () => `
                                 </label>
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <label for="chatSelector">Choose a chat mode:</label>
+                                <label for="chatSelector">Choose a chat API:</label>
                                 <select id="chatSelector" name="botMode">
                                     <option value="OPENAI_ASSISTANT" ${
                                       getBotMode() === 'OPENAI_ASSISTANT'
@@ -232,6 +231,21 @@ export const getHTML = () => `
                                         ? 'selected'
                                         : ''
                                     }>Dify</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label for="audioMode">Choose an audio handling API:</label>
+                                <select id="audioMode" name="audioMode">
+                                    <option value="ELEVEN_LABS" ${
+                                      getAudioMode() === 'ELEVEN_LABS'
+                                        ? 'selected'
+                                        : ''
+                                    }>Eleven Labs API</option>
+                                    <option value="OPENAI" ${
+                                        getAudioMode() === 'OPENAI'
+                                        ? 'selected'
+                                        : ''
+                                    }>OpenAI</option>
                                 </select>
                             </div>
                             <button type="submit">Save Settings</button>

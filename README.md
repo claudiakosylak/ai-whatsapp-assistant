@@ -55,6 +55,12 @@ Before setting up, ensure you have:
     To run in dev mode with only the Control Panel (do not start Whatsapp client):
 
     ```sh
+    npm run testmode
+    ```
+
+    To build:
+    
+    ```sh
     npm start
     ```
 5. On initial launch, you must wait a moment for a QR code to appear in your terminal. Open your Whatsapp > settings > link device to scan the code and connect. On subsequent restarts, you will only have to wait for the client to start unless you unlink the device.
@@ -75,7 +81,7 @@ Here is an example:
 
 ## Usage
 
-** Do not host this on a public server!! API keys are intentionally exposed to the client for ease of use in the control panel, and it is only meant to be run in a secure local environment. ** 
+** Do not host this on a public server!! API keys are intentionally exposed to the client for ease of use in the control panel, and it is only meant to be run in a secure local environment. **
 
 In progress
 

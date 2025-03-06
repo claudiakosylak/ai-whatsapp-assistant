@@ -1,12 +1,18 @@
+import { AudioMode, BotMode } from "../types";
+
 // Bot configuration management
 let botName = "Roboto";
 let messageHistoryLimit = 3;
 let resetCommandEnabled = true;
 let maxMessageAge = 24;
 
-export type BotMode = "OPENAI_ASSISTANT" | "OPEN_WEBUI_CHAT" | "DIFY_CHAT"
+export let mode: BotMode = "OPEN_WEBUI_CHAT";
 
-export let mode = "OPEN_WEBUI_CHAT" as BotMode;
+export let audioMode: AudioMode = "ELEVEN_LABS";
+
+export const getAudioMode = () => audioMode;
+
+export const setAudioMode = (newAudioMode: AudioMode) => audioMode = newAudioMode;
 
 let customPrompt = '';
 
