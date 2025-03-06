@@ -1,12 +1,13 @@
+import { deleteFromDifyCache, getCachedDifyConversation, setToDifyCache } from '../cache';
 import { DIFY_API_KEY, DIFY_BASE_URL } from '../config';
 import { WhatsappResponseAsText } from '../types';
-import { getBotName, getCustomPrompt, getMaxMessageAge, getMessageHistoryLimit } from './config';
+import {
+  getBotName,
+  getCustomPrompt,
+  getMaxMessageAge,
+  getMessageHistoryLimit,
+} from './config';
 import { addLog } from './controlPanel';
-
-const conversationCache = new Map<string, string>();
-export const getDifyConversationCache = () => conversationCache;
-export const deleteFromDifyCache = (from: string) =>
-  conversationCache.delete(from);
 
 // Helper to decode JSON safely with better error handling
 const safeJsonParse = (jsonString: string) => {
@@ -42,7 +43,7 @@ export const processDifyResponse = async (
   }
 
   try {
-    const isFirstMessage = !conversationCache.has(from);
+    const existingConversationId = getCachedDifyConversation(from);
     const requestBody: any = {
       // one MUST enter the variable in your agent dashboard on dify inside the prompt there, {{customPrompt}}
       inputs: {
@@ -67,8 +68,8 @@ export const processDifyResponse = async (
     }
 
     // Only include conversation_id if it's not the first message
-    if (!isFirstMessage) {
-      requestBody.conversation_id = conversationCache.get(from);
+    if (existingConversationId) {
+      requestBody.conversation_id = existingConversationId
       addLog(
         `Using existing conversation ID: ${requestBody.conversation_id} for ${from}`,
       );
@@ -98,7 +99,7 @@ export const processDifyResponse = async (
         addLog(
           `Conversation not found. Removing cached conversation for ${from}`,
         );
-        conversationCache.delete(from);
+        deleteFromDifyCache(from);
         // Try again without the conversation ID
         return processDifyResponse(from, messageContent);
       }
@@ -117,15 +118,12 @@ export const processDifyResponse = async (
       throw new Error('Response body is null');
     }
 
-    addLog(`Response body: ${response.body}`);
-
     // Handle streaming response
     const reader = response.body.getReader();
     let responseText = '';
     let messageId = '';
     let newConversationId = '';
     let buffer = '';
-    let lastChunkTime = Date.now();
     let streamEnded = false;
 
     addLog(`Processing Dify streaming response for ${from}`);
@@ -145,7 +143,6 @@ export const processDifyResponse = async (
         // Process the stream
         while (true) {
           const { done, value } = await reader.read();
-          lastChunkTime = Date.now();
 
           if (done) {
             streamEnded = true;
@@ -170,7 +167,6 @@ export const processDifyResponse = async (
 
               try {
                 const jsonStr = line.substring(6); // Remove 'data: ' prefix
-                // addLog(`Dify raw response: ${jsonStr.substring(0, 100)}${jsonStr.length > 100 ? '...' : ''}`);
 
                 const data = safeJsonParse(jsonStr);
 
@@ -186,12 +182,12 @@ export const processDifyResponse = async (
                   if (!messageId && data.message_id) {
                     messageId = data.message_id;
                   }
-                  if (!newConversationId && data.conversation_id) {
+                  if (data.conversation_id !== existingConversationId) {
                     newConversationId = data.conversation_id;
                   }
                 } else if (data.event === 'message_end') {
                   addLog(`Dify message_end event received`);
-                  if (data.conversation_id && !newConversationId) {
+                  if (data.conversation_id !== existingConversationId) {
                     newConversationId = data.conversation_id;
                   }
                 } else if (data.event === 'error') {
@@ -222,7 +218,7 @@ export const processDifyResponse = async (
                   if (!messageId && data.message_id) {
                     messageId = data.message_id;
                   }
-                  if (!newConversationId && data.conversation_id) {
+                  if (data.conversation_id !== existingConversationId) {
                     newConversationId = data.conversation_id;
                   }
                 } else if (data.event === 'agent_thought') {
@@ -416,8 +412,8 @@ export const processDifyResponse = async (
     }
 
     // Save the conversation ID for future messages
-    if (newConversationId) {
-      conversationCache.set(from, newConversationId);
+    if (newConversationId && newConversationId !== existingConversationId) {
+      setToDifyCache(from, newConversationId);
       addLog(`Saved new conversation ID: ${newConversationId} for ${from}`);
     }
 
@@ -457,9 +453,6 @@ export const processDifyResponse = async (
 };
 
 export const uploadImageToDify = async (
-  // base64: string,
-  // message: Message | MockChatHistoryMessage,
-  // mimeType: string,
   from: string,
   base64: string,
   mimeType: string,

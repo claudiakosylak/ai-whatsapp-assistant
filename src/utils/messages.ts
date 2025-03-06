@@ -17,8 +17,8 @@ import {
   WhatsappResponse,
 } from '../types';
 import { addLog } from './controlPanel';
-import { deleteFromDifyCache } from './dify';
 import { imageProcessingModes } from './whatsapp';
+import { deleteFromDifyCache } from '../cache';
 
 export const shouldProcessMessage = (chatData: Chat, message: Message) => {
   // If it's a "Broadcast" message, it's not processed

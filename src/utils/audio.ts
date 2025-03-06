@@ -9,7 +9,7 @@ import { ELEVEN_LABS_API_KEY, OPENAI_API_KEY } from '../config';
 import { addLog } from './controlPanel';
 import OpenAI, { toFile } from 'openai';
 import { WhatsappResponse, WhatsappResponseAsText } from '../types';
-import { getAudioMode, getBotMode } from './config';
+import { getAudioMode } from './config';
 
 export const deleteAudioFiles = () => {
   // Read the contents of the audio directory
