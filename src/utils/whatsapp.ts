@@ -6,8 +6,6 @@ import { addLog } from './controlPanel';
 import {
   OpenAIMessage,
   ProcessMessageParam,
-  WhatsappResponse,
-  WhatsappResponseAsText,
 } from '../types';
 import {
   getContextMessageContent,
@@ -55,7 +53,7 @@ export const getResponseText = async (
         }
         response = await processDifyResponse(
           message.from,
-          messageList as { role: string; content: string }[],
+          message.body,
           fileUploadId,
         );
         break;
@@ -69,54 +67,6 @@ export const getResponseText = async (
     return response;
   } catch (error) {
     throw error;
-  }
-};
-
-export const typeWhileWaiting = async (
-  callback: (
-    message: Message,
-    messageList: Array<ProcessMessageParam | OpenAIMessage>,
-  ) => Promise<WhatsappResponseAsText>,
-  message: Message,
-  messageList: Array<ProcessMessageParam | OpenAIMessage>,
-  chatData: Chat,
-) => {
-  const intervalId = setInterval(() => {
-    chatData.sendStateTyping();
-  }, 25000);
-
-  try {
-    const response = await callback(message, messageList);
-    clearInterval(intervalId); // Clear interval when the promise resolves
-    chatData.clearState();
-    return response;
-  } catch (error) {
-    clearInterval(intervalId); // Clear interval when the promise is rejected
-    chatData.clearState();
-    console.error('Process failed with error:', error);
-    throw error; // Propagate the error if the promise is rejected
-  }
-};
-
-export const showRecordingWhileWaiting = async (
-  callback: (response: WhatsappResponseAsText) => Promise<WhatsappResponse>,
-  textResponse: WhatsappResponseAsText,
-  chatData: Chat,
-) => {
-  const intervalId = setInterval(() => {
-    chatData.sendStateRecording();
-  }, 25000);
-
-  try {
-    const response = await callback(textResponse);
-    clearInterval(intervalId); // Clear interval when the promise resolves
-    chatData.clearState();
-    return response;
-  } catch (error) {
-    clearInterval(intervalId); // Clear interval when the promise is rejected
-    chatData.clearState();
-    console.error('Process failed with error:', error);
-    throw error; // Propagate the error if the promise is rejected
   }
 };
 
@@ -200,19 +150,6 @@ export const processMessage = async (message: Message) => {
     if (messageList.length == 0) return;
 
     try {
-      // const response = await typeWhileWaiting(
-      //   getResponseText,
-      //   message,
-      //   messageList,
-      //   chatData,
-      // );
-      // if (enableAudioResponse) {
-      //   return await showRecordingWhileWaiting(
-      //     convertToAudioResponse,
-      //     response,
-      //     chatData,
-      //   );
-      // }
       chatData.sendStateTyping();
       const response = await getResponseText(message, messageList);
       chatData.clearState();

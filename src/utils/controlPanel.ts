@@ -180,8 +180,8 @@ export const getResponse = async (): Promise<WhatsappResponse> => {
         });
         addLog('Sending message to Divy Agent');
         response = await processDifyResponse(
-          testConversationId,
-          messages,
+          'test',
+          getMessageTextFromRawText(lastMessage.rawText),
           fileUploadId,
         );
         break;

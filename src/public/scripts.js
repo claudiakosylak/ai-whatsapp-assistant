@@ -62,7 +62,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   input.value = '';
   const newDiv = document.createElement('div');
   newDiv.className = 'message user';
-  newDiv.innerHTML = `<strong>user:</strong>${message}`
+  newDiv.innerHTML = `<strong>user:</strong> ${message}`
   typingIndicator.style.opacity = "1";
   document.querySelector('#chatMessagesInner').appendChild(newDiv);
   const fileInput = document.getElementById('imageInput');

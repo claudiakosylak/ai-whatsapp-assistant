@@ -1,6 +1,6 @@
 import { DIFY_API_KEY, DIFY_BASE_URL } from '../config';
 import { WhatsappResponseAsText } from '../types';
-import { getCustomPrompt } from './config';
+import { getBotName, getCustomPrompt, getMaxMessageAge, getMessageHistoryLimit } from './config';
 import { addLog } from './controlPanel';
 
 const conversationCache = new Map<string, string>();
@@ -22,18 +22,16 @@ const safeJsonParse = (jsonString: string) => {
     }
   }
 };
-const apiKey = DIFY_API_KEY;
-const baseUrl = DIFY_BASE_URL;
 
 export const processDifyResponse = async (
   from: string,
-  messages: { role: string; content: string }[],
+  messageContent: string,
   imageFileId?: string,
 ): Promise<WhatsappResponseAsText> => {
   const RESPONSE_TIMEOUT = 60000; // 60 seconds timeout
   const COMPLETION_DELAY = 500; // 500ms delay after stream ends
 
-  if (!apiKey || !baseUrl) {
+  if (!DIFY_API_KEY || !DIFY_BASE_URL) {
     addLog('Dify API key or base URL not configured');
     return {
       from,
@@ -43,23 +41,17 @@ export const processDifyResponse = async (
     };
   }
 
-  const lastMessage = messages[messages.length - 1].content;
-
-  const messageQuery = getCustomPrompt()
-    ? messages[messages.length - 2].content + lastMessage
-    : lastMessage;
-
-  addLog(`Message query: ${messageQuery}`)
-
   try {
     const isFirstMessage = !conversationCache.has(from);
     const requestBody: any = {
-      messages: messages.map((msg) => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
-      })),
-      inputs: {},
-      query: messageQuery,
+      // one MUST enter the variable in your agent dashboard on dify inside the prompt there, {{customPrompt}}
+      inputs: {
+        customPrompt: getCustomPrompt(),
+        contextLimit: getMessageHistoryLimit(),
+        botName: getBotName(),
+        maxMessageAge: getMaxMessageAge(),
+      },
+      query: messageContent,
       user: from,
       response_mode: 'streaming',
     };
@@ -91,10 +83,10 @@ export const processDifyResponse = async (
       )}...`,
     );
 
-    const response = await fetch(`${baseUrl}/chat-messages`, {
+    const response = await fetch(`${DIFY_BASE_URL}/chat-messages`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${DIFY_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody),
@@ -108,7 +100,7 @@ export const processDifyResponse = async (
         );
         conversationCache.delete(from);
         // Try again without the conversation ID
-        return processDifyResponse(from, messages);
+        return processDifyResponse(from, messageContent);
       }
 
       const errorText = await response.text();
@@ -485,11 +477,11 @@ export const uploadImageToDify = async (
   formData.append('user', from); // Append user ID
 
   // Send the request
-  const response = await fetch(`${baseUrl}/files/upload`, {
+  const response = await fetch(`${DIFY_BASE_URL}/files/upload`, {
     method: 'POST',
     body: formData,
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${DIFY_API_KEY}`,
     }, // Ensure multipart/form-data headers
   });
   return response;
