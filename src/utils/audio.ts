@@ -7,8 +7,9 @@ import { Readable } from 'stream';
 import { ElevenLabsClient } from 'elevenlabs';
 import { ELEVEN_LABS_API_KEY, OPENAI_API_KEY } from '../config';
 import { addLog } from './controlPanel';
-import OpenAI from 'openai';
+import OpenAI, { toFile } from 'openai';
 import { WhatsappResponse, WhatsappResponseAsText } from '../types';
+import { getAudioMode, getBotMode } from './config';
 
 export const deleteAudioFiles = () => {
   // Read the contents of the audio directory
@@ -74,7 +75,7 @@ export const getBase64WithElevenLabs = async (messageString: string) => {
       );
     } catch (error) {
       addLog(`[ElevenLabs->speech] Error generating audio: ${error}`);
-      throw(error)
+      throw error;
     }
 
     addLog(`[ElevenLabs->speech] Audio Creation OK`);
@@ -83,12 +84,14 @@ export const getBase64WithElevenLabs = async (messageString: string) => {
       const base64Audio = await streamToBase64(response);
       return base64Audio;
     } catch (error) {
-      addLog(`[ElevenLabs->speech] Error converting stream to Base64: ${error}`);
-      throw(error)
+      addLog(
+        `[ElevenLabs->speech] Error converting stream to Base64: ${error}`,
+      );
+      throw error;
     }
   } catch (error) {
     addLog(`[ElevenLabs->speech] Unexpected error in getting audio: ${error}`);
-    throw(error)
+    throw error;
   }
 };
 
@@ -115,37 +118,79 @@ export function bufferToStream(buffer: any) {
   return stream;
 }
 
-export async function transcribeVoice(media: MessageMedia): Promise<string> {
+export const transcribeVoiceWithElevenLabs = async (
+  media: MessageMedia,
+): Promise<string> => {
   try {
-    const client = new ElevenLabsClient({apiKey: ELEVEN_LABS_API_KEY});
+    const client = new ElevenLabsClient({ apiKey: ELEVEN_LABS_API_KEY });
     // Convert the base64 media data to a Buffer
     const audioBuffer = Buffer.from(media.data, 'base64');
     const arrayBuffer = audioBuffer.buffer.slice(
-        audioBuffer.byteOffset,
-        audioBuffer.byteOffset + audioBuffer.byteLength,
+      audioBuffer.byteOffset,
+      audioBuffer.byteOffset + audioBuffer.byteLength,
     );
     const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp3' });
 
     addLog(`[ElevenLabs] Starting audio transcription`);
 
     const transcription = await client.speechToText.convert({
-        file: audioBlob,
-        model_id: "scribe_v1", // Model to use, for now only "scribe_v1" is supported
-        tag_audio_events: false, // Tag audio events like laughter, applause, etc.
-        diarize: false, // Whether to annotate who is speaking
+      file: audioBlob,
+      model_id: 'scribe_v1', // Model to use, for now only "scribe_v1" is supported
+      tag_audio_events: false, // Tag audio events like laughter, applause, etc.
+      diarize: false, // Whether to annotate who is speaking
     });
 
     // Log the transcribed text
-    addLog(`[ElevenLabs] Transcribed text: ${transcription.text.substring(
-        0,
-        100,
-      )}`);
+    addLog(
+      `[ElevenLabs] Transcribed text: ${transcription.text.substring(0, 100)}`,
+    );
 
     return transcription.text;
   } catch (error: any) {
     // Error handling
     addLog(`Error transcribing voice message: ${error.message}`);
     return '<Error transcribing voice message>';
+  }
+};
+
+export const transcribeVoiceWithOpenAI = async (
+  media: MessageMedia,
+): Promise<string> => {
+  try {
+    const client = new OpenAI({ apiKey: OPENAI_API_KEY });
+    // Convert the base64 media data to a Buffer
+    const audioBuffer = Buffer.from(media.data, 'base64');
+    // Convert the buffer to a stream
+    const audioStream = bufferToStream(audioBuffer);
+
+    addLog(`[OpenAI] Starting audio transcription`);
+
+    const file = await toFile(audioStream, 'audio.ogg', { type: 'audio/ogg' });
+    const transcription = await client.audio.transcriptions.create({
+      file: file,
+      model: 'whisper-1',
+    });
+    addLog(
+      `[OpenAI] Transcribed text: ${transcription.text.substring(0, 100)}`,
+    );
+
+    return transcription.text;
+  } catch (error: any) {
+    // Error handling
+    addLog(`Error transcribing voice message: ${error.message}`);
+    return '<Error transcribing voice message>';
+  }
+};
+
+export async function transcribeVoice(media: MessageMedia): Promise<string> {
+  try {
+    if (getAudioMode() === "ELEVEN_LABS") {
+      return await transcribeVoiceWithElevenLabs(media);
+    } else {
+      return await transcribeVoiceWithOpenAI(media)
+    }
+  } catch (e) {
+    throw e;
   }
 }
 
@@ -169,8 +214,9 @@ export const createSpeechResponseContent = async (messageString: string) => {
   }
 };
 
-
-export const convertToAudioResponse = async (textResponse: WhatsappResponseAsText): Promise<WhatsappResponse> => {
+export const convertToAudioResponse = async (
+  textResponse: WhatsappResponseAsText,
+): Promise<WhatsappResponse> => {
   try {
     let audioContent = await createSpeechResponseContent(
       textResponse.messageContent,
@@ -188,4 +234,4 @@ export const convertToAudioResponse = async (textResponse: WhatsappResponseAsTex
       rawText: textResponse.rawText,
     };
   }
-}
+};
