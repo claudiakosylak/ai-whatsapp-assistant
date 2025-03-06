@@ -1,22 +1,23 @@
+import { DEFAULT_AUDIO_API, DEFAULT_BOT_NAME, DEFAULT_CHAT_API, DEFAULT_CONTEXT_LENGTH, DEFAULT_ENABLE_RESET_COMMAND, DEFAULT_MAX_MESSAGE_AGE, DEFAULT_PROMPT, DEFAULT_RESPOND_WITH_VOICE } from "../config";
 import { AudioMode, BotMode } from "../types";
 
 // Bot configuration management
-let botName = "Roboto";
-let messageHistoryLimit = 3;
-let resetCommandEnabled = true;
-let maxMessageAge = 24;
+let botName: string = DEFAULT_BOT_NAME as string || "Robot";
+let messageHistoryLimit: number = DEFAULT_CONTEXT_LENGTH ? parseInt(DEFAULT_CONTEXT_LENGTH) : 3;
+let resetCommandEnabled: boolean = (DEFAULT_ENABLE_RESET_COMMAND === "false") ? false : true;
+let maxMessageAge: number = DEFAULT_MAX_MESSAGE_AGE ? parseInt(DEFAULT_MAX_MESSAGE_AGE) : 24;
 
-export let mode: BotMode = "OPEN_WEBUI_CHAT";
+export let mode: BotMode = DEFAULT_CHAT_API as BotMode || "OPEN_WEBUI_CHAT";
 
-export let audioMode: AudioMode = "ELEVEN_LABS";
+export let audioMode: AudioMode = DEFAULT_AUDIO_API as AudioMode || "ELEVEN_LABS";
 
 export const getAudioMode = () => audioMode;
 
 export const setAudioMode = (newAudioMode: AudioMode) => audioMode = newAudioMode;
 
-let customPrompt = '';
+let customPrompt: string = DEFAULT_PROMPT as string || '';
 
-export let enableAudioResponse = false;
+export let enableAudioResponse: boolean = (DEFAULT_RESPOND_WITH_VOICE === "true") || false;
 
 export let disableWhatsappConnection = false;
 

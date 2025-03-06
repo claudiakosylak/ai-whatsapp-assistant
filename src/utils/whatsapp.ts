@@ -1,12 +1,9 @@
 import { Chat, Client, Message, MessageTypes } from 'whatsapp-web.js';
 import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
-import { enableAudioResponse, getBotMode } from './config';
+import { enableAudioResponse, getBotMode } from './botSettings';
 import { addLog } from './controlPanel';
-import {
-  OpenAIMessage,
-  ProcessMessageParam,
-} from '../types';
+import { OpenAIMessage, ProcessMessageParam } from '../types';
 import {
   getIsAudio,
   getIsImage,
@@ -34,7 +31,7 @@ export const getResponseText = async (
         );
         break;
       case 'DIFY_CHAT':
-        const isImage = getIsImage(message)
+        const isImage = getIsImage(message);
         let fileUploadId;
         if (isImage) {
           const media = await message.downloadMedia();
@@ -50,10 +47,10 @@ export const getResponseText = async (
           }
         }
         let messageBody = message.body;
-        const isAudio = getIsAudio(message)
+        const isAudio = getIsAudio(message);
         if (isAudio) {
           const media = await message.downloadMedia();
-          messageBody = await transcribeVoice(media)
+          messageBody = await transcribeVoice(media);
         }
         response = await processDifyResponse(
           message.from,
@@ -92,8 +89,8 @@ export const processMessage = async (message: Message) => {
 
     const messageList: Array<ProcessMessageParam | OpenAIMessage> = [];
 
-    if (getBotMode() !== "DIFY_CHAT") {
-      await prepareContextMessageList(chatData, messageList)
+    if (getBotMode() !== 'DIFY_CHAT') {
+      await prepareContextMessageList(chatData, messageList);
       if (messageList.length == 0) return;
     }
 

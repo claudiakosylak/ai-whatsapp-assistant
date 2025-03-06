@@ -1,15 +1,16 @@
 import NodeCache from 'node-cache';
+import { NODE_CACHE_TIME } from './config';
 
-export const difyConversationCache = new NodeCache();
+export const difyConversationCache = new NodeCache({ stdTTL: NODE_CACHE_TIME });
 
 export const getCachedDifyConversation = (from: string) => {
-    return difyConversationCache.get<string>(from)
-}
+  return difyConversationCache.get<string>(from);
+};
 
 export const deleteFromDifyCache = (from: string) => {
-    difyConversationCache.del(from)
-}
+  difyConversationCache.del(from);
+};
 
 export const setToDifyCache = (from: string, conversationId: string) => {
-    difyConversationCache.set(from, conversationId)
-}
+  difyConversationCache.set(from, conversationId);
+};

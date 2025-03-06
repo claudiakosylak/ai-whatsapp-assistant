@@ -8,7 +8,7 @@ import {
   isResetCommandEnabled,
   setBotMode,
   setCustomPrompt,
-} from './config';
+} from './botSettings';
 import { transcribeVoice } from './audio';
 import {
   MockChatHistoryMessage,
@@ -81,66 +81,64 @@ type ImageMessageContentItem = {
   };
 };
 
-export const prepareContextMessageList = async (chatData: Chat, messageList: Array<ProcessMessageParam | OpenAIMessage> ) => {
-   let messagesToProcess;
+export const prepareContextMessageList = async (
+  chatData: Chat,
+  messageList: Array<ProcessMessageParam | OpenAIMessage>,
+) => {
+  let messagesToProcess;
+  try {
+    messagesToProcess = await getMessagesToProcess(chatData);
+  } catch (error) {
+    addLog(`Error retrieving messages to process: ${error}`);
+    return;
+  }
+  let imageCount: number = 0;
+
+  // Add custom prompt if exists
+  const customPrompt = getCustomPrompt();
+  if (customPrompt) {
+    messageList.push({ role: 'user', content: customPrompt });
+  }
+
+  for (const msg of messagesToProcess.reverse()) {
+    try {
+      // Validate if the message was written less than maxHoursLimit hours ago; if older, it's not considered
+      if (!isMessageAgeValid(msg)) break;
+
+      // Check if the message includes media or if it is of another type
+      const isImage = getIsImage(msg);
+      const isAudio = getIsAudio(msg);
+      const isOther = !isImage && !isAudio && msg.type != 'chat';
+
+      if (isOther || (isImage && !imageProcessingModes.includes(getBotMode())))
+        continue;
+
+      let media = null;
       try {
-        messagesToProcess = await getMessagesToProcess(chatData);
+        media =
+          (isImage && imageCount < 2 && getBotMode() !== 'DIFY_CHAT') || isAudio
+            ? await msg.downloadMedia()
+            : null;
+        if (media && isImage) imageCount++;
       } catch (error) {
-        addLog(`Error retrieving messages to process: ${error}`);
-        return;
-      }
-      let imageCount: number = 0;
-
-      // Add custom prompt if exists
-      const customPrompt = getCustomPrompt();
-      if (customPrompt) {
-        messageList.push({ role: 'user', content: customPrompt });
+        console.error(`Error downloading media: ${error}`);
+        continue;
       }
 
-      for (const msg of messagesToProcess.reverse()) {
-        try {
-          // Validate if the message was written less than maxHoursLimit hours ago; if older, it's not considered
-          if (!isMessageAgeValid(msg)) break;
+      const messageListItem = await getContextMessageContent(
+        msg,
+        media,
+        isAudio,
+      );
 
-          // Check if the message includes media or if it is of another type
-          const isImage = getIsImage(msg)
-          const isAudio = getIsAudio(msg)
-          const isOther = !isImage && !isAudio && msg.type != 'chat';
-
-          if (
-            isOther ||
-            (isImage && !imageProcessingModes.includes(getBotMode()))
-          )
-            continue;
-
-          let media = null;
-          try {
-            media =
-              (isImage && imageCount < 2 && getBotMode() !== 'DIFY_CHAT') ||
-              isAudio
-                ? await msg.downloadMedia()
-                : null;
-            if (media && isImage) imageCount++;
-          } catch (error) {
-            console.error(`Error downloading media: ${error}`);
-            continue;
-          }
-
-          const messageListItem = await getContextMessageContent(
-            msg,
-            media,
-            isAudio,
-          );
-
-          messageList.push(messageListItem);
-        } catch (e: any) {
-          console.error(
-            `Error reading message - msg.type:${msg.type}; msg.body:${msg.body}. Error:${e.message}`,
-          );
-        }
-      }
-
-}
+      messageList.push(messageListItem);
+    } catch (e: any) {
+      console.error(
+        `Error reading message - msg.type:${msg.type}; msg.body:${msg.body}. Error:${e.message}`,
+      );
+    }
+  }
+};
 
 export const getContextMessageContent = async (
   msg: Message,
@@ -313,7 +311,6 @@ export const getIsImage = (message: Message): boolean => {
 
 export const getIsAudio = (message: Message): boolean => {
   const isAudio =
-    message.type === MessageTypes.VOICE ||
-    message.type === MessageTypes.AUDIO;
+    message.type === MessageTypes.VOICE || message.type === MessageTypes.AUDIO;
   return isAudio;
 };

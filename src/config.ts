@@ -5,6 +5,19 @@ import { addLog } from './utils/controlPanel';
 
 dotenv.config();
 
+// constants for defaults on reboot, will not change in app while running
+export const DEFAULT_PROMPT = process.env.DEFAULT_PROMPT;
+export const DEFAULT_BOT_NAME = process.env.DEFAULT_BOT_NAME;
+export const DEFAULT_CONTEXT_LENGTH = process.env.DEFAULT_CONTEXT_LENGTH;
+export const DEFAULT_MAX_MESSAGE_AGE = process.env.DEFAULT_MAX_MESSAGE_AGE;
+export const DEFAULT_ENABLE_RESET_COMMAND =
+  process.env.DEFAULT_ENABLE_RESET_COMMAND;
+export const DEFAULT_RESPOND_WITH_VOICE =
+  process.env.DEFAULT_RESPOND_WITH_VOICE;
+export const DEFAULT_CHAT_API = process.env.DEFAULT_CHAT_API;
+export const DEFAULT_AUDIO_API = process.env.DEFAULT_AUDIO_API;
+
+// environment variables that will change dynamically without reboot if .env file changed either in ccontrol panel or directly
 export let ELEVEN_LABS_API_KEY = process.env.ELEVEN_LABS_API_KEY;
 export let OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 export let OPEN_WEBUI_KEY = process.env.OPEN_WEBUI_KEY;
@@ -30,6 +43,6 @@ const updateConfig = () => {
 // Watch for changes in the .env file
 chokidar.watch(ENV_PATH).on('change', () => {
   addLog('⚡ .env file changed, reloading...');
-  dotenv.config()
-  updateConfig()
+  dotenv.config();
+  updateConfig();
 });

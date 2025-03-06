@@ -1,5 +1,5 @@
 import {
-    getAudioMode,
+  getAudioMode,
   getAudioResponseEnabled,
   getBotMode,
   getBotName,
@@ -7,7 +7,7 @@ import {
   getMaxMessageAge,
   getMessageHistoryLimit,
   isResetCommandEnabled,
-} from './config';
+} from './botSettings';
 import {
   chatHistory,
   getEnvContent,
@@ -242,7 +242,7 @@ export const getHTML = () => `
                                         : ''
                                     }>Eleven Labs API</option>
                                     <option value="OPENAI" ${
-                                        getAudioMode() === 'OPENAI'
+                                      getAudioMode() === 'OPENAI'
                                         ? 'selected'
                                         : ''
                                     }>OpenAI</option>

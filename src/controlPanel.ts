@@ -12,7 +12,7 @@ import {
   setAudioResponseEnabled,
   setCustomPrompt,
   setAudioMode,
-} from './utils/config';
+} from './utils/botSettings';
 import { AUDIO_DIR, ENV_PATH, IMAGE_DIR } from './constants';
 import { deleteAudioFiles } from './utils/audio';
 import {
@@ -207,11 +207,11 @@ app.post('/save-bot-settings', (req, res) => {
   setBotMode(botMode);
   addLog(`Bot mode changed to ${botMode}`);
 
-  setBotName(botName)
+  setBotName(botName);
   addLog(`Bot name changed to ${botName}`);
 
-  setAudioMode(audioMode)
-  addLog(`Audio handling changed to ${audioMode}`)
+  setAudioMode(audioMode);
+  addLog(`Audio handling changed to ${audioMode}`);
 
   res.redirect('/');
 });

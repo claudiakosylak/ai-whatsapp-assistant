@@ -8,7 +8,7 @@ import {
   getBotMode,
   getCustomPrompt,
   getMessageHistoryLimit,
-} from './config';
+} from './botSettings';
 import { processAssistantResponse } from './assistant';
 import {
   ChatHistoryItem,

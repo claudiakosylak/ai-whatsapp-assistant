@@ -1,4 +1,8 @@
-import { deleteFromDifyCache, getCachedDifyConversation, setToDifyCache } from '../cache';
+import {
+  deleteFromDifyCache,
+  getCachedDifyConversation,
+  setToDifyCache,
+} from '../cache';
 import { DIFY_API_KEY, DIFY_BASE_URL } from '../config';
 import { WhatsappResponseAsText } from '../types';
 import {
@@ -6,7 +10,7 @@ import {
   getCustomPrompt,
   getMaxMessageAge,
   getMessageHistoryLimit,
-} from './config';
+} from './botSettings';
 import { addLog } from './controlPanel';
 
 // Helper to decode JSON safely with better error handling
@@ -69,7 +73,7 @@ export const processDifyResponse = async (
 
     // Only include conversation_id if it's not the first message
     if (existingConversationId) {
-      requestBody.conversation_id = existingConversationId
+      requestBody.conversation_id = existingConversationId;
       addLog(
         `Using existing conversation ID: ${requestBody.conversation_id} for ${from}`,
       );
