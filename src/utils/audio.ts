@@ -58,6 +58,12 @@ export async function streamToBase64(stream: Readable): Promise<string> {
   return Buffer.concat(chunks).toString('base64');
 }
 export const getBase64WithElevenLabs = async (messageString: string) => {
+  addLog(
+    `[ElevenLabs] Creating speech audio for: "${messageString.substring(
+      0,
+      100,
+    )}...}"`,
+  );
   try {
     const elevenLabsClient = new ElevenLabsClient({
       apiKey: ELEVEN_LABS_API_KEY,
@@ -96,19 +102,32 @@ export const getBase64WithElevenLabs = async (messageString: string) => {
 };
 
 export const getBase64WithOpenAI = async (messageString: string) => {
-  const client = new OpenAI({
-    apiKey: OPENAI_API_KEY,
-  });
+  addLog(
+    `[OpenAI] Creating speech audio for: "${messageString.substring(
+      0,
+      100,
+    )}...}"`,
+  );
 
-  const response: any = await client.audio.speech.create({
-    model: 'tts-1',
-    voice: 'nova',
-    input: messageString,
-    response_format: 'mp3',
-  });
-  addLog(`[OpenAI->speech] Audio Creation OK`);
-  const audioBuffer = Buffer.from(await response.arrayBuffer());
-  return audioBuffer;
+  try {
+    const client = new OpenAI({
+      apiKey: OPENAI_API_KEY,
+    });
+
+    const response: any = await client.audio.speech.create({
+      model: 'tts-1',
+      voice: 'nova',
+      input: messageString,
+      response_format: 'mp3',
+    });
+    addLog(`[OpenAI->speech] Audio Creation OK`);
+    const audioBuffer = Buffer.from(await response.arrayBuffer());
+    const base64Audio = audioBuffer.toString('base64');
+    return base64Audio;
+  } catch (error) {
+    addLog(`[OpenAI->speech] Error generating audio: ${error}`);
+    throw error;
+  }
 };
 
 export function bufferToStream(buffer: any) {
@@ -184,10 +203,10 @@ export const transcribeVoiceWithOpenAI = async (
 
 export async function transcribeVoice(media: MessageMedia): Promise<string> {
   try {
-    if (getAudioMode() === "ELEVEN_LABS") {
+    if (getAudioMode() === 'ELEVEN_LABS') {
       return await transcribeVoiceWithElevenLabs(media);
     } else {
-      return await transcribeVoiceWithOpenAI(media)
+      return await transcribeVoiceWithOpenAI(media);
     }
   } catch (e) {
     throw e;
@@ -196,14 +215,12 @@ export async function transcribeVoice(media: MessageMedia): Promise<string> {
 
 export const createSpeechResponseContent = async (messageString: string) => {
   try {
-    addLog(
-      `[ElevenLabs] Creating speech audio for: "${messageString.substring(
-        0,
-        100,
-      )}...}"`,
-    );
-
-    const response = await getBase64WithElevenLabs(messageString);
+    let response;
+    if (getAudioMode() === 'ELEVEN_LABS') {
+      response = await getBase64WithElevenLabs(messageString);
+    } else {
+      response = await getBase64WithOpenAI(messageString);
+    }
     let audioMedia = new MessageMedia('audio/mp3', response, 'voice.mp3');
 
     return audioMedia;

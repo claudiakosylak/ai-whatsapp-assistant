@@ -97,7 +97,6 @@ export const processMessage = async (message: Message) => {
       if (messageList.length == 0) return;
     }
 
-
     try {
       chatData.sendStateTyping();
       const response = await getResponseText(message, messageList);
