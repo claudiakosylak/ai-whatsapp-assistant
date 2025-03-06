@@ -14,6 +14,17 @@ export const processAssistantResponse = async (
 
     const ASSISTANT_ID = OPENAI_ASSISTANT_ID as string;
 
+    if (!OPENAI_API_KEY || !OPENAI_ASSISTANT_ID) {
+      addLog(
+        `Missing OpenAI key or Assistant ID. Please update your environment configuration and try again.`,
+      );
+      return {
+        from,
+        messageContent: 'There was an error processing the request.',
+        rawText: 'Error',
+      };
+    }
+
     let thread;
     try {
       thread = await client.beta.threads.create({ messages });
@@ -74,7 +85,7 @@ export const processAssistantResponse = async (
       )}...`,
     );
     const responseString = latestMessageContent.text.value;
-    let messageContent = responseString
+    let messageContent = responseString;
     const textResponse = {
       from: from,
       messageContent,

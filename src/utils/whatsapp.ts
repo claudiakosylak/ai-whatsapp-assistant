@@ -3,7 +3,7 @@ import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
 import { enableAudioResponse, getBotMode } from './botSettings';
 import { addLog } from './controlPanel';
-import { OpenAIMessage, ProcessMessageParam } from '../types';
+import { BotMode, OpenAIMessage, ProcessMessageParam } from '../types';
 import {
   getIsAudio,
   getIsImage,
@@ -15,7 +15,7 @@ import {
 import { processDifyResponse, uploadImageToDify } from './dify';
 import { convertToAudioResponse, transcribeVoice } from './audio';
 
-export const imageProcessingModes = ['OPEN_WEBUI_CHAT', 'DIFY_CHAT'];
+export const imageProcessingModes: BotMode[] = ['OPEN_WEBUI_CHAT', 'DIFY_CHAT', 'OPENAI_ASSISTANT'];
 
 export const getResponseText = async (
   message: Message,

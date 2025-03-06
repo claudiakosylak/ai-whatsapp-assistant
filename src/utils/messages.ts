@@ -18,7 +18,8 @@ import {
 } from '../types';
 import { addLog } from './controlPanel';
 import { imageProcessingModes } from './whatsapp';
-import { deleteFromDifyCache } from '../cache';
+import { deleteFromDifyCache, getImageMessage } from '../cache';
+import { getChatImageInterpretation } from './images';
 
 export const shouldProcessMessage = (chatData: Chat, message: Message) => {
   // If it's a "Broadcast" message, it's not processed
@@ -167,6 +168,13 @@ export const getContextMessageContent = async (
           },
         },
       ];
+    } else {
+      const cachedMessage = getImageMessage(msg.id._serialized);
+      if (cachedMessage) {
+        messageBody = cachedMessage;
+      } else {
+        messageBody = await getChatImageInterpretation(msg, media);
+      }
     }
   }
 
