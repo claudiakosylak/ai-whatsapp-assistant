@@ -139,6 +139,40 @@ export const getHTML = () => `
         .chat-input button {
             align-self: center;
         }
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 20px;
+            width: 50px;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #3498db;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
@@ -232,6 +266,7 @@ export const getHTML = () => `
                         <button type="button" id="clearChatButton">Clear</button>
                     </div>
                     <div class="chat-messages" id="chatMessages">
+                        <div id="chatMessagesInner">
                         ${chatHistory
                           .map(
                             (msg) =>
@@ -245,6 +280,10 @@ export const getHTML = () => `
                               '</div>',
                           )
                           .join('')}
+                        </div>
+                    <div class="typing-indicator" id="typingIndicator">
+                        <span></span><span></span><span></span>
+                    </div>
                     </div>
                     <form class="chat-input" id="chatForm" style="display:flex;flex-direction:column;gap:10px;">
                         <div style="display:flex;align-items: center;gap: 5px;">

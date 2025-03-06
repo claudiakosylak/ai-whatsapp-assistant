@@ -1,6 +1,8 @@
 let lastChatHistory = [];
 let lastWhatsappStatus = false;
 // Auto-refresh logs every 5 seconds
+
+const typingIndicator = document.getElementById("typingIndicator");
 setInterval(() => {
   fetch('/logs')
     .then((response) => response.json())
@@ -26,7 +28,7 @@ setInterval(() => {
     .then((data) => {
       // Compare chat history with the last known state
       if (JSON.stringify(data) !== JSON.stringify(lastChatHistory)) {
-        document.querySelector('#chatMessages').innerHTML = data
+        document.querySelector('#chatMessagesInner').innerHTML = data
           .map(
             (msg) =>
               '<div class="message ' +
@@ -43,6 +45,9 @@ setInterval(() => {
         // Scroll to the bottom of the chat container
         const chatMessages = document.querySelector('#chatMessages');
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        if (data[data.length - 1].role === "assistant") {
+          typingIndicator.style.opacity = "0"
+        }
 
         // Update the last known chat history
         lastChatHistory = data;
@@ -57,8 +62,9 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   input.value = '';
   const newDiv = document.createElement('div');
   newDiv.className = 'message user';
-  newDiv.textContent = message;
-  document.querySelector('#chatMessages').appendChild(newDiv);
+  newDiv.innerHTML = `<strong>user:</strong>${message}`
+  typingIndicator.style.opacity = "1";
+  document.querySelector('#chatMessagesInner').appendChild(newDiv);
   const fileInput = document.getElementById('imageInput');
   if (fileInput && fileInput.files.length) {
     const file = fileInput.files[0];
@@ -78,7 +84,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
           image: base64String,
           imageName: file.name,
           mimeType,
-        }),
+        })
       });
     };
 
@@ -91,7 +97,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ message, image: '', imageName: '', mimeType: '' }),
-    });
+    })
   }
 });
 
@@ -109,7 +115,7 @@ document
       });
 
       if (response.ok) {
-        document.querySelector('#chatMessages').innerHTML = '';
+        document.querySelector('#chatMessagesInner').innerHTML = '';
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.message}`);
