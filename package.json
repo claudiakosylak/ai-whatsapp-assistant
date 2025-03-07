@@ -6,7 +6,7 @@
   "scripts": {
     "testmode": "nodemon --config nodemon-test.json",
     "start": "npm run build && node dist/index.js",
-    "build": "tsc&& cp -r src/public dist/",
+    "build": "tsc && cp -r src/public dist/",
     "dev": "nodemon --config nodemon.json",
     "watch": "tsc --watch"
   },
