@@ -21,7 +21,16 @@ import { imageProcessingModes } from './whatsapp';
 import { deleteFromDifyCache, getImageMessage } from '../cache';
 import { getChatImageInterpretation } from './images';
 
+export function parseCommand(input: string): { command?: string, commandMessage?: string } {
+  const match = input.match(/^-(\S+)\s*(.*)/);
+  if (!match) {
+    return {commandMessage: input};
+  }
+  return {command: match[1].trim(), commandMessage: match[2].trim()};
+}
+
 export const shouldProcessMessage = async (chatData: Chat, message: Message) => {
+  const {command} = parseCommand(message.body)
   // If it's a "Broadcast" message, it's not processed
   if (
     chatData.id.user == 'status' ||
@@ -33,8 +42,9 @@ export const shouldProcessMessage = async (chatData: Chat, message: Message) => 
   if (chatData.isGroup) {
     const botName = getBotName();
     const isSelfMention = message.hasQuotedMsg ? (await message.getQuotedMessage()).fromMe : false;
+    const isMentioned = message.body.toLowerCase().includes(botName.toLowerCase()) && !isSelfMention
     // Check if bot name is mentioned in the message
-    if (!message.body.toLowerCase().includes(botName.toLowerCase()) && !isSelfMention) {
+    if (!isMentioned && !isSelfMention && !command) {
       return false;
     }
   }
