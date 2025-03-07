@@ -118,17 +118,12 @@ export const handleIncomingMessage = async (
   client: Client,
   message: Message,
 ) => {
-  const isImage =
-    message.type === MessageTypes.IMAGE ||
-    message.type === MessageTypes.STICKER;
-  if (isImage && !imageProcessingModes.includes(getBotMode())) {
-    client.sendMessage(message.from, `I cannot process images at this time.`, {
-      sendAudioAsVoice: enableAudioResponse,
-    });
-    return;
-  }
+  const chatData = await message.getChat()
   const response = await processMessage(message);
   if (response) {
+    if (chatData.isGroup) {
+      message.reply(response.messageContent)
+    }
     client.sendMessage(response.from, response.messageContent, {
       sendAudioAsVoice: enableAudioResponse,
     });

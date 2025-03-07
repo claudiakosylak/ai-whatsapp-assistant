@@ -21,7 +21,7 @@ import { imageProcessingModes } from './whatsapp';
 import { deleteFromDifyCache, getImageMessage } from '../cache';
 import { getChatImageInterpretation } from './images';
 
-export const shouldProcessMessage = (chatData: Chat, message: Message) => {
+export const shouldProcessMessage = async (chatData: Chat, message: Message) => {
   // If it's a "Broadcast" message, it's not processed
   if (
     chatData.id.user == 'status' ||
@@ -32,8 +32,9 @@ export const shouldProcessMessage = (chatData: Chat, message: Message) => {
   // Check if message is from a group
   if (chatData.isGroup) {
     const botName = getBotName();
+    const isSelfMention = message.hasQuotedMsg ? (await message.getQuotedMessage()).fromMe : false;
     // Check if bot name is mentioned in the message
-    if (!message.body.toLowerCase().includes(botName.toLowerCase())) {
+    if (!message.body.toLowerCase().includes(botName.toLowerCase()) && !isSelfMention) {
       return false;
     }
   }
