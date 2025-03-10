@@ -106,12 +106,6 @@ export const prepareContextMessageList = async (
   }
   let imageCount: number = 0;
 
-  // Add custom prompt if exists
-  const customPrompt = getCustomPrompt();
-  if (customPrompt) {
-    messageList.push({ role: getBotMode() === "OPEN_WEBUI_CHAT" ? 'developer' : 'user', content: customPrompt });
-  }
-
   for (const msg of messagesToProcess.reverse()) {
     try {
       // Validate if the message was written less than maxHoursLimit hours ago; if older, it's not considered
