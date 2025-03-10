@@ -123,6 +123,7 @@ export const handleIncomingMessage = async (
   if (response) {
     if (chatData.isGroup) {
       message.reply(response.messageContent)
+      return
     }
     client.sendMessage(response.from, response.messageContent, {
       sendAudioAsVoice: enableAudioResponse,
