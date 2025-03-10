@@ -81,7 +81,9 @@ export const processMessage = async (message: Message | TestMessage, chatData: C
   try {
 
     //check if message should be processed
-    if (!shouldProcessMessage(chatData, message)) return false;
+    const willProcessMessage = await shouldProcessMessage(chatData, message)
+    addLog(`Should I process message? ${willProcessMessage}`)
+    if (!willProcessMessage) return false;
     addLog(`Processing message from ${message.from}`);
 
     // check for and handle commands

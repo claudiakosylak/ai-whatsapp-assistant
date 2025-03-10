@@ -54,6 +54,10 @@ export let testChatData: MockChat = {
   clearState: () => addLog('clearing typing state'),
 };
 
+export const changeChatType = (isGroup: boolean) => {
+  testChatData.isGroup = isGroup;
+}
+
 export const setChatHistory = (newChatHistory: ChatHistoryItem[]) => {
   chatHistory = newChatHistory;
 };

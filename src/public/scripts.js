@@ -1,8 +1,9 @@
 let lastChatHistory = [];
 let lastWhatsappStatus = false;
+let chatType = 'individual';
 // Auto-refresh logs every 5 seconds
 
-const typingIndicator = document.getElementById("typingIndicator");
+const typingIndicator = document.getElementById('typingIndicator');
 setInterval(() => {
   fetch('/logs')
     .then((response) => response.json())
@@ -17,9 +18,9 @@ setInterval(() => {
     .then((data) => {
       if (data.connected !== lastWhatsappStatus) {
         document.querySelector('#whatsapp-status').innerHTML = data.connected
-        ? '<strong>WhatsApp Status:</strong> <span style="color: #2e7d32;">Connected</span>'
-        : '<strong>WhatsApp Status:</strong> <span style="color: #d32f2f;">Disconnected</span>';
-        lastWhatsappStatus = data.connected
+          ? '<strong>WhatsApp Status:</strong> <span style="color: #2e7d32;">Connected</span>'
+          : '<strong>WhatsApp Status:</strong> <span style="color: #d32f2f;">Disconnected</span>';
+        lastWhatsappStatus = data.connected;
       }
     });
 
@@ -45,8 +46,8 @@ setInterval(() => {
         // Scroll to the bottom of the chat container
         const chatMessages = document.querySelector('#chatMessages');
         chatMessages.scrollTop = chatMessages.scrollHeight;
-        if (data[data.length - 1].role === "assistant") {
-          typingIndicator.style.opacity = "0"
+        if (data[data.length - 1].role === 'assistant') {
+          typingIndicator.style.opacity = '0';
         }
 
         // Update the last known chat history
@@ -62,8 +63,8 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   input.value = '';
   const newDiv = document.createElement('div');
   newDiv.className = 'message user';
-  newDiv.innerHTML = `<strong>user:</strong> ${message}`
-  typingIndicator.style.opacity = "1";
+  newDiv.innerHTML = `<strong>user:</strong> ${message}`;
+  typingIndicator.style.opacity = '1';
   document.querySelector('#chatMessagesInner').appendChild(newDiv);
   const fileInput = document.getElementById('imageInput');
   if (fileInput && fileInput.files.length) {
@@ -84,8 +85,12 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
           image: base64String,
           imageName: file.name,
           mimeType,
-        })
-      });
+        }),
+      }).then((response) => {
+        if (!response.ok) {
+          typingIndicator.style.opacity = '0';
+        }
+      })
     };
 
     reader.readAsDataURL(file);
@@ -97,6 +102,10 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ message, image: '', imageName: '', mimeType: '' }),
+    }).then((response) => {
+      if (!response.ok) {
+        typingIndicator.style.opacity = '0';
+      }
     })
   }
 });
@@ -125,3 +134,26 @@ document
       alert('Failed to clear chat history.');
     }
   });
+
+const switchGroupButton = document.getElementById('switchGroupButton');
+
+switchGroupButton.addEventListener('click', async () => {
+  const chatNameContainer = document.querySelector('#chat-name');
+  chatNameContainer.innerHTML =
+    chatType === 'individual' ? 'Test Group Chat' : 'Test Chat';
+  switchGroupButton.innerText =
+    chatType === 'individual'
+      ? 'Switch to Individual Chat'
+      : 'Switch to Group Chat';
+  chatType = chatType === 'individual' ? 'group' : 'individual';
+  fetch('/update-chat-type', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      isGroup: chatType === "group" ? true : false,
+    }),
+  });
+  document.querySelector('#chatMessagesInner').innerHTML = '';
+});

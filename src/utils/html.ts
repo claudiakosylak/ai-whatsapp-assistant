@@ -34,6 +34,10 @@ export const getHTML = () => `
             flex-direction: column;
             gap: 20px;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+        }
         .panel {
             background: white;
             padding: 20px;
@@ -48,6 +52,9 @@ export const getHTML = () => `
         @media (max-width: 768px) {
             .top-panels {
                 grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
             }
         }
         textarea {
@@ -89,17 +96,7 @@ export const getHTML = () => `
             outline: none;
             border-radius: 2px;
         }
-        .status {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        .status.active {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
         .chat-container {
-            margin-top: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
             overflow: hidden;
@@ -177,12 +174,16 @@ export const getHTML = () => `
     </style>
 </head>
 <body>
-    <h1>WhatsApp Bot Control Panel</h1>
+    <div class="header">
+        <h1>WhatsApp Bot Control Panel</h1>
+        <div class="status active" id="whatsapp-status" style="display: flex; padding: 10px; align-items: flex-end; gap: 20px;">
+            <strong>WhatsApp Status:</strong> <span style="color: ${whatsappConnected ? '#2e7d32' : '#d32f2f'}">${whatsappConnected ? 'Connected' : 'Disconnected'}</span>
+        </div>
+    </div>
     <div class="container">
         <div class="top-panels">
             <div class="panel">
-
-            <div style="margin-top: 20px;">
+                    <div>
                         <h3>Bot Settings</h3>
                         <form action="/save-bot-settings" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -267,16 +268,10 @@ export const getHTML = () => `
                 </div>
             </div>
             <div class="panel">
-                            <div class="status active" id="whatsapp-status">
-                    <strong>WhatsApp Status:</strong> <span style="color: ${
-                      whatsappConnected ? '#2e7d32' : '#d32f2f'
-                    }">${
-  whatsappConnected ? 'Connected' : 'Disconnected'
-}</span>
-                </div>
                 <div class="chat-container">
                     <div style="display:flex;justify-content:space-between;padding:10px;align-items:center;">
-                        <h3>Test Chat</h3>
+                        <h3 id="chat-name">Test Chat</h3>
+                        <button type="button" id="switchGroupButton">Switch to Group Chat</button>
                         <button type="button" id="clearChatButton">Clear</button>
                     </div>
                     <div class="chat-messages" id="chatMessages">

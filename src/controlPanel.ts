@@ -18,6 +18,7 @@ import { deleteAudioFiles } from './utils/audio';
 import {
   addLog,
   addMessageContentString,
+  changeChatType,
   chatHistory,
   logs,
   setChatHistory,
@@ -78,6 +79,14 @@ app.post('/save-config', (req, res) => {
     res.status(500).send('Error saving configuration');
   }
 });
+
+app.put('/update-chat-type', (req, res) => {
+  setChatHistory([])
+  const isGroup: boolean = req.body.isGroup
+  changeChatType(isGroup)
+  addLog(`Chat data is group? ${testChatData.isGroup}`)
+  res.redirect("/")
+})
 
 app.get('/logs', (req, res) => {
   res.json(logs);
@@ -155,6 +164,7 @@ app.post('/send-message', async (req, res) => {
         downloadMedia: getMessageMedia,
         getQuotedMessage: getQuotedMessage,
       }
+      resolve(quotedMessage)
     })
   }
 
@@ -196,7 +206,10 @@ app.post('/send-message', async (req, res) => {
 
     const response = await processMessage(userTestMessage, testChatData)
 
-    if (!response) return;
+    if (!response) {
+      res.status(500).json({success: false})
+      return;
+    }
 
     const assistantMessageID = randomUUID()
 
@@ -230,7 +243,7 @@ app.post('/send-message', async (req, res) => {
       setChatHistory(chatHistory.slice(-50));
     }
 
-    res.json({ success: true });
+    res.status(201).json({ success: true });
   } catch (error) {
     addLog(`Error in test chat: ${error}`);
     res.status(500).json({ error: 'Failed to process message' });
