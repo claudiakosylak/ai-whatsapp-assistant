@@ -194,16 +194,6 @@ app.post('/send-message', async (req, res) => {
   });
 
   try {
-    // const response = await getResponse();
-
-    // // Add assistant response to history
-    // chatHistory.push({
-    //   id: randomUUID(),
-    //   role: 'assistant',
-    //   content: addMessageContentString(response.messageContent),
-    //   rawText: JSON.stringify(response.rawText),
-    // });
-
     const response = await processMessage(userTestMessage, testChatData)
 
     if (!response) {
