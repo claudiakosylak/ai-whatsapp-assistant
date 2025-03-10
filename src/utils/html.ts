@@ -39,11 +39,24 @@ export const getHTML = () => `
             display: flex;
             justify-content: space-between;
         }
+        .fa-reply {
+            align-self: flex-end;
+        }
+        .fa-reply:hover {
+            cursor: pointer;
+        }
         .panel {
             background: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .reply-box {
+            position: absolute;
+            height: 50px;
+            width: 100%;
+            background-color: red;
+            bottom: 0;
         }
         .top-panels {
             display: grid;
@@ -103,16 +116,22 @@ export const getHTML = () => `
             overflow: hidden;
         }
         .chat-messages {
-            height: 300px;
+            max-height: 300px;
             overflow-y: auto;
             padding: 15px;
             background: #f8f9fa;
+            position: relative;
+        }
+        #chatMessagesInner {
+            min-height: 300px;
         }
         .message {
             margin: 10px 0;
             padding: 10px;
             border-radius: 8px;
             max-width: 80%;
+            display: flex;
+            justify-content: space-between;
         }
         .message.user {
             background: #e3f2fd;
@@ -143,7 +162,7 @@ export const getHTML = () => `
             align-self: center;
         }
         .typing-indicator {
-            display: flex;
+            display: none;
             align-items: center;
             gap: 4px;
             padding: 10px;
@@ -296,18 +315,16 @@ export const getHTML = () => `
                             (msg) =>
                               '<div class="message ' +
                               msg.name +
-                              '">' +
+                              '">' + '<div>' +
                               '<strong>' +
                               msg.name +
                               ':</strong> ' +
-                              msg.content +
+                              msg.content + '</div>' +
+                              `<i class="fa-solid fa-reply" id='reply-${msg.id}'></i>` +
                               '</div>',
                           )
                           .join('')}
                         </div>
-                    <div class="typing-indicator" id="typingIndicator">
-                        <span></span><span></span><span></span>
-                    </div>
                     </div>
                     <form class="chat-input" id="chatForm" style="display:flex;flex-direction:column;gap:10px;">
                         <div style="display:flex;align-items: center;gap: 5px;">
@@ -337,6 +354,7 @@ export const getHTML = () => `
         </div>
     </div>
     <script src="/scripts.js"></script>
+    <script src="https://kit.fontawesome.com/dc56450845.js" crossorigin="anonymous"></script>
 </body>
 </html>
 `;

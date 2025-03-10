@@ -2,7 +2,24 @@ let lastChatHistory = [];
 let lastWhatsappStatus = false;
 // Auto-refresh logs every 5 seconds
 
-const typingIndicator = document.getElementById('typingIndicator');
+const chatMessagesList = document.querySelector('#chatMessagesInner');
+
+const typingIndicator = document.createElement('div');
+typingIndicator.id = 'typingIndicator';
+typingIndicator.className = 'typing-indicator';
+typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+const showTypingIndicator = () => {
+  typingIndicator.style.opacity = '1';
+  typingIndicator.style.display = 'flex';
+  chatMessagesList.appendChild(typingIndicator);
+};
+
+const hideTypingIndicator = () => {
+  typingIndicator.style.opacity = '0';
+  typingIndicator.style.display = 'none';
+  chatMessagesList.removeChild(typingIndicator);
+};
+
 setInterval(() => {
   fetch('/logs')
     .then((response) => response.json())
@@ -34,19 +51,26 @@ setInterval(() => {
               '<div class="message ' +
               msg.name +
               '">' +
+              '<div>' +
               '<strong>' +
               msg.name +
               ':</strong> ' +
               msg.content +
+              '</div>' +
+              `<i class="fa-solid fa-reply" id='reply-${msg.id}'></i>` +
               '</div>',
           )
           .join('');
+
+        if (typingIndicator.style.opacity === '1') {
+          showTypingIndicator();
+        }
 
         // Scroll to the bottom of the chat container
         const chatMessages = document.querySelector('#chatMessages');
         chatMessages.scrollTop = chatMessages.scrollHeight;
         if (data[data.length - 1].role === 'assistant') {
-          typingIndicator.style.opacity = '0';
+          hideTypingIndicator();
         }
 
         // Update the last known chat history
@@ -59,14 +83,16 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const input = document.getElementById('messageInput');
   const message = input.value;
-  const userSelect = document.querySelector('#userName')
+  const userSelect = document.querySelector('#userName');
   const user = userSelect.value;
   input.value = '';
   const newDiv = document.createElement('div');
   newDiv.className = 'message ' + user;
-  newDiv.innerHTML = `<strong>${user}:</strong> ${message}`;
-  typingIndicator.style.opacity = '1';
+  newDiv.innerHTML = `<div><strong>${user}:</strong> ${message}</div>`;
   document.querySelector('#chatMessagesInner').appendChild(newDiv);
+  showTypingIndicator();
+  const chatMessages = document.querySelector('#chatMessages');
+  chatMessages.scrollTop = chatMessages.scrollHeight;
   const fileInput = document.getElementById('imageInput');
   if (fileInput && fileInput.files.length) {
     const file = fileInput.files[0];
@@ -90,7 +116,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
         }),
       }).then((response) => {
         if (!response.ok) {
-          typingIndicator.style.opacity = '0';
+          hideTypingIndicator();
         }
       });
     };
@@ -103,10 +129,16 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, image: '', imageName: '', mimeType: '', user }),
+      body: JSON.stringify({
+        message,
+        image: '',
+        imageName: '',
+        mimeType: '',
+        user,
+      }),
     }).then((response) => {
       if (!response.ok) {
-        typingIndicator.style.opacity = '0';
+        hideTypingIndicator();
       }
     });
   }
@@ -146,15 +178,28 @@ switchGroupButton.addEventListener('click', async () => {
       'Content-Type': 'application/json',
     },
   }).then(async (response) => {
-    const data = await response.json()
+    const data = await response.json();
     const newIsGroupChat = data.isGroup;
     const chatNameContainer = document.querySelector('#chat-name');
-    const userSelect = document.querySelector('#userName')
-    chatNameContainer.innerHTML =
-      newIsGroupChat ? "Test Group Chat" : "Test Chat"
-    switchGroupButton.innerText =
-      newIsGroupChat ? "Test Individual Chat" : "Test Group Chat"
+    const userSelect = document.querySelector('#userName');
+    chatNameContainer.innerHTML = newIsGroupChat
+      ? 'Test Group Chat'
+      : 'Test Chat';
+    switchGroupButton.innerText = newIsGroupChat
+      ? 'Test Individual Chat'
+      : 'Test Group Chat';
     userSelect.style.display = newIsGroupChat ? 'block' : 'none';
-  })
+  });
   document.querySelector('#chatMessagesInner').innerHTML = '';
+});
+
+const chatMessagesContainer = document.querySelector('#chatMessages');
+
+chatMessagesContainer.addEventListener('click', async (event) => {
+  if (event.target.classList.contains('fa-reply')) {
+    const messageId = event.target.id.replace('reply-', '');
+    const replyBox = document.createElement('div');
+    replyBox.className = 'reply-box';
+    chatMessagesContainer.appendChild(replyBox);
+  }
 });
