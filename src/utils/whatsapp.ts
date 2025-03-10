@@ -1,7 +1,12 @@
 import { Chat, Client, Message } from 'whatsapp-web.js';
 import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
-import { enableAudioResponse, getBotMode } from './botSettings';
+import {
+  enableAudioResponse,
+  getBotMode,
+  getBotName,
+  getCustomPrompt,
+} from './botSettings';
 import { addLog } from './controlPanel';
 import { BotMode, MockChat, OpenAIMessage, ProcessMessageParam, TestMessage } from '../types';
 import {
@@ -27,9 +32,18 @@ export const getResponseText = async (
   messageList: Array<ProcessMessageParam | OpenAIMessage>,
 ) => {
   let response;
+  // Add custom prompt if exists
+  let customPrompt = getCustomPrompt();
   try {
     switch (getBotMode()) {
       case 'OPEN_WEBUI_CHAT':
+        if (customPrompt) {
+          messageList.push({
+            role: 'developer',
+            content: `Your name is ${getBotName()}.` + customPrompt,
+          });
+        }
+        addLog(`Message list: ${JSON.stringify(messageList.reverse())}`)
         response = await processChatCompletionResponse(
           message.from,
           messageList.reverse(),
@@ -65,6 +79,12 @@ export const getResponseText = async (
         );
         break;
       case 'OPENAI_ASSISTANT':
+        if (customPrompt) {
+          messageList.push({
+            role: 'user',
+            content: `Your name is ${getBotName()}.` + customPrompt,
+          });
+        }
         response = await processAssistantResponse(
           message.from,
           (messageList as OpenAIMessage[]).reverse(),
