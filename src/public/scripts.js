@@ -225,4 +225,10 @@ chatMessagesContainer.addEventListener('click', async (event) => {
       chatMessagesContainer.appendChild(replyBox);
     }
   }
+
+  if (event.target.classList.contains('fa-x')) {
+    const oldReplyBox = document.querySelector('#replyBox');
+    chatMessagesContainer.removeChild(oldReplyBox)
+    replyingMessageId = ''
+  }
 });
