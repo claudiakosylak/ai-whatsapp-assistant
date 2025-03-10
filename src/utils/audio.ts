@@ -12,6 +12,11 @@ import { WhatsappResponse, WhatsappResponseAsText } from '../types';
 import { getAudioMode } from './botSettings';
 
 export const deleteAudioFiles = () => {
+  if (!fs.existsSync(AUDIO_DIR)) {
+    fs.mkdirSync(AUDIO_DIR, { recursive: true });
+    return;
+  }
+
   // Read the contents of the audio directory
   fs.readdir(AUDIO_DIR, (err, files) => {
     if (err) {

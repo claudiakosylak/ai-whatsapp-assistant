@@ -17,6 +17,10 @@ export const saveImageFile = (base64String: string, imageName: string) => {
 };
 
 export const deleteImageFiles = () => {
+  if (!fs.existsSync(IMAGE_DIR)) {
+    fs.mkdirSync(IMAGE_DIR, { recursive: true });
+    return;
+  }
   // Read the contents of the images directory
   fs.readdir(IMAGE_DIR, (err, files) => {
     if (err) {
@@ -97,7 +101,7 @@ export const getChatImageInterpretation = async (
     );
     const responseString = completion.choices[0].message.content;
     if (!responseString) throw new Error('No response content.');
-    setToImageMessageCache(message.id._serialized, responseString)
+    setToImageMessageCache(message.id._serialized, responseString);
     return responseString;
   } catch (error) {
     addLog(`Error getting image interpretation from chat completion ${error}`);
