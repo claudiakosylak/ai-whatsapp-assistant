@@ -14,7 +14,24 @@ export type ChatHistoryItem = {
   role: string;
   content: string;
   rawText: string;
+  message: TestMessage;
+  media: MessageMedia | undefined;
 };
+
+export type TestMessage = {
+  id: {
+    fromMe: boolean;
+    _serialized: string;
+  },
+  from: string;
+  body: string;
+  hasQuotedMsg: boolean;
+  timestamp: number;
+  type: 'image' | 'sticker' | 'text' | 'ptt' | 'audio' | 'chat';
+  fromMe: boolean;
+  downloadMedia: () => Promise<MessageMedia>;
+  getQuotedMessage: () => Promise<TestMessage>;
+}
 
 export type MockChatHistoryMessage = {
   from: string;
@@ -41,3 +58,15 @@ export type ProcessMessageParam =
 export type BotMode = 'OPENAI_ASSISTANT' | 'OPEN_WEBUI_CHAT' | 'DIFY_CHAT';
 
 export type AudioMode = 'ELEVEN_LABS' | 'OPENAI';
+
+export type MockChat = {
+  id: {
+    user: 'status' | 'user';
+    _serialized: string;
+  },
+  isGroup: boolean;
+  fetchMessages: ({limit}: {limit: number}) => Promise<TestMessage[]>;
+  sendStateTyping: () => void;
+  clearState: () => void;
+  sendStateRecording: () => void;
+}

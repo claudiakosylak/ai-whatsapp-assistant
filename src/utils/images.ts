@@ -7,6 +7,7 @@ import OpenAI from 'openai';
 import { addLog } from './controlPanel';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import { setToImageMessageCache } from '../cache';
+import { TestMessage } from '../types';
 
 export const saveImageFile = (base64String: string, imageName: string) => {
   const fileBuffer = Buffer.from(base64String, 'base64'); // Convert Base64 to Buffer
@@ -53,7 +54,7 @@ export function getMimeTypeFromBase64(base64String: string) {
 }
 
 export const getChatImageInterpretation = async (
-  message: Message,
+  message: Message | TestMessage,
   media: MessageMedia,
 ) => {
   const client = new OpenAI({ apiKey: OPENAI_API_KEY });

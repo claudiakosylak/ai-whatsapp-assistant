@@ -3,7 +3,7 @@ import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
 import { enableAudioResponse, getBotMode } from './botSettings';
 import { addLog } from './controlPanel';
-import { BotMode, OpenAIMessage, ProcessMessageParam } from '../types';
+import { BotMode, MockChat, OpenAIMessage, ProcessMessageParam, TestMessage } from '../types';
 import {
   getIsAudio,
   getIsImage,
@@ -23,7 +23,7 @@ export const imageProcessingModes: BotMode[] = [
 ];
 
 export const getResponseText = async (
-  message: Message,
+  message: Message | TestMessage,
   messageList: Array<ProcessMessageParam | OpenAIMessage>,
 ) => {
   let response;
@@ -77,9 +77,8 @@ export const getResponseText = async (
   }
 };
 
-export const processMessage = async (message: Message) => {
+export const processMessage = async (message: Message | TestMessage, chatData: Chat | MockChat) => {
   try {
-    const chatData: Chat = await message.getChat();
 
     //check if message should be processed
     if (!shouldProcessMessage(chatData, message)) return false;
@@ -125,7 +124,7 @@ export const handleIncomingMessage = async (
   message: Message,
 ) => {
   const chatData = await message.getChat();
-  const response = await processMessage(message);
+  const response = await processMessage(message, chatData);
   if (response) {
     if (chatData.isGroup) {
       message.reply(response.messageContent, undefined, {

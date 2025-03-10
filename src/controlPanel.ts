@@ -19,14 +19,17 @@ import {
   addLog,
   addMessageContentString,
   chatHistory,
-  getResponse,
   logs,
   setChatHistory,
+  testChatData,
   whatsappConnected,
 } from './utils/controlPanel';
 import { getHTML } from './utils/html';
 import { deleteImageFiles, saveImageFile } from './utils/images';
 import { randomUUID } from 'crypto';
+import { TestMessage } from './types';
+import { MessageMedia } from 'whatsapp-web.js';
+import { processMessage } from './utils/whatsapp';
 
 deleteAudioFiles();
 deleteImageFiles();
@@ -120,24 +123,107 @@ app.post('/send-message', async (req, res) => {
 
   const contentJSON = JSON.stringify(messageBody);
 
+  const userMessageId = randomUUID();
+
+  const userMessageMedia: MessageMedia | undefined = image ? {
+    data: image,
+    filename: imageName,
+    filesize: null,
+    mimetype: mimeType,
+  } : undefined;
+
+  const getMessageMedia: () => Promise<MessageMedia> = () =>
+    new Promise((resolve) => {
+      if (userMessageMedia) {
+        resolve(userMessageMedia);
+      }
+    });
+
+  const getQuotedMessage: () => Promise<TestMessage> = () => {
+    return new Promise((resolve) => {
+      const quotedMessage: TestMessage = {
+        id: {
+          fromMe: false,
+          _serialized: randomUUID()
+        },
+        body: '',
+        hasQuotedMsg: false,
+        timestamp: 0,
+        type: 'chat',
+        fromMe: false,
+        from: 'test',
+        downloadMedia: getMessageMedia,
+        getQuotedMessage: getQuotedMessage,
+      }
+    })
+  }
+
+  const userTestMessage: TestMessage = {
+    id: {
+      fromMe: true,
+      _serialized: userMessageId,
+    },
+    body: message,
+    hasQuotedMsg: false,
+    timestamp: parseInt(new Date().toString()),
+    type: image ? 'image' : 'chat',
+    fromMe: true,
+    from: 'test',
+    downloadMedia: getMessageMedia,
+    getQuotedMessage,
+  };
+
   // Add user message to history
   chatHistory.push({
-    id: randomUUID(),
+    id: userMessageId,
     role: 'user',
     content: addMessageContentString(message, imageUrl),
     rawText: contentJSON,
+    message: userTestMessage,
+    media: userMessageMedia,
   });
 
   try {
-    const response = await getResponse();
+    // const response = await getResponse();
+
+    // // Add assistant response to history
+    // chatHistory.push({
+    //   id: randomUUID(),
+    //   role: 'assistant',
+    //   content: addMessageContentString(response.messageContent),
+    //   rawText: JSON.stringify(response.rawText),
+    // });
+
+    const response = await processMessage(userTestMessage, testChatData)
+
+    if (!response) return;
+
+    const assistantMessageID = randomUUID()
+
+    const assistantTestMessage: TestMessage = {
+      id: {
+        fromMe: false,
+        _serialized: assistantMessageID,
+      },
+      body: response.rawText,
+      hasQuotedMsg: false,
+      timestamp: parseInt(new Date().toString()),
+      type: image ? 'image' : 'chat',
+      fromMe: true,
+      from: 'test',
+      downloadMedia: getMessageMedia,
+      getQuotedMessage,
+    }
 
     // Add assistant response to history
     chatHistory.push({
-      id: randomUUID(),
+      id: assistantMessageID,
       role: 'assistant',
       content: addMessageContentString(response.messageContent),
-      rawText: JSON.stringify(response.rawText),
-    });
+      rawText: response.rawText,
+      message: assistantTestMessage,
+      media: typeof response.messageContent !== 'string' ? response.messageContent : undefined,
+    })
 
     // Keep only last 50 messages
     if (chatHistory.length > 50) {

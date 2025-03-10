@@ -11,38 +11,47 @@ import {
 } from './botSettings';
 import { transcribeVoice } from './audio';
 import {
+  MockChat,
   MockChatHistoryMessage,
   OpenAIMessage,
   ProcessMessageParam,
+  TestMessage,
   WhatsappResponse,
 } from '../types';
 import { addLog } from './controlPanel';
 import { imageProcessingModes } from './whatsapp';
-import { deleteFromDifyCache, getAudioMessage, getImageMessage, setToAudioCache } from '../cache';
+import {
+  deleteFromDifyCache,
+  getAudioMessage,
+  getImageMessage,
+  setToAudioCache,
+} from '../cache';
 import { getChatImageInterpretation } from './images';
 
-export function parseCommand(input: string): { command?: string, commandMessage?: string } {
+export function parseCommand(input: string): {
+  command?: string;
+  commandMessage?: string;
+} {
   const match = input.match(/^-(\S+)\s*(.*)/);
   if (!match) {
-    return {commandMessage: input};
+    return { commandMessage: input };
   }
-  return {command: match[1].trim(), commandMessage: match[2].trim()};
+  return { command: match[1].trim(), commandMessage: match[2].trim() };
 }
 
-export const shouldProcessMessage = async (chatData: Chat, message: Message) => {
-  const {command} = parseCommand(message.body)
-  // If it's a "Broadcast" message, it's not processed
-  if (
-    chatData.id.user == 'status' ||
-    chatData.id._serialized == 'status@broadcast'
-  )
-    return false;
-
-  // Check if message is from a group
+export const shouldProcessGroupMessage = async (
+  chatData: Chat | MockChat,
+  message: Message | TestMessage,
+) => {
   if (chatData.isGroup) {
+    const { command } = parseCommand(message.body);
     const botName = getBotName();
-    const isSelfMention = message.hasQuotedMsg ? (await message.getQuotedMessage()).fromMe : false;
-    const isMentioned = message.body.toLowerCase().includes(botName.toLowerCase()) && !isSelfMention
+    const isSelfMention = message.hasQuotedMsg
+      ? (await message.getQuotedMessage()).fromMe
+      : false;
+    const isMentioned =
+      message.body.toLowerCase().includes(botName.toLowerCase()) &&
+      !isSelfMention;
     // Check if bot name is mentioned in the message
     if (!isMentioned && !isSelfMention && !command) {
       return false;
@@ -51,7 +60,22 @@ export const shouldProcessMessage = async (chatData: Chat, message: Message) => 
   return true;
 };
 
-export const removeBotName = (message: Message) => {
+export const shouldProcessMessage = async (
+  chatData: Chat | MockChat,
+  message: Message | TestMessage,
+) => {
+  // If it's a "Broadcast" message, it's not processed
+  if (
+    chatData.id.user == 'status' ||
+    chatData.id._serialized == 'status@broadcast'
+  )
+    return false;
+
+  // Check if message is from a group
+  return shouldProcessGroupMessage(chatData, message);
+};
+
+export const removeBotName = (message: Message | TestMessage) => {
   const botName = getBotName();
   // Check if bot name is mentioned in the message
   if (message.body.toLowerCase().includes(botName.toLowerCase())) {
@@ -60,8 +84,8 @@ export const removeBotName = (message: Message) => {
   }
 };
 
-export const getMessagesToProcess = async (chatData: Chat) => {
-  const fetchedMessages = await chatData.fetchMessages({
+export const getMessagesToProcess = async (chatData: Chat | MockChat) => {
+  const fetchedMessages: Array<Message | TestMessage> = await chatData.fetchMessages({
     limit: getMessageHistoryLimit(),
   });
   // Check for "-reset" command in chat history to potentially restart context
@@ -73,7 +97,7 @@ export const getMessagesToProcess = async (chatData: Chat) => {
   return messagesToProcess;
 };
 
-export const isMessageAgeValid = (message: Message) => {
+export const isMessageAgeValid = (message: Message | TestMessage) => {
   const actualDate = new Date();
   const msgDate = new Date(message.timestamp * 1000);
   if (
@@ -94,12 +118,13 @@ type ImageMessageContentItem = {
 };
 
 export const prepareContextMessageList = async (
-  chatData: Chat,
+  chatData: Chat | MockChat,
   messageList: Array<ProcessMessageParam | OpenAIMessage>,
 ) => {
   let messagesToProcess;
   try {
     messagesToProcess = await getMessagesToProcess(chatData);
+    addLog(`Messages to process: ${JSON.stringify(messagesToProcess)}`)
   } catch (error) {
     addLog(`Error retrieving messages to process: ${error}`);
     return;
@@ -153,7 +178,7 @@ export const prepareContextMessageList = async (
 };
 
 export const getContextMessageContent = async (
-  msg: Message,
+  msg: Message | TestMessage,
   media: MessageMedia | null,
   isAudio: boolean,
 ) => {
@@ -161,12 +186,12 @@ export const getContextMessageContent = async (
   if (media) {
     if (isAudio) {
       try {
-        const cachedMessage = getAudioMessage(msg.id._serialized)
+        const cachedMessage = getAudioMessage(msg.id._serialized);
         if (cachedMessage) {
-          messageBody = cachedMessage
+          messageBody = cachedMessage;
         } else {
           messageBody = await transcribeVoice(media);
-          setToAudioCache(msg.id._serialized, messageBody)
+          setToAudioCache(msg.id._serialized, messageBody);
         }
       } catch (error) {
         console.error('Error transcribing voice:', error);
@@ -237,7 +262,7 @@ export const getStatusMessage = () => {
 - Custom Prompt: ${getCustomPrompt() ? 'Set' : 'Not set'}`;
 };
 
-export const changeBotMode = (message: Message | MockChatHistoryMessage) => {
+export const changeBotMode = (message: Message | TestMessage) => {
   const newMode = message.body.substring(6).trim().toLowerCase();
   let messageString = '';
   switch (newMode) {
@@ -266,7 +291,7 @@ export const changeBotMode = (message: Message | MockChatHistoryMessage) => {
 };
 
 export const updatePromptFromCommand = (
-  message: Message | MockChatHistoryMessage,
+  message: Message | TestMessage,
 ) => {
   const newPrompt = message.body.substring(8).trim();
   setCustomPrompt(newPrompt);
@@ -279,7 +304,7 @@ export const updatePromptFromCommand = (
 };
 
 export const resetContextFromCommand = (
-  message: Message | MockChatHistoryMessage,
+  message: Message | TestMessage,
 ) => {
   if (!isResetCommandEnabled()) {
     return {
@@ -300,7 +325,7 @@ export const resetContextFromCommand = (
 };
 
 export const handleCommands = (
-  message: Message | MockChatHistoryMessage,
+  message: Message | TestMessage,
 ): WhatsappResponse | false => {
   switch (message.body) {
     case '-help':
@@ -327,14 +352,14 @@ export const handleCommands = (
   return false;
 };
 
-export const getIsImage = (message: Message): boolean => {
+export const getIsImage = (message: Message | TestMessage): boolean => {
   const isImage =
     message.type === MessageTypes.IMAGE ||
     message.type === MessageTypes.STICKER;
   return isImage;
 };
 
-export const getIsAudio = (message: Message): boolean => {
+export const getIsAudio = (message: Message | TestMessage): boolean => {
   const isAudio =
     message.type === MessageTypes.VOICE || message.type === MessageTypes.AUDIO;
   return isAudio;
