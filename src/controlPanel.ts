@@ -105,8 +105,18 @@ app.get('/chat-history', (req, res) => {
   res.json(chatHistory);
 });
 
+app.get('/get-message/:messageId', async (req, res) => {
+  const messageId = req.params.messageId
+  const message = chatHistory.find((msg) => msg.id === messageId)
+  if (message) {
+    res.status(200).json(message)
+  } else {
+    res.status(404).json({message: "Not found"})
+  }
+})
+
 app.post('/send-message', async (req, res) => {
-  const { message, image, imageName, mimeType, user } = req.body;
+  const { message, image, imageName, mimeType, user, replyingMessageId } = req.body;
 
   let imageUrl;
   if (image && imageName && mimeType) {
@@ -133,6 +143,12 @@ app.post('/send-message', async (req, res) => {
 
   const userMessageId = randomUUID();
 
+  let replyingMessage: TestMessage | undefined;
+  if (replyingMessageId) {
+    const replyingMessageChat = chatHistory.find((msg) => msg.id === replyingMessageId)
+    replyingMessage = replyingMessageChat && replyingMessageChat.message
+  }
+
   const userMessageMedia: MessageMedia | undefined = image
     ? {
         data: image,
@@ -153,14 +169,14 @@ app.post('/send-message', async (req, res) => {
     return new Promise((resolve) => {
       const quotedMessage: TestMessage = {
         id: {
-          fromMe: false,
-          _serialized: randomUUID(),
+          fromMe: replyingMessage ? replyingMessage.id.fromMe : false,
+          _serialized: replyingMessageId,
         },
-        body: '',
+        body: replyingMessage ? replyingMessage.body : '',
         hasQuotedMsg: false,
-        timestamp: 0,
-        type: 'chat',
-        fromMe: false,
+        timestamp: replyingMessage ? replyingMessage.timestamp : 0,
+        type: replyingMessage ? replyingMessage.type : 'chat',
+        fromMe: replyingMessage ? replyingMessage.fromMe : false,
         from: 'test',
         downloadMedia: getMessageMedia,
         getQuotedMessage: getQuotedMessage,
@@ -175,7 +191,7 @@ app.post('/send-message', async (req, res) => {
       _serialized: userMessageId,
     },
     body: message,
-    hasQuotedMsg: false,
+    hasQuotedMsg: replyingMessageId !== '',
     timestamp: parseInt(new Date().toString()),
     type: image ? 'image' : 'chat',
     fromMe: false,

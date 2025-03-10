@@ -42,7 +42,7 @@ export const getHTML = () => `
         .fa-reply {
             align-self: flex-end;
         }
-        .fa-reply:hover {
+        .fa-reply:hover, .fa-x:hover {
             cursor: pointer;
         }
         .panel {
@@ -54,9 +54,18 @@ export const getHTML = () => `
         .reply-box {
             position: absolute;
             height: 50px;
-            width: 100%;
-            background-color: red;
+            width: 90%;
+            max-width: 90%;
+            background-color: gray;
             bottom: 0;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .reply-box-top {
+            display: flex;
+            justify-content: space-between;
         }
         .top-panels {
             display: grid;

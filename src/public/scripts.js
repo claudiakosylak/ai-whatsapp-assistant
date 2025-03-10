@@ -1,5 +1,6 @@
 let lastChatHistory = [];
 let lastWhatsappStatus = false;
+let replyingMessageId = '';
 // Auto-refresh logs every 5 seconds
 
 const chatMessagesList = document.querySelector('#chatMessagesInner');
@@ -90,8 +91,15 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   newDiv.className = 'message ' + user;
   newDiv.innerHTML = `<div><strong>${user}:</strong> ${message}</div>`;
   document.querySelector('#chatMessagesInner').appendChild(newDiv);
-  showTypingIndicator();
   const chatMessages = document.querySelector('#chatMessages');
+  let replyId = '';
+  if (replyingMessageId) {
+    replyId = replyingMessageId;
+    replyingMessageId = ''
+    const oldReplyBox = document.querySelector('#replyBox');
+    chatMessages.removeChild(oldReplyBox)
+  }
+  showTypingIndicator();
   chatMessages.scrollTop = chatMessages.scrollHeight;
   const fileInput = document.getElementById('imageInput');
   if (fileInput && fileInput.files.length) {
@@ -113,6 +121,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
           imageName: file.name,
           mimeType,
           user,
+          replyingMessageId: replyId,
         }),
       }).then((response) => {
         if (!response.ok) {
@@ -135,6 +144,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
         imageName: '',
         mimeType: '',
         user,
+        replyingMessageId: replyId,
       }),
     }).then((response) => {
       if (!response.ok) {
@@ -198,8 +208,21 @@ const chatMessagesContainer = document.querySelector('#chatMessages');
 chatMessagesContainer.addEventListener('click', async (event) => {
   if (event.target.classList.contains('fa-reply')) {
     const messageId = event.target.id.replace('reply-', '');
-    const replyBox = document.createElement('div');
-    replyBox.className = 'reply-box';
-    chatMessagesContainer.appendChild(replyBox);
+    const messageResponse = await fetch(`/get-message/${messageId}`);
+    if (!messageResponse.ok) return;
+    const message = await messageResponse.json();
+    if (replyingMessageId) {
+      const oldReplyBox = document.querySelector('#replyBox');
+      oldReplyBox.innerHTML = `<div class="reply-box-top"><strong>Replying to: ${message.name}</strong><i class="fa-solid fa-x" id="cancel-reply"></i></div><p>${message.content}</p>`;
+      replyingMessageId = messageId;
+      return;
+    } else {
+      replyingMessageId = messageId
+      const replyBox = document.createElement('div');
+      replyBox.className = 'reply-box';
+      replyBox.id = 'replyBox';
+      replyBox.innerHTML = `<div class="reply-box-top"><strong>Replying to: ${message.name}</strong><i class="fa-solid fa-x" id="cancel-reply"></i></div><p>${message.content}</p>`;
+      chatMessagesContainer.appendChild(replyBox);
+    }
   }
 });
