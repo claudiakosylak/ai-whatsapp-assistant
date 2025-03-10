@@ -81,12 +81,11 @@ app.post('/save-config', (req, res) => {
 });
 
 app.put('/update-chat-type', (req, res) => {
-  setChatHistory([])
-  const isGroup: boolean = req.body.isGroup
-  changeChatType(isGroup)
-  addLog(`Chat data is group? ${testChatData.isGroup}`)
-  res.redirect("/")
-})
+  setChatHistory([]);
+  const newIsGroup = changeChatType();
+  addLog(`Chat data is group? ${testChatData.isGroup}`);
+  res.json({ isGroup: newIsGroup });
+});
 
 app.get('/logs', (req, res) => {
   res.json(logs);
@@ -107,7 +106,7 @@ app.get('/chat-history', (req, res) => {
 });
 
 app.post('/send-message', async (req, res) => {
-  const { message, image, imageName, mimeType } = req.body;
+  const { message, image, imageName, mimeType, user } = req.body;
 
   let imageUrl;
   if (image && imageName && mimeType) {
@@ -134,12 +133,14 @@ app.post('/send-message', async (req, res) => {
 
   const userMessageId = randomUUID();
 
-  const userMessageMedia: MessageMedia | undefined = image ? {
-    data: image,
-    filename: imageName,
-    filesize: null,
-    mimetype: mimeType,
-  } : undefined;
+  const userMessageMedia: MessageMedia | undefined = image
+    ? {
+        data: image,
+        filename: imageName,
+        filesize: null,
+        mimetype: mimeType,
+      }
+    : undefined;
 
   const getMessageMedia: () => Promise<MessageMedia> = () =>
     new Promise((resolve) => {
@@ -153,7 +154,7 @@ app.post('/send-message', async (req, res) => {
       const quotedMessage: TestMessage = {
         id: {
           fromMe: false,
-          _serialized: randomUUID()
+          _serialized: randomUUID(),
         },
         body: '',
         hasQuotedMsg: false,
@@ -163,21 +164,21 @@ app.post('/send-message', async (req, res) => {
         from: 'test',
         downloadMedia: getMessageMedia,
         getQuotedMessage: getQuotedMessage,
-      }
-      resolve(quotedMessage)
-    })
-  }
+      };
+      resolve(quotedMessage);
+    });
+  };
 
   const userTestMessage: TestMessage = {
     id: {
-      fromMe: true,
+      fromMe: false,
       _serialized: userMessageId,
     },
     body: message,
     hasQuotedMsg: false,
     timestamp: parseInt(new Date().toString()),
     type: image ? 'image' : 'chat',
-    fromMe: true,
+    fromMe: false,
     from: 'test',
     downloadMedia: getMessageMedia,
     getQuotedMessage,
@@ -187,6 +188,7 @@ app.post('/send-message', async (req, res) => {
   chatHistory.push({
     id: userMessageId,
     role: 'user',
+    name: user,
     content: addMessageContentString(message, imageUrl),
     rawText: contentJSON,
     message: userTestMessage,
@@ -194,18 +196,18 @@ app.post('/send-message', async (req, res) => {
   });
 
   try {
-    const response = await processMessage(userTestMessage, testChatData)
+    const response = await processMessage(userTestMessage, testChatData);
 
     if (!response) {
-      res.status(500).json({success: false})
+      res.status(500).json({ success: false });
       return;
     }
 
-    const assistantMessageID = randomUUID()
+    const assistantMessageID = randomUUID();
 
     const assistantTestMessage: TestMessage = {
       id: {
-        fromMe: false,
+        fromMe: true,
         _serialized: assistantMessageID,
       },
       body: response.rawText,
@@ -216,17 +218,21 @@ app.post('/send-message', async (req, res) => {
       from: 'test',
       downloadMedia: getMessageMedia,
       getQuotedMessage,
-    }
+    };
 
     // Add assistant response to history
     chatHistory.push({
       id: assistantMessageID,
       role: 'assistant',
+      name: 'assistant',
       content: addMessageContentString(response.messageContent),
       rawText: response.rawText,
       message: assistantTestMessage,
-      media: typeof response.messageContent !== 'string' ? response.messageContent : undefined,
-    })
+      media:
+        typeof response.messageContent !== 'string'
+          ? response.messageContent
+          : undefined,
+    });
 
     // Keep only last 50 messages
     if (chatHistory.length > 50) {

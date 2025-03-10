@@ -3,11 +3,7 @@ import { saveAudioFile } from './audio';
 import { ENV_PATH } from '../constants';
 import fs from 'fs';
 import path from 'path';
-import {
-  ChatHistoryItem,
-  MockChat,
-  TestMessage,
-} from '../types';
+import { ChatHistoryItem, MockChat, TestMessage } from '../types';
 import { randomUUID } from 'crypto';
 
 export const fetchTestMessages: ({
@@ -39,9 +35,13 @@ export let testChatData: MockChat = {
   clearState: () => addLog('clearing typing state'),
 };
 
-export const changeChatType = (isGroup: boolean) => {
-  testChatData.isGroup = isGroup;
-}
+export const getTestChatData = () => testChatData;
+
+export const changeChatType = () => {
+  const newIsGroup = !testChatData.isGroup;
+  testChatData.isGroup = newIsGroup;
+  return newIsGroup;
+};
 
 export const setChatHistory = (newChatHistory: ChatHistoryItem[]) => {
   chatHistory = newChatHistory;

@@ -11,6 +11,7 @@ import {
 import {
   chatHistory,
   getEnvContent,
+  getTestChatData,
   logs,
   whatsappConnected,
 } from './controlPanel';
@@ -121,6 +122,10 @@ export const getHTML = () => `
             background: #f5f5f5;
             margin-right: auto;
         }
+        .message.user2 {
+            background:rgb(239, 227, 253);
+            margin-right: auto;
+        }
         .chat-input {
             display: flex;
             flex-direction: column;
@@ -177,7 +182,9 @@ export const getHTML = () => `
     <div class="header">
         <h1>WhatsApp Bot Control Panel</h1>
         <div class="status active" id="whatsapp-status" style="display: flex; padding: 10px; align-items: flex-end; gap: 20px;">
-            <strong>WhatsApp Status:</strong> <span style="color: ${whatsappConnected ? '#2e7d32' : '#d32f2f'}">${whatsappConnected ? 'Connected' : 'Disconnected'}</span>
+            <strong>WhatsApp Status:</strong> <span style="color: ${
+              whatsappConnected ? '#2e7d32' : '#d32f2f'
+            }">${whatsappConnected ? 'Connected' : 'Disconnected'}</span>
         </div>
     </div>
     <div class="container">
@@ -270,8 +277,16 @@ export const getHTML = () => `
             <div class="panel">
                 <div class="chat-container">
                     <div style="display:flex;justify-content:space-between;padding:10px;align-items:center;">
-                        <h3 id="chat-name">Test Chat</h3>
-                        <button type="button" id="switchGroupButton">Switch to Group Chat</button>
+                        <h3 id="chat-name">${
+                          getTestChatData().isGroup
+                            ? 'Test Group Chat'
+                            : 'Test Chat'
+                        }</h3>
+                        <button type="button" id="switchGroupButton">${
+                          getTestChatData().isGroup
+                            ? 'Test Individual Chat'
+                            : 'Test Group Chat'
+                        }</button>
                         <button type="button" id="clearChatButton">Clear</button>
                     </div>
                     <div class="chat-messages" id="chatMessages">
@@ -280,10 +295,10 @@ export const getHTML = () => `
                           .map(
                             (msg) =>
                               '<div class="message ' +
-                              msg.role +
+                              msg.name +
                               '">' +
                               '<strong>' +
-                              msg.role +
+                              msg.name +
                               ':</strong> ' +
                               msg.content +
                               '</div>',
@@ -296,6 +311,10 @@ export const getHTML = () => `
                     </div>
                     <form class="chat-input" id="chatForm" style="display:flex;flex-direction:column;gap:10px;">
                         <div style="display:flex;align-items: center;gap: 5px;">
+                            <select id="userName" name="userName" style="display:${getTestChatData().isGroup ? 'block' : 'none'}">
+                                <option value="user">User1</option>
+                                <option value="user2">User2</option>
+                            </select>
                             <input type="text" id="messageInput" placeholder="Type your message..." required>
                             <button type="submit">Send</button>
                         </div>

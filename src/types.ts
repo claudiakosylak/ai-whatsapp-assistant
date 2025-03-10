@@ -13,6 +13,7 @@ export type OpenAIMessage = {
 export type ChatHistoryItem = {
   id: string;
   role: string;
+  name: string;
   content: string;
   rawText: string;
   message: TestMessage;
