@@ -30,3 +30,18 @@ export const deleteFromImageCache = (messageId: string) => {
 export const setToImageMessageCache = (messageId: string, contentString: string) => {
   imageMessagesCache.set(messageId, contentString);
 };
+
+// audio transcription cache
+export const audioCache = new NodeCache({ stdTTL: NODE_CACHE_TIME });
+
+export const getAudioMessage = (messageId: string) => {
+  return audioCache.get<string>(messageId);
+};
+
+export const deleteFromAudioCache = (messageId: string) => {
+  audioCache.del(messageId);
+};
+
+export const setToAudioCache = (messageId: string, contentString: string) => {
+  audioCache.set(messageId, contentString);
+};

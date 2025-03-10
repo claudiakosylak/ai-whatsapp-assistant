@@ -1,4 +1,4 @@
-import { Chat, Client, Message, MessageTypes } from 'whatsapp-web.js';
+import { Chat, Client, Message } from 'whatsapp-web.js';
 import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
 import { enableAudioResponse, getBotMode } from './botSettings';
@@ -14,8 +14,13 @@ import {
 } from './messages';
 import { processDifyResponse, uploadImageToDify } from './dify';
 import { convertToAudioResponse, transcribeVoice } from './audio';
+import { setToAudioCache } from '../cache';
 
-export const imageProcessingModes: BotMode[] = ['OPEN_WEBUI_CHAT', 'DIFY_CHAT', 'OPENAI_ASSISTANT'];
+export const imageProcessingModes: BotMode[] = [
+  'OPEN_WEBUI_CHAT',
+  'DIFY_CHAT',
+  'OPENAI_ASSISTANT',
+];
 
 export const getResponseText = async (
   message: Message,
@@ -51,6 +56,7 @@ export const getResponseText = async (
         if (isAudio) {
           const media = await message.downloadMedia();
           messageBody = await transcribeVoice(media);
+          setToAudioCache(message.id._serialized, messageBody);
         }
         response = await processDifyResponse(
           message.from,
@@ -118,12 +124,14 @@ export const handleIncomingMessage = async (
   client: Client,
   message: Message,
 ) => {
-  const chatData = await message.getChat()
+  const chatData = await message.getChat();
   const response = await processMessage(message);
   if (response) {
     if (chatData.isGroup) {
-      message.reply(response.messageContent)
-      return
+      message.reply(response.messageContent, undefined, {
+        sendAudioAsVoice: enableAudioResponse,
+      });
+      return;
     }
     client.sendMessage(response.from, response.messageContent, {
       sendAudioAsVoice: enableAudioResponse,

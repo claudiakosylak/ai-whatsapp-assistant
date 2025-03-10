@@ -18,7 +18,7 @@ import {
 } from '../types';
 import { addLog } from './controlPanel';
 import { imageProcessingModes } from './whatsapp';
-import { deleteFromDifyCache, getImageMessage } from '../cache';
+import { deleteFromDifyCache, getAudioMessage, getImageMessage, setToAudioCache } from '../cache';
 import { getChatImageInterpretation } from './images';
 
 export function parseCommand(input: string): { command?: string, commandMessage?: string } {
@@ -161,7 +161,13 @@ export const getContextMessageContent = async (
   if (media) {
     if (isAudio) {
       try {
-        messageBody = await transcribeVoice(media);
+        const cachedMessage = getAudioMessage(msg.id._serialized)
+        if (cachedMessage) {
+          messageBody = cachedMessage
+        } else {
+          messageBody = await transcribeVoice(media);
+          setToAudioCache(msg.id._serialized, messageBody)
+        }
       } catch (error) {
         console.error('Error transcribing voice:', error);
         messageBody = 'Audio transcription failed.';
