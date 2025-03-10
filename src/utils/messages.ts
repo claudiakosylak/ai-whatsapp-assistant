@@ -134,7 +134,7 @@ export const prepareContextMessageList = async (
   // Add custom prompt if exists
   const customPrompt = getCustomPrompt();
   if (customPrompt) {
-    messageList.push({ role: 'user', content: customPrompt });
+    messageList.push({ role: getBotMode() === "OPEN_WEBUI_CHAT" ? 'developer' : 'user', content: customPrompt });
   }
 
   for (const msg of messagesToProcess.reverse()) {
