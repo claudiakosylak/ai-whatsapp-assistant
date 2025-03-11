@@ -31,6 +31,7 @@ export const imageProcessingModes: BotMode[] = [
   'OPEN_WEBUI_CHAT',
   'DIFY_CHAT',
   'OPENAI_ASSISTANT',
+  'OPENAI_CHAT'
 ];
 
 export const getResponseText = async (
@@ -86,7 +87,6 @@ export const getResponseText = async (
           role: 'system',
           content: `Your name is ${getBotName()}.` + customPrompt,
         });
-        addLog(`Message list: ${JSON.stringify(messageList.reverse())}`);
         response = await processChatCompletionResponse(
           message.from,
           messageList.reverse(),
@@ -106,7 +106,6 @@ export const processMessage = async (
   try {
     //check if message should be processed
     const willProcessMessage = await shouldProcessMessage(chatData, message);
-    addLog(`Should I process message? ${willProcessMessage}`);
     if (!willProcessMessage) return false;
     addLog(`Processing message from ${message.from}`);
 

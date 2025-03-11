@@ -44,7 +44,6 @@ export const shouldProcessGroupMessage = async (
   message: Message | TestMessage,
 ) => {
   if (chatData.isGroup) {
-    addLog(`Chat data is group`)
     const { command } = parseCommand(message.body);
     const botName = getBotName();
     const isSelfMention = message.hasQuotedMsg
@@ -55,7 +54,6 @@ export const shouldProcessGroupMessage = async (
       !isSelfMention;
     // Check if bot name is mentioned in the message
     if (!isMentioned && !isSelfMention && !command) {
-      addLog(`Will not process group message`)
       return false;
     }
   }

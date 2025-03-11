@@ -83,7 +83,6 @@ app.post('/save-config', (req, res) => {
 app.put('/update-chat-type', (req, res) => {
   setChatHistory([]);
   const newIsGroup = changeChatType();
-  addLog(`Chat data is group? ${testChatData.isGroup}`);
   res.json({ isGroup: newIsGroup });
 });
 
@@ -98,7 +97,7 @@ app.get('/whatsapp-connection', (req, res) => {
 app.delete('/chat-history', (req, res) => {
   setChatHistory([]);
   res.status(201).send('Chat history cleared!');
-  res.redirect('/');
+  // res.redirect('/');
 });
 
 app.get('/chat-history', (req, res) => {

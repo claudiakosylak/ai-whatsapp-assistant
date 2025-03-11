@@ -44,8 +44,6 @@ export const processChatCompletionResponse = async (
       };
     }
 
-    addLog(`Completion choices: ${JSON.stringify(completion.choices)}`)
-
     addLog(
       `Chat completion response: ${completion.choices[0].message.content?.substring(
         0,
