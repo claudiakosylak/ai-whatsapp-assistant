@@ -346,17 +346,19 @@ export const getHTML = () => `
                                 <option value="user">User1</option>
                                 <option value="user2">User2</option>
                             </select>
-                            <input type="text" id="messageInput" placeholder="Type your message..." required>
+                            <input type="text" id="messageInput" placeholder="Type your message...">
+                            <audio id="inputAudio" controls style="display:none;flex:1;"></audio>
+                            <p id="recordingStatus" style="display:none;flex:1;text-align:center;">Recording...</p>
                             <button type="button" id="recordAudio"><i class="fa-solid fa-microphone"></i></button>
                             <button type="button" id="stopRecordAudio" style="display:none;"><i class="fa-solid fa-stop"></i></button>
+                            <button type="button" id="deleteRecordedAudio" style="display:none;"><i class="fa-solid fa-trash"></i></button>
                             <button type="submit">Send</button>
                         </div>
                         ${
                           imageProcessingModes.includes(getBotMode())
-                            ? '<input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">'
+                            ? '<div style="display:flex;flex-direction:column;" id="imageInputContainer"><h4>Attach Image</h4><input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" style="outline:none;border:none;"></div>'
                             : ''
                         }
-                        <audio id="inputAudio" controls></audio>
                     </form>
                 </div>
             </div>

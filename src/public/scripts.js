@@ -4,6 +4,16 @@ let replyingMessageId = '';
 let recordedAudioBase64 = '';
 // Auto-refresh logs every 5 seconds
 
+const clearAudioRecordingElements = () => {
+  document.getElementById('recordAudio').style.display = 'block';
+  document.getElementById('deleteRecordedAudio').style.display = 'none';
+  document.getElementById('inputAudio').style.display = 'none';
+  document.getElementById('inputAudio').src = '';
+  const textInput = document.getElementById('messageInput');
+  textInput.style.display = 'block';
+  document.getElementById('imageInputContainer').style.display = 'block';
+};
+
 const chatMessagesList = document.querySelector('#chatMessagesInner');
 
 const typingIndicator = document.createElement('div');
@@ -90,7 +100,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   input.value = '';
   const newDiv = document.createElement('div');
   newDiv.className = 'message ' + user;
-  newDiv.innerHTML = `<div><strong>${user}:</strong> ${message}</div>`;
+  newDiv.innerHTML = `<div><strong>${user}:</strong> ${recordedAudioBase64 ? '<audio controls></audio>' : message}</div>`;
   document.querySelector('#chatMessagesInner').appendChild(newDiv);
   const chatMessages = document.querySelector('#chatMessages');
   let replyId = '';
@@ -120,9 +130,9 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
     fileInput.value = '';
   }
   if (recordedAudioBase64) {
-    document.getElementById('inputAudio').src = ''
-    base64String = recordedAudioBase64
-    recordedAudioBase64 = ''
+    clearAudioRecordingElements();
+    base64String = recordedAudioBase64;
+    recordedAudioBase64 = '';
   }
   await fetch('/send-message', {
     method: 'POST',
@@ -227,6 +237,14 @@ chatMessagesContainer.addEventListener('click', async (event) => {
 let mediaRecorder;
 
 document.getElementById('recordAudio').addEventListener('click', async () => {
+  const textInput = document.getElementById('messageInput');
+  textInput.style.display = 'none';
+  textInput.value = '';
+  document.getElementById('imageInputContainer').style.display = 'none';
+  const fileInput = document.getElementById('imageInput');
+  fileInput.value = '';
+  const recordingStatus = document.getElementById('recordingStatus');
+  recordingStatus.style.display = 'block';
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   mediaRecorder = new MediaRecorder(stream);
   let audioChunks = [];
@@ -255,6 +273,14 @@ document.getElementById('recordAudio').addEventListener('click', async () => {
 
 document.getElementById('stopRecordAudio').addEventListener('click', () => {
   mediaRecorder.stop();
-  document.getElementById('recordAudio').style.display = 'block';
+  document.getElementById('deleteRecordedAudio').style.display = 'block';
   document.getElementById('stopRecordAudio').style.display = 'none';
+  document.getElementById('inputAudio').style.display = 'block';
+  const recordingStatus = document.getElementById('recordingStatus');
+  recordingStatus.style.display = 'none';
+});
+
+document.getElementById('deleteRecordedAudio').addEventListener('click', () => {
+  recordedAudioBase64 = '';
+  clearAudioRecordingElements();
 });
