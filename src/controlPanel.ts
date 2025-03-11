@@ -115,7 +115,7 @@ app.get('/get-message/:messageId', async (req, res) => {
 })
 
 app.post('/send-message', async (req, res) => {
-  const { message, image, imageName, mimeType, user, replyingMessageId } = req.body;
+  const { message, image, imageName, mimeType, user, replyingMessageId, audio } = req.body;
 
   let imageUrl;
   if (image && imageName && mimeType) {
@@ -155,7 +155,10 @@ app.post('/send-message', async (req, res) => {
         filesize: null,
         mimetype: mimeType,
       }
-    : undefined;
+    : audio ? {
+      data: audio,
+      mimetype: mimeType,
+    } : undefined;
 
   const getMessageMedia: () => Promise<MessageMedia> = () =>
     new Promise((resolve) => {
@@ -192,7 +195,7 @@ app.post('/send-message', async (req, res) => {
     body: message,
     hasQuotedMsg: replyingMessageId !== '',
     timestamp: parseInt(new Date().toString()),
-    type: image ? 'image' : 'chat',
+    type: image ? 'image' : audio ? 'audio' : 'chat',
     fromMe: false,
     from: 'test',
     downloadMedia: getMessageMedia,
@@ -204,7 +207,7 @@ app.post('/send-message', async (req, res) => {
     id: userMessageId,
     role: 'user',
     name: user,
-    content: addMessageContentString(message, imageUrl),
+    content: audio ? addMessageContentString(userMessageMedia as MessageMedia) : addMessageContentString(message, imageUrl),
     rawText: contentJSON,
     message: userTestMessage,
     media: userMessageMedia,

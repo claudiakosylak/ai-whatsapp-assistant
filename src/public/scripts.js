@@ -1,6 +1,7 @@
 let lastChatHistory = [];
 let lastWhatsappStatus = false;
 let replyingMessageId = '';
+let recordedAudioBase64 = '';
 // Auto-refresh logs every 5 seconds
 
 const chatMessagesList = document.querySelector('#chatMessagesInner');
@@ -95,63 +96,53 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   let replyId = '';
   if (replyingMessageId) {
     replyId = replyingMessageId;
-    replyingMessageId = ''
+    replyingMessageId = '';
     const oldReplyBox = document.querySelector('#replyBox');
-    chatMessages.removeChild(oldReplyBox)
+    chatMessages.removeChild(oldReplyBox);
   }
   showTypingIndicator();
   chatMessages.scrollTop = chatMessages.scrollHeight;
+  let mimeType = '';
+  let base64String;
+  let imageName;
   const fileInput = document.getElementById('imageInput');
   if (fileInput && fileInput.files.length) {
     const file = fileInput.files[0];
+    imageName = file.name;
     const reader = new FileReader();
 
     reader.onload = function (event) {
-      const base64String = event.target.result.split(',')[1]; // Get only the Base64 part
-      const mimeType = event.target.result.split(';')[0].split(':')[1];
-
-      fetch('/send-message', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message,
-          image: base64String,
-          imageName: file.name,
-          mimeType,
-          user,
-          replyingMessageId: replyId,
-        }),
-      }).then((response) => {
-        if (!response.ok) {
-          hideTypingIndicator();
-        }
-      });
+      base64String = event.target.result.split(',')[1]; // Get only the Base64 part
+      mimeType = event.target.result.split(';')[0].split(':')[1];
     };
 
     reader.readAsDataURL(file);
     fileInput.value = '';
-  } else {
-    await fetch('/send-message', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message,
-        image: '',
-        imageName: '',
-        mimeType: '',
-        user,
-        replyingMessageId: replyId,
-      }),
-    }).then((response) => {
-      if (!response.ok) {
-        hideTypingIndicator();
-      }
-    });
   }
+  if (recordedAudioBase64) {
+    document.getElementById('inputAudio').src = ''
+    base64String = recordedAudioBase64
+    recordedAudioBase64 = ''
+  }
+  await fetch('/send-message', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message,
+      image: imageName ? base64String : '',
+      imageName: imageName || '',
+      mimeType,
+      user,
+      replyingMessageId: replyId,
+      audio: !imageName ? base64String : '',
+    }),
+  }).then((response) => {
+    if (!response.ok) {
+      hideTypingIndicator();
+    }
+  });
 });
 
 document
@@ -217,7 +208,7 @@ chatMessagesContainer.addEventListener('click', async (event) => {
       replyingMessageId = messageId;
       return;
     } else {
-      replyingMessageId = messageId
+      replyingMessageId = messageId;
       const replyBox = document.createElement('div');
       replyBox.className = 'reply-box';
       replyBox.id = 'replyBox';
@@ -228,7 +219,42 @@ chatMessagesContainer.addEventListener('click', async (event) => {
 
   if (event.target.classList.contains('fa-x')) {
     const oldReplyBox = document.querySelector('#replyBox');
-    chatMessagesContainer.removeChild(oldReplyBox)
-    replyingMessageId = ''
+    chatMessagesContainer.removeChild(oldReplyBox);
+    replyingMessageId = '';
   }
+});
+
+let mediaRecorder;
+
+document.getElementById('recordAudio').addEventListener('click', async () => {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+  let audioChunks = [];
+
+  mediaRecorder.ondataavailable = (event) => {
+    audioChunks.push(event.data);
+  };
+
+  mediaRecorder.onstop = () => {
+    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
+    reader.onloadend = () => {
+      const base64String = reader.result.split(',')[1];
+      recordedAudioBase64 = base64String;
+    };
+    const audioUrl = URL.createObjectURL(audioBlob);
+    document.getElementById('inputAudio').src = audioUrl;
+    stream.getTracks().forEach((track) => track.stop());
+  };
+
+  mediaRecorder.start();
+  document.getElementById('recordAudio').style.display = 'none';
+  document.getElementById('stopRecordAudio').style.display = 'block';
+});
+
+document.getElementById('stopRecordAudio').addEventListener('click', () => {
+  mediaRecorder.stop();
+  document.getElementById('recordAudio').style.display = 'block';
+  document.getElementById('stopRecordAudio').style.display = 'none';
 });

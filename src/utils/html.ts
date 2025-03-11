@@ -347,6 +347,8 @@ export const getHTML = () => `
                                 <option value="user2">User2</option>
                             </select>
                             <input type="text" id="messageInput" placeholder="Type your message..." required>
+                            <button type="button" id="recordAudio"><i class="fa-solid fa-microphone"></i></button>
+                            <button type="button" id="stopRecordAudio" style="display:none;"><i class="fa-solid fa-stop"></i></button>
                             <button type="submit">Send</button>
                         </div>
                         ${
@@ -354,6 +356,7 @@ export const getHTML = () => `
                             ? '<input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp">'
                             : ''
                         }
+                        <audio id="inputAudio" controls></audio>
                     </form>
                 </div>
             </div>
