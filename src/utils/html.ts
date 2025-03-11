@@ -356,7 +356,7 @@ export const getHTML = () => `
                         </div>
                         ${
                           imageProcessingModes.includes(getBotMode())
-                            ? '<div style="display:flex;flex-direction:column;" id="imageInputContainer"><h4>Attach Image</h4><input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" style="outline:none;border:none;"></div>'
+                            ? '<div style="display:flex;flex-direction:column;" id="imageInputContainer"><h4>Attach Image</h4><div style="display:flex;gap:20px;"><input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" style="outline:none;border:none;"><img src="" style="display:none;width:100px;height:100px;object-fit:cover;" id="imagePreview" /></div></div>'
                             : ''
                         }
                     </form>

@@ -2,6 +2,7 @@ let lastChatHistory = [];
 let lastWhatsappStatus = false;
 let replyingMessageId = '';
 let recordedAudioBase64 = '';
+let tempImageUrl = '';
 // Auto-refresh logs every 5 seconds
 
 const clearAudioRecordingElements = () => {
@@ -100,7 +101,8 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   input.value = '';
   const newDiv = document.createElement('div');
   newDiv.className = 'message ' + user;
-  newDiv.innerHTML = `<div><strong>${user}:</strong> ${recordedAudioBase64 ? '<audio controls></audio>' : message}</div>`;
+  newDiv.innerHTML = `<div><strong>${user}:</strong> ${recordedAudioBase64 ? '<audio controls></audio>' : tempImageUrl ? `<p>${message}</p>` : message}${tempImageUrl ? `<img src='${tempImageUrl}' style="width:50px;height:50px;object-fit:cover;"/>` : ''}</div>`;
+  tempImageUrl = '';
   document.querySelector('#chatMessagesInner').appendChild(newDiv);
   const chatMessages = document.querySelector('#chatMessages');
   let replyId = '';
@@ -124,10 +126,30 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
     reader.onload = function (event) {
       base64String = event.target.result.split(',')[1]; // Get only the Base64 part
       mimeType = event.target.result.split(';')[0].split(':')[1];
+      fetch('/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          image: base64String,
+          imageName: imageName,
+          mimeType,
+          user,
+          replyingMessageId: replyId,
+          audio: '',
+        }),
+      }).then((response) => {
+        if (!response.ok) {
+          hideTypingIndicator();
+        }
+      });
     };
 
     reader.readAsDataURL(file);
     fileInput.value = '';
+    return
   }
   if (recordedAudioBase64) {
     clearAudioRecordingElements();
@@ -141,12 +163,12 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
     },
     body: JSON.stringify({
       message,
-      image: imageName ? base64String : '',
-      imageName: imageName || '',
+      image: '',
+      imageName: '',
       mimeType,
       user,
       replyingMessageId: replyId,
-      audio: !imageName ? base64String : '',
+      audio: base64String,
     }),
   }).then((response) => {
     if (!response.ok) {
@@ -284,3 +306,15 @@ document.getElementById('deleteRecordedAudio').addEventListener('click', () => {
   recordedAudioBase64 = '';
   clearAudioRecordingElements();
 });
+
+document.getElementById('imageInput').addEventListener('change', (event) => {
+  if (event.target.files[0]) {
+    document.getElementById('recordAudio').style.display = "none"
+    tempImageUrl = URL.createObjectURL(event.target.files[0]);
+    const imageContainer = document.getElementById('imagePreview')
+    imageContainer.src = tempImageUrl
+    imageContainer.style.display = 'block'
+  } else {
+    document.getElementById('recordAudio').style.display = "block"
+  }
+})
