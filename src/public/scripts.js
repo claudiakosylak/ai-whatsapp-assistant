@@ -13,6 +13,15 @@ const clearAudioRecordingElements = () => {
   const textInput = document.getElementById('messageInput');
   textInput.style.display = 'block';
   document.getElementById('imageInputContainer').style.display = 'block';
+  document.getElementById('imageInputButton').style.display = 'block';
+};
+
+const clearChatForm = () => {
+  clearAudioRecordingElements();
+  const imagePreview = document.getElementById('imagePreview');
+  imagePreview.src = '';
+  imagePreview.style.display = 'none';
+  document.getElementById('deleteSelectedImage').style.display = 'none';
 };
 
 const chatMessagesList = document.querySelector('#chatMessagesInner');
@@ -96,12 +105,27 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const input = document.getElementById('messageInput');
   const message = input.value;
+  if (!message && !tempImageUrl && !recordedAudioBase64) {
+    alert('Please enter an input to send message.');
+    return;
+  }
   const userSelect = document.querySelector('#userName');
   const user = userSelect.value;
   input.value = '';
+  clearChatForm();
   const newDiv = document.createElement('div');
   newDiv.className = 'message ' + user;
-  newDiv.innerHTML = `<div><strong>${user}:</strong> ${recordedAudioBase64 ? '<audio controls></audio>' : tempImageUrl ? `<p>${message}</p>` : message}${tempImageUrl ? `<img src='${tempImageUrl}' style="width:50px;height:50px;object-fit:cover;"/>` : ''}</div>`;
+  newDiv.innerHTML = `<div><strong>${user}:</strong> ${
+    recordedAudioBase64
+      ? '<audio controls></audio>'
+      : tempImageUrl
+      ? `<p>${message}</p>`
+      : message
+  }${
+    tempImageUrl
+      ? `<img src='${tempImageUrl}' style="width:50px;height:50px;object-fit:cover;"/>`
+      : ''
+  }</div>`;
   tempImageUrl = '';
   document.querySelector('#chatMessagesInner').appendChild(newDiv);
   const chatMessages = document.querySelector('#chatMessages');
@@ -149,7 +173,7 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
 
     reader.readAsDataURL(file);
     fileInput.value = '';
-    return
+    return;
   }
   if (recordedAudioBase64) {
     clearAudioRecordingElements();
@@ -263,6 +287,7 @@ document.getElementById('recordAudio').addEventListener('click', async () => {
   textInput.style.display = 'none';
   textInput.value = '';
   document.getElementById('imageInputContainer').style.display = 'none';
+  document.getElementById('imageInputButton').style.display = 'none';
   const fileInput = document.getElementById('imageInput');
   fileInput.value = '';
   const recordingStatus = document.getElementById('recordingStatus');
@@ -308,13 +333,32 @@ document.getElementById('deleteRecordedAudio').addEventListener('click', () => {
 });
 
 document.getElementById('imageInput').addEventListener('change', (event) => {
+  const imageContainer = document.getElementById('imagePreview');
   if (event.target.files[0]) {
-    document.getElementById('recordAudio').style.display = "none"
+    document.getElementById('recordAudio').style.display = 'none';
     tempImageUrl = URL.createObjectURL(event.target.files[0]);
-    const imageContainer = document.getElementById('imagePreview')
-    imageContainer.src = tempImageUrl
-    imageContainer.style.display = 'block'
+    imageContainer.src = tempImageUrl;
+    imageContainer.style.display = 'block';
+    document.getElementById('deleteSelectedImage').style.display = 'block';
   } else {
-    document.getElementById('recordAudio').style.display = "block"
+    document.getElementById('recordAudio').style.display = 'block';
+    tempImageUrl = '';
+    imageContainer.src = '';
+    imageContainer.style.display = 'none';
+    document.getElementById('deleteSelectedImage').style.display = 'none';
   }
-})
+});
+
+document.getElementById('imageInputButton').addEventListener('click', () => {
+  document.getElementById('imageInput').click();
+});
+
+document.getElementById('deleteSelectedImage').addEventListener('click', () => {
+  document.getElementById('imageInput').value = '';
+  const imageContainer = document.getElementById('imagePreview');
+  document.getElementById('recordAudio').style.display = 'block';
+  tempImageUrl = '';
+  imageContainer.src = '';
+  imageContainer.style.display = 'none';
+  document.getElementById('deleteSelectedImage').style.display = 'none';
+});

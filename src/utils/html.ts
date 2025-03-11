@@ -35,6 +35,12 @@ export const getHTML = () => `
             flex-direction: column;
             gap: 20px;
         }
+        .delete-button {
+            background-color: red;
+        }
+        .delete-button:hover {
+            background-color:rgb(160, 69, 69);
+        }
         .header {
             display: flex;
             justify-content: space-between;
@@ -107,6 +113,13 @@ export const getHTML = () => `
             padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
+        }
+        .button-disabled {
+            background: gray;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
         }
         button:hover {
             background: #45a049;
@@ -329,11 +342,13 @@ export const getHTML = () => `
                             (msg) =>
                               '<div class="message ' +
                               msg.name +
-                              '">' + '<div>' +
+                              '">' +
+                              '<div>' +
                               '<strong>' +
                               msg.name +
                               ':</strong> ' +
-                              msg.content + '</div>' +
+                              msg.content +
+                              '</div>' +
                               `<i class="fa-solid fa-reply" id='reply-${msg.id}'></i>` +
                               '</div>',
                           )
@@ -342,21 +357,24 @@ export const getHTML = () => `
                     </div>
                     <form class="chat-input" id="chatForm" style="display:flex;flex-direction:column;gap:10px;">
                         <div style="display:flex;align-items: center;gap: 5px;">
-                            <select id="userName" name="userName" style="display:${getTestChatData().isGroup ? 'block' : 'none'}">
+                            <select id="userName" name="userName" style="display:${
+                              getTestChatData().isGroup ? 'block' : 'none'
+                            }">
                                 <option value="user">User1</option>
                                 <option value="user2">User2</option>
                             </select>
                             <input type="text" id="messageInput" placeholder="Type your message...">
                             <audio id="inputAudio" controls style="display:none;flex:1;"></audio>
                             <p id="recordingStatus" style="display:none;flex:1;text-align:center;">Recording...</p>
+                            <button type="button" id="imageInputButton"><i class="fa-solid fa-image"></i></button>
                             <button type="button" id="recordAudio"><i class="fa-solid fa-microphone"></i></button>
                             <button type="button" id="stopRecordAudio" style="display:none;"><i class="fa-solid fa-stop"></i></button>
-                            <button type="button" id="deleteRecordedAudio" style="display:none;"><i class="fa-solid fa-trash"></i></button>
+                            <button type="button" id="deleteRecordedAudio" style="display:none;" class="delete-button"><i class="fa-solid fa-trash"></i></button>
                             <button type="submit">Send</button>
                         </div>
                         ${
                           imageProcessingModes.includes(getBotMode())
-                            ? '<div style="display:flex;flex-direction:column;" id="imageInputContainer"><h4>Attach Image</h4><div style="display:flex;gap:20px;"><input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" style="outline:none;border:none;"><img src="" style="display:none;width:100px;height:100px;object-fit:cover;" id="imagePreview" /></div></div>'
+                            ? '<div style="display:flex;flex-direction:column;" id="imageInputContainer"><div style="display:flex;gap:20px;"><input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" style="outline:none;border:none;display:none;"><img src="" style="display:none;width:100px;height:100px;object-fit:cover;border-radius:10px;" id="imagePreview" /><button type="button" id="deleteSelectedImage" style="display:none;" class="delete-button"><i class="fa-solid fa-trash"></i></button></div></div>'
                             : ''
                         }
                     </form>
