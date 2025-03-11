@@ -63,7 +63,11 @@ export const getResponseText = async (
         const isAudio = getIsAudio(message);
         if (isAudio) {
           const media = await message.downloadMedia();
-          messageBody = await transcribeVoice(media);
+          try {
+            messageBody = await transcribeVoice(media);
+          } catch (e) {
+            throw(e)
+          }
           setToAudioCache(message.id._serialized, messageBody);
         }
         response = await processDifyResponse(

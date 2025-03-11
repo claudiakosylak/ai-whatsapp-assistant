@@ -31,6 +31,7 @@ import { randomUUID } from 'crypto';
 import { TestMessage } from './types';
 import { MessageMedia } from 'whatsapp-web.js';
 import { processMessage } from './utils/whatsapp';
+import { clearAllErrors, clearError, getErrors } from './utils/errors';
 
 deleteAudioFiles();
 deleteImageFiles();
@@ -71,6 +72,7 @@ app.post('/save-config', (req, res) => {
       };
     }
     addLog('Configuration updated successfully');
+    clearAllErrors();
     res.redirect('/');
   } catch (error) {
     const errorMessage =
@@ -94,6 +96,10 @@ app.get('/whatsapp-connection', (req, res) => {
   res.json({ connected: whatsappConnected });
 });
 
+app.get('/errors', (req, res) => {
+  res.json(getErrors());
+});
+
 app.delete('/chat-history', (req, res) => {
   setChatHistory([]);
   res.status(201).send('Chat history cleared!');
@@ -105,17 +111,25 @@ app.get('/chat-history', (req, res) => {
 });
 
 app.get('/get-message/:messageId', async (req, res) => {
-  const messageId = req.params.messageId
-  const message = chatHistory.find((msg) => msg.id === messageId)
+  const messageId = req.params.messageId;
+  const message = chatHistory.find((msg) => msg.id === messageId);
   if (message) {
-    res.status(200).json(message)
+    res.status(200).json(message);
   } else {
-    res.status(404).json({message: "Not found"})
+    res.status(404).json({ message: 'Not found' });
   }
-})
+});
 
 app.post('/send-message', async (req, res) => {
-  const { message, image, imageName, mimeType, user, replyingMessageId, audio } = req.body;
+  const {
+    message,
+    image,
+    imageName,
+    mimeType,
+    user,
+    replyingMessageId,
+    audio,
+  } = req.body;
 
   let imageUrl;
   if (image && imageName && mimeType) {
@@ -144,8 +158,10 @@ app.post('/send-message', async (req, res) => {
 
   let replyingMessage: TestMessage | undefined;
   if (replyingMessageId) {
-    const replyingMessageChat = chatHistory.find((msg) => msg.id === replyingMessageId)
-    replyingMessage = replyingMessageChat && replyingMessageChat.message
+    const replyingMessageChat = chatHistory.find(
+      (msg) => msg.id === replyingMessageId,
+    );
+    replyingMessage = replyingMessageChat && replyingMessageChat.message;
   }
 
   const userMessageMedia: MessageMedia | undefined = image
@@ -155,10 +171,12 @@ app.post('/send-message', async (req, res) => {
         filesize: null,
         mimetype: mimeType,
       }
-    : audio ? {
-      data: audio,
-      mimetype: mimeType,
-    } : undefined;
+    : audio
+    ? {
+        data: audio,
+        mimetype: mimeType,
+      }
+    : undefined;
 
   const getMessageMedia: () => Promise<MessageMedia> = () =>
     new Promise((resolve) => {
@@ -207,7 +225,9 @@ app.post('/send-message', async (req, res) => {
     id: userMessageId,
     role: 'user',
     name: user,
-    content: audio ? addMessageContentString(userMessageMedia as MessageMedia) : addMessageContentString(message, imageUrl),
+    content: audio
+      ? addMessageContentString(userMessageMedia as MessageMedia)
+      : addMessageContentString(message, imageUrl),
     rawText: contentJSON,
     message: userTestMessage,
     media: userMessageMedia,
@@ -325,6 +345,7 @@ app.post('/save-bot-settings', (req, res) => {
 
   setAudioMode(audioMode);
   addLog(`Audio handling changed to ${audioMode}`);
+  clearError('audioModeError');
 
   res.redirect('/');
 });

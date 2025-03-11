@@ -62,6 +62,16 @@ setInterval(() => {
       }
     });
 
+  fetch('/errors')
+    .then((response) => response.json())
+    .then((data) => {
+      const errorArray = Object.entries(data);
+      errorArray.forEach((error) => {
+        document.getElementById(error[0]).innerText = error[1];
+        document.getElementById(error[0]).style.display = 'block';
+      });
+    });
+
   fetch('/chat-history')
     .then((response) => response.json())
     .then((data) => {

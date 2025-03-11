@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { AUDIO_DIR } from '../constants';
+import { AUDIO_DIR, audioHandlingApis } from '../constants';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { MessageMedia } from 'whatsapp-web.js';
@@ -10,6 +10,7 @@ import { addLog } from './controlPanel';
 import OpenAI, { toFile } from 'openai';
 import { WhatsappResponse, WhatsappResponseAsText } from '../types';
 import { getAudioMode } from './botSettings';
+import { setError } from './errors';
 
 export const deleteAudioFiles = () => {
   if (!fs.existsSync(AUDIO_DIR)) {
@@ -173,7 +174,7 @@ export const transcribeVoiceWithElevenLabs = async (
   } catch (error: any) {
     // Error handling
     addLog(`Error transcribing voice message: ${error.message}`);
-    return '<Error transcribing voice message>';
+    throw error;
   }
 };
 
@@ -202,7 +203,7 @@ export const transcribeVoiceWithOpenAI = async (
   } catch (error: any) {
     // Error handling
     addLog(`Error transcribing voice message: ${error.message}`);
-    return '<Error transcribing voice message>';
+    throw error;
   }
 };
 
@@ -213,7 +214,15 @@ export async function transcribeVoice(media: MessageMedia): Promise<string> {
     } else {
       return await transcribeVoiceWithOpenAI(media);
     }
-  } catch (e) {
+  } catch (e: any) {
+    if ((e.status && e.status === 401) || (e.statusCode && e.statusCode === 401)) {
+      setError(
+        'audioModeError',
+        `Your API key for ${
+          audioHandlingApis[getAudioMode()]
+        } is either incorrect or missing. Please update your key to allow your bot to transcribe and speak messages.`,
+      );
+    }
     throw e;
   }
 }

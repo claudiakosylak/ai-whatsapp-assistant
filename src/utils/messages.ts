@@ -162,7 +162,9 @@ export const prepareContextMessageList = async (
         isAudio,
       );
 
-      messageList.push(messageListItem);
+      if (messageListItem) {
+        messageList.push(messageListItem);
+      }
     } catch (e: any) {
       console.error(
         `Error reading message - msg.type:${msg.type}; msg.body:${msg.body}. Error:${e.message}`,
@@ -189,7 +191,7 @@ export const getContextMessageContent = async (
         }
       } catch (error) {
         console.error('Error transcribing voice:', error);
-        messageBody = 'Audio transcription failed.';
+        return;
       }
     } else if (getBotMode() === 'OPEN_WEBUI_CHAT' || getBotMode() === "OPENAI_CHAT") {
       messageBody = [

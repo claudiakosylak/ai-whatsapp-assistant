@@ -41,6 +41,9 @@ export const getHTML = () => `
         .delete-button:hover {
             background-color:rgb(160, 69, 69);
         }
+        .error-text {
+            color: red;
+        }
         .header {
             display: flex;
             justify-content: space-between;
@@ -302,6 +305,7 @@ export const getHTML = () => `
                                     }>OpenAI</option>
                                 </select>
                             </div>
+                            <p id="audioModeError" class="error-text" style="display:none;"></p>
                             <button type="submit">Save Settings</button>
                         </form>
                             <div style="margin-top: 20px;">
