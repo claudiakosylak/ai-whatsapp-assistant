@@ -1,6 +1,7 @@
 import {
   ChatCompletionAssistantMessageParam,
   ChatCompletionDeveloperMessageParam,
+  ChatCompletionSystemMessageParam,
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
 import { MessageMedia } from 'whatsapp-web.js';
@@ -56,9 +57,9 @@ export type WhatsappResponseAsText = {
 export type ProcessMessageParam =
   | ChatCompletionUserMessageParam
   | ChatCompletionAssistantMessageParam
-  | ChatCompletionDeveloperMessageParam;
+  | ChatCompletionSystemMessageParam;
 
-export type BotMode = 'OPENAI_ASSISTANT' | 'OPEN_WEBUI_CHAT' | 'DIFY_CHAT';
+export type BotMode = 'OPENAI_ASSISTANT' | 'OPEN_WEBUI_CHAT' | 'DIFY_CHAT' | 'OPENAI_CHAT';
 
 export type AudioMode = 'ELEVEN_LABS' | 'OPENAI';
 

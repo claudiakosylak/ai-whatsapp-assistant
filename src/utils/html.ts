@@ -252,6 +252,11 @@ export const getHTML = () => `
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <label for="chatSelector">Choose a chat API:</label>
                                 <select id="chatSelector" name="botMode">
+                                    <option value="OPENAI_CHAT" ${
+                                      getBotMode() === 'OPENAI_CHAT'
+                                        ? 'selected'
+                                        : ''
+                                    }>Chat Completions (OpenAI)</option>
                                     <option value="OPENAI_ASSISTANT" ${
                                       getBotMode() === 'OPENAI_ASSISTANT'
                                         ? 'selected'
@@ -261,7 +266,7 @@ export const getHTML = () => `
                                       getBotMode() === 'OPEN_WEBUI_CHAT'
                                         ? 'selected'
                                         : ''
-                                    }>Chat Completions (Open WebUI Custom)</option>
+                                    }>Chat Completions (Custom: Open WebUI)</option>
                                     <option value="DIFY_CHAT" ${
                                       getBotMode() === 'DIFY_CHAT'
                                         ? 'selected'

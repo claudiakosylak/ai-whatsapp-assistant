@@ -8,7 +8,13 @@ import {
   getCustomPrompt,
 } from './botSettings';
 import { addLog } from './controlPanel';
-import { BotMode, MockChat, OpenAIMessage, ProcessMessageParam, TestMessage } from '../types';
+import {
+  BotMode,
+  MockChat,
+  OpenAIMessage,
+  ProcessMessageParam,
+  TestMessage,
+} from '../types';
 import {
   getIsAudio,
   getIsImage,
@@ -36,19 +42,6 @@ export const getResponseText = async (
   let customPrompt = getCustomPrompt();
   try {
     switch (getBotMode()) {
-      case 'OPEN_WEBUI_CHAT':
-        if (customPrompt) {
-          messageList.push({
-            role: 'developer',
-            content: `Your name is ${getBotName()}.` + customPrompt,
-          });
-        }
-        addLog(`Message list: ${JSON.stringify(messageList.reverse())}`)
-        response = await processChatCompletionResponse(
-          message.from,
-          messageList.reverse(),
-        );
-        break;
       case 'DIFY_CHAT':
         const isImage = getIsImage(message);
         let fileUploadId;
@@ -79,15 +72,24 @@ export const getResponseText = async (
         );
         break;
       case 'OPENAI_ASSISTANT':
-        if (customPrompt) {
-          messageList.push({
-            role: 'user',
-            content: `Your name is ${getBotName()}.` + customPrompt,
-          });
-        }
+        messageList.push({
+          role: 'user',
+          content: `Your name is ${getBotName()}.` + customPrompt,
+        });
         response = await processAssistantResponse(
           message.from,
           (messageList as OpenAIMessage[]).reverse(),
+        );
+        break;
+      default:
+        messageList.push({
+          role: 'system',
+          content: `Your name is ${getBotName()}.` + customPrompt,
+        });
+        addLog(`Message list: ${JSON.stringify(messageList.reverse())}`);
+        response = await processChatCompletionResponse(
+          message.from,
+          messageList.reverse(),
         );
         break;
     }
@@ -97,12 +99,14 @@ export const getResponseText = async (
   }
 };
 
-export const processMessage = async (message: Message | TestMessage, chatData: Chat | MockChat) => {
+export const processMessage = async (
+  message: Message | TestMessage,
+  chatData: Chat | MockChat,
+) => {
   try {
-
     //check if message should be processed
-    const willProcessMessage = await shouldProcessMessage(chatData, message)
-    addLog(`Should I process message? ${willProcessMessage}`)
+    const willProcessMessage = await shouldProcessMessage(chatData, message);
+    addLog(`Should I process message? ${willProcessMessage}`);
     if (!willProcessMessage) return false;
     addLog(`Processing message from ${message.from}`);
 

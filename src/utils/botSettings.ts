@@ -7,7 +7,7 @@ let messageHistoryLimit: number = DEFAULT_CONTEXT_LENGTH ? parseInt(DEFAULT_CONT
 let resetCommandEnabled: boolean = (DEFAULT_ENABLE_RESET_COMMAND === "false") ? false : true;
 let maxMessageAge: number = DEFAULT_MAX_MESSAGE_AGE ? parseInt(DEFAULT_MAX_MESSAGE_AGE) : 24;
 
-export let mode: BotMode = DEFAULT_CHAT_API as BotMode || "OPEN_WEBUI_CHAT";
+export let mode: BotMode = DEFAULT_CHAT_API as BotMode || "OPENAI_CHAT";
 
 export let audioMode: AudioMode = DEFAULT_AUDIO_API as AudioMode || "ELEVEN_LABS";
 

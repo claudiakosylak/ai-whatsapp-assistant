@@ -193,7 +193,7 @@ export const getContextMessageContent = async (
         console.error('Error transcribing voice:', error);
         messageBody = 'Audio transcription failed.';
       }
-    } else if (getBotMode() === 'OPEN_WEBUI_CHAT') {
+    } else if (getBotMode() === 'OPEN_WEBUI_CHAT' || getBotMode() === "OPENAI_CHAT") {
       messageBody = [
         {
           type: 'text',
@@ -217,11 +217,11 @@ export const getContextMessageContent = async (
   }
 
   const role = !msg.fromMe || (media && !isAudio) ? 'user' : 'assistant';
-  if (getBotMode() === 'OPEN_WEBUI_CHAT') {
+  if (getBotMode() === 'OPEN_WEBUI_CHAT' || getBotMode() === "OPENAI_CHAT") {
     return {
       role: role,
       content: messageBody,
-      name: role,
+      // name: role,
     } as ProcessMessageParam;
   } else {
     return { role: role, content: messageBody as string } as OpenAIMessage;
