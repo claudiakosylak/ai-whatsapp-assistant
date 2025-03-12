@@ -360,7 +360,7 @@ export const getHTML = () => `
                         </div>
                     </div>
                     <form class="chat-input" id="chatForm" style="display:flex;flex-direction:column;gap:10px;">
-                        <div style="display:flex;align-items: center;gap: 5px;">
+                        <div style="display:flex;align-items: center;gap: 5px;" id="chatInputTop">
                             <select id="userName" name="userName" style="display:${
                               getTestChatData().isGroup ? 'block' : 'none'
                             }">
@@ -370,8 +370,12 @@ export const getHTML = () => `
                             <input type="text" id="messageInput" placeholder="Type your message...">
                             <audio id="inputAudio" controls style="display:none;flex:1;"></audio>
                             <p id="recordingStatus" style="display:none;flex:1;text-align:center;">Recording...</p>
-                            <button type="button" id="imageInputButton"><i class="fa-solid fa-image"></i></button>
-                            <button type="button" id="recordAudio"><i class="fa-solid fa-microphone"></i></button>
+                            <button type="button" id="addMediaButton"><i class="fa-solid fa-plus"></i></button>
+                            <div id="addMediaModal" style="display:none; position: absolute; bottom: 40px; background-color:#fff; padding: 10px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+                                <button type="button" id="imageInputButton"><i class="fa-solid fa-image"></i></button>
+                                <button type="button" id="videoInputButton"><i class="fa-solid fa-video"></i></button>
+                                <button type="button" id="recordAudio"><i class="fa-solid fa-microphone"></i></button>
+                            </div>
                             <button type="button" id="stopRecordAudio" style="display:none;"><i class="fa-solid fa-stop"></i></button>
                             <button type="button" id="deleteRecordedAudio" style="display:none;" class="delete-button"><i class="fa-solid fa-trash"></i></button>
                             <button type="submit">Send</button>

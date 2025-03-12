@@ -372,3 +372,26 @@ document.getElementById('deleteSelectedImage').addEventListener('click', () => {
   imageContainer.style.display = 'none';
   document.getElementById('deleteSelectedImage').style.display = 'none';
 });
+
+const modalContainer = document.getElementById('addMediaModal')
+
+// Function to close the modal when clicking outside
+function closeModalOnClickOutside(event) {
+  if (!modalContainer.contains(event.target) && event.target !== plusButton) {
+    modalContainer.style.display = 'none';
+    document.removeEventListener('click', closeModalOnClickOutside);
+  }
+}
+
+document.getElementById('addMediaButton').addEventListener('click', () => {
+   // Toggle the modal's visibility
+   if (modalContainer.style.display === 'none') {
+    modalContainer.style.display = 'block';
+
+    // Add an event listener to close the modal when clicking outside
+    document.addEventListener('click', closeModalOnClickOutside);
+  } else {
+    modalContainer.style.display = 'none';
+    document.removeEventListener('click', closeModalOnClickOutside);
+  }
+})
