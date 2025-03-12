@@ -19,7 +19,6 @@ import {
   WhatsappResponse,
 } from '../types';
 import { addLog } from './controlPanel';
-import { imageProcessingModes } from './whatsapp';
 import {
   deleteFromDifyCache,
   getAudioMessage,
@@ -27,6 +26,7 @@ import {
   setToAudioCache,
 } from '../cache';
 import { getChatImageInterpretation } from './images';
+import { imageProcessingModes } from '../constants';
 
 export function parseCommand(input: string): {
   command?: string;
