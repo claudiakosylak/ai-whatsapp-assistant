@@ -382,7 +382,15 @@ export const getHTML = () => `
                         </div>
                         ${
                           imageProcessingModes.includes(getBotMode())
-                            ? '<div style="display:flex;flex-direction:column;" id="imageInputContainer"><div style="display:flex;gap:20px;"><input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" style="outline:none;border:none;display:none;"><img src="" style="display:none;width:100px;height:100px;object-fit:cover;border-radius:10px;" id="imagePreview" /><button type="button" id="deleteSelectedImage" style="display:none;" class="delete-button"><i class="fa-solid fa-trash"></i></button></div></div>'
+                            ? '<div style="display:flex;flex-direction:column;" id="imageInputContainer">' +
+                            '<div style="display:flex;gap:20px;">' +
+                            '<input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" style="outline:none;border:none;display:none;">' +
+                            '<input type="file" id="videoInput" accept="video/mp4, video/mpeg, video/mov, video/avi, video/x-flv, video/mpg, video/webm, video/wmv, video/3gpp, .mov, .MOV" style="outline:none;border:none;display:none;">' +
+                            '<img src="" style="display:none;width:100px;height:100px;object-fit:cover;border-radius:10px;" id="imagePreview" />' +
+                            '<video controls style="display:none;width: 200px;" id="videoPreview">' +
+                            '</video>' +
+                            '<button type="button" id="deleteSelectedImage" style="display:none;" class="delete-button">' +
+                            '<i class="fa-solid fa-trash"></i></button></div></div>'
                             : ''
                         }
                     </form>

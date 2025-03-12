@@ -3,6 +3,7 @@ let lastWhatsappStatus = false;
 let replyingMessageId = '';
 let recordedAudioBase64 = '';
 let tempImageUrl = '';
+let tempVideoUrl = '';
 // Auto-refresh logs every 5 seconds
 
 const mediaModalContainer = document.getElementById('addMediaModal');
@@ -12,7 +13,7 @@ const recordAudioButton = document.getElementById('recordAudio');
 const deleteRecordedAudioButton = document.getElementById(
   'deleteRecordedAudio',
 );
-const stopRecordAudio = document.getElementById('stopRecordAudio')
+const stopRecordAudio = document.getElementById('stopRecordAudio');
 const inputAudio = document.getElementById('inputAudio');
 
 const imageInputContainer = document.getElementById('imageInputContainer');
@@ -21,9 +22,14 @@ const uploadImageButton = document.getElementById('imageInputButton');
 const imagePreview = document.getElementById('imagePreview');
 const deleteImagePreviewButton = document.getElementById('deleteSelectedImage');
 
+const uploadVideoButton = document.getElementById('videoInputButton');
+const videoInput = document.getElementById('videoInput')
+const videoPreview = document.getElementById('videoPreview')
+
 const hideImageInput = () => {
   imageInputContainer.style.display = 'none';
   imageInput.value = '';
+  videoInput.value = '';
 };
 
 const chatTextInput = document.getElementById('messageInput');
@@ -43,15 +49,21 @@ const clearAudioRecordingElements = () => {
   inputAudio.src = '';
   chatTextInput.style.display = 'block';
   imageInputContainer.style.display = 'block';
-  plusMediaButton.style.display = "block"
+  plusMediaButton.style.display = 'block';
 };
 
 const clearImagePreview = () => {
   imagePreview.src = '';
   imagePreview.style.display = 'none';
   deleteImagePreviewButton.style.display = 'none';
-  plusMediaButton.style.display = "block"
+  plusMediaButton.style.display = 'block';
 };
+
+const clearVideoPreview = () => {
+  videoPreview.style.display = "none";
+  videoPreview.src = ''
+  plusMediaButton.style.display = 'block';
+}
 
 const clearChatForm = () => {
   clearAudioRecordingElements();
@@ -141,7 +153,11 @@ setInterval(() => {
 
         // Scroll to the bottom of the chat container
         scrollToBottomOfChat();
-        if (data.length > 0 && typingIndicator && data[data.length - 1].role === 'assistant') {
+        if (
+          data.length > 0 &&
+          typingIndicator &&
+          data[data.length - 1].role === 'assistant'
+        ) {
           hideTypingIndicator();
         }
 
@@ -392,16 +408,41 @@ imageInput.addEventListener('change', (event) => {
     imagePreview.style.display = 'block';
     deleteImagePreviewButton.style.display = 'block';
   } else {
-    clearImagePreview()
+    clearImagePreview();
   }
 });
 
-document.getElementById('imageInputButton').addEventListener('click', () => {
-  document.getElementById('imageInput').click();
+videoInput.addEventListener('change', (event) => {
+  if (event.target.files[0]) {
+    plusMediaButton.style.display = 'none';
+    tempVideoUrl = URL.createObjectURL(event.target.files[0]);
+    videoPreview.style.display = "block";
+    videoPreview.src = tempVideoUrl;
+    // Force the video to load
+    videoPreview.load();
+
+    // Don't forget to revoke the URL when done
+    videoPreview.onload = function() {
+      URL.revokeObjectURL(tempVideoUrl);
+    };
+    deleteImagePreviewButton.style.display = 'block';
+  } else {
+    clearVideoPreview()
+  }
+})
+
+uploadImageButton.addEventListener('click', () => {
+  imageInput.click();
 });
 
-document.getElementById('deleteSelectedImage').addEventListener('click', () => {
+uploadVideoButton.addEventListener('click', () => {
+  videoInput.click();
+})
+
+deleteImagePreviewButton.addEventListener('click', () => {
   imageInput.value = '';
+  videoInput.value = '';
+  clearVideoPreview();
   clearImagePreview();
 });
 
