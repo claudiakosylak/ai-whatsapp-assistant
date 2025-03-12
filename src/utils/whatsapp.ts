@@ -27,13 +27,6 @@ import { processDifyResponse, uploadImageToDify } from './dify';
 import { convertToAudioResponse, transcribeVoice } from './audio';
 import { setToAudioCache } from '../cache';
 
-export const imageProcessingModes: BotMode[] = [
-  'OPEN_WEBUI_CHAT',
-  'DIFY_CHAT',
-  'OPENAI_ASSISTANT',
-  'OPENAI_CHAT'
-];
-
 export const getResponseText = async (
   message: Message | TestMessage,
   messageList: Array<ProcessMessageParam | OpenAIMessage>,

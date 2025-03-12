@@ -1,3 +1,4 @@
+import { imageProcessingModes } from '../constants';
 import {
   getAudioMode,
   getAudioResponseEnabled,
@@ -15,7 +16,6 @@ import {
   logs,
   whatsappConnected,
 } from './controlPanel';
-import { imageProcessingModes } from './whatsapp';
 
 export const getHTML = () => `
 <!DOCTYPE html>
