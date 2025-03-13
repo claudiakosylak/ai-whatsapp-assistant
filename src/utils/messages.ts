@@ -11,6 +11,8 @@ import {
 } from './botSettings';
 import { transcribeVoice } from './audio';
 import {
+  GeminiContextContent,
+  GeminiContextPart,
   MockChat,
   MockChatHistoryMessage,
   OpenAIMessage,
@@ -85,9 +87,10 @@ export const removeBotName = (message: Message | TestMessage) => {
 };
 
 export const getMessagesToProcess = async (chatData: Chat | MockChat) => {
-  const fetchedMessages: Array<Message | TestMessage> = await chatData.fetchMessages({
-    limit: getMessageHistoryLimit(),
-  });
+  const fetchedMessages: Array<Message | TestMessage> =
+    await chatData.fetchMessages({
+      limit: getMessageHistoryLimit(),
+    });
   // Check for "-reset" command in chat history to potentially restart context
   const resetIndex = isResetCommandEnabled()
     ? fetchedMessages.map((msg) => msg.body).lastIndexOf('-reset')
@@ -119,12 +122,14 @@ type ImageMessageContentItem = {
 
 export const prepareContextMessageList = async (
   chatData: Chat | MockChat,
-  messageList: Array<ProcessMessageParam | OpenAIMessage>,
+  messageList: Array<
+    ProcessMessageParam | OpenAIMessage | GeminiContextContent
+  >,
 ) => {
   let messagesToProcess;
   try {
     messagesToProcess = await getMessagesToProcess(chatData);
-    addLog(`Messages to process: ${JSON.stringify(messagesToProcess)}`)
+    addLog(`Messages to process: ${JSON.stringify(messagesToProcess)}`);
   } catch (error) {
     addLog(`Error retrieving messages to process: ${error}`);
     return;
@@ -173,6 +178,13 @@ export const prepareContextMessageList = async (
   }
 };
 
+export const getAssistantRoleString = () => {
+  if (getBotMode() === 'GEMINI') {
+    return 'model';
+  }
+  return 'assistant';
+};
+
 export const getContextMessageContent = async (
   msg: Message | TestMessage,
   media: MessageMedia | null,
@@ -193,7 +205,10 @@ export const getContextMessageContent = async (
         console.error('Error transcribing voice:', error);
         return;
       }
-    } else if (getBotMode() === 'OPEN_WEBUI_CHAT' || getBotMode() === "OPENAI_CHAT") {
+    } else if (
+      getBotMode() === 'OPEN_WEBUI_CHAT' ||
+      getBotMode() === 'OPENAI_CHAT'
+    ) {
       messageBody = [
         {
           type: 'text',
@@ -216,15 +231,24 @@ export const getContextMessageContent = async (
     }
   }
 
-  const role = !msg.fromMe || (media && !isAudio) ? 'user' : 'assistant';
-  if (getBotMode() === 'OPEN_WEBUI_CHAT' || getBotMode() === "OPENAI_CHAT") {
-    return {
-      role: role,
-      content: messageBody,
-      // name: role,
-    } as ProcessMessageParam;
-  } else {
-    return { role: role, content: messageBody as string } as OpenAIMessage;
+  const role =
+    !msg.fromMe || (media && !isAudio) ? 'user' : getAssistantRoleString();
+
+  switch (getBotMode()) {
+    case 'GEMINI':
+      const parts: GeminiContextPart[] = [{ text: messageBody as string }];
+      return {
+        role,
+        parts,
+      } as GeminiContextContent;
+    case 'OPENAI_ASSISTANT':
+      return { role: role, content: messageBody as string } as OpenAIMessage;
+    default:
+      return {
+        role: role,
+        content: messageBody,
+        // name: role,
+      } as ProcessMessageParam;
   }
 };
 
@@ -286,9 +310,7 @@ export const changeBotMode = (message: Message | TestMessage) => {
   };
 };
 
-export const updatePromptFromCommand = (
-  message: Message | TestMessage,
-) => {
+export const updatePromptFromCommand = (message: Message | TestMessage) => {
   const newPrompt = message.body.substring(8).trim();
   setCustomPrompt(newPrompt);
   addLog(`Updated custom prompt: ${newPrompt}`);
@@ -299,9 +321,7 @@ export const updatePromptFromCommand = (
   };
 };
 
-export const resetContextFromCommand = (
-  message: Message | TestMessage,
-) => {
+export const resetContextFromCommand = (message: Message | TestMessage) => {
   if (!isResetCommandEnabled()) {
     return {
       from: message.from,

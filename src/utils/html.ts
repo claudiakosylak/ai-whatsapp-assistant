@@ -288,6 +288,11 @@ export const getHTML = () => `
                                         ? 'selected'
                                         : ''
                                     }>Dify</option>
+                                    <option value="GEMINI" ${
+                                      getBotMode() === 'GEMINI'
+                                        ? 'selected'
+                                        : ''
+                                    }>Gemini</option>
                                 </select>
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">

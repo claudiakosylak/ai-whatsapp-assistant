@@ -23,8 +23,8 @@ const imagePreview = document.getElementById('imagePreview');
 const deleteImagePreviewButton = document.getElementById('deleteSelectedImage');
 
 const uploadVideoButton = document.getElementById('videoInputButton');
-const videoInput = document.getElementById('videoInput')
-const videoPreview = document.getElementById('videoPreview')
+const videoInput = document.getElementById('videoInput');
+const videoPreview = document.getElementById('videoPreview');
 
 const hideImageInput = () => {
   imageInputContainer.style.display = 'none';
@@ -44,32 +44,42 @@ const hideMediaModalContainer = () => {
 };
 
 const clearAudioRecordingElements = () => {
-  deleteRecordedAudioButton.style.display = 'none';
+  if (deleteRecordedAudioButton) {
+    deleteRecordedAudioButton.style.display = 'none';
+  }
   inputAudio.style.display = 'none';
   inputAudio.src = '';
   chatTextInput.style.display = 'block';
-  imageInputContainer.style.display = 'block';
+  if (imageInputContainer) {
+    imageInputContainer.style.display = 'block';
+  }
   plusMediaButton.style.display = 'block';
 };
 
 const clearImagePreview = () => {
-  imagePreview.src = '';
-  imagePreview.style.display = 'none';
-  deleteImagePreviewButton.style.display = 'none';
+  if (imagePreview) {
+    imagePreview.src = '';
+    imagePreview.style.display = 'none';
+  }
+  if (deleteImagePreviewButton) {
+    deleteImagePreviewButton.style.display = 'none';
+  }
   plusMediaButton.style.display = 'block';
 };
 
 const clearVideoPreview = () => {
-  videoPreview.style.display = "none";
-  videoPreview.src = ''
+  videoPreview.style.display = 'none';
+  videoPreview.src = '';
   plusMediaButton.style.display = 'block';
-}
+};
 
 const clearChatForm = () => {
   clearAudioRecordingElements();
   clearImagePreview();
   chatTextInput.value = '';
-  imageInput.value = '';
+  if (imageInput) {
+    imageInput.value = '';
+  }
 };
 
 const chatMessagesContainer = document.querySelector('#chatMessages');
@@ -400,51 +410,61 @@ document.getElementById('deleteRecordedAudio').addEventListener('click', () => {
   clearAudioRecordingElements();
 });
 
-imageInput.addEventListener('change', (event) => {
-  if (event.target.files[0]) {
-    plusMediaButton.style.display = 'none';
-    tempImageUrl = URL.createObjectURL(event.target.files[0]);
-    imagePreview.src = tempImageUrl;
-    imagePreview.style.display = 'block';
-    deleteImagePreviewButton.style.display = 'block';
-  } else {
+if (imageInput) {
+  imageInput.addEventListener('change', (event) => {
+    if (event.target.files[0]) {
+      plusMediaButton.style.display = 'none';
+      tempImageUrl = URL.createObjectURL(event.target.files[0]);
+      imagePreview.src = tempImageUrl;
+      imagePreview.style.display = 'block';
+      deleteImagePreviewButton.style.display = 'block';
+    } else {
+      clearImagePreview();
+    }
+  });
+}
+
+if (videoInput) {
+  videoInput.addEventListener('change', (event) => {
+    if (event.target.files[0]) {
+      plusMediaButton.style.display = 'none';
+      tempVideoUrl = URL.createObjectURL(event.target.files[0]);
+      videoPreview.style.display = 'block';
+      videoPreview.src = tempVideoUrl;
+      // Force the video to load
+      videoPreview.load();
+
+      // Don't forget to revoke the URL when done
+      videoPreview.onload = function () {
+        URL.revokeObjectURL(tempVideoUrl);
+      };
+      deleteImagePreviewButton.style.display = 'block';
+    } else {
+      clearVideoPreview();
+    }
+  });
+}
+
+if (uploadImageButton) {
+  uploadImageButton.addEventListener('click', () => {
+    imageInput.click();
+  });
+}
+
+if (uploadVideoButton) {
+  uploadVideoButton.addEventListener('click', () => {
+    videoInput.click();
+  });
+}
+
+if (deleteImagePreviewButton) {
+  deleteImagePreviewButton.addEventListener('click', () => {
+    imageInput.value = '';
+    videoInput.value = '';
+    clearVideoPreview();
     clearImagePreview();
-  }
-});
-
-videoInput.addEventListener('change', (event) => {
-  if (event.target.files[0]) {
-    plusMediaButton.style.display = 'none';
-    tempVideoUrl = URL.createObjectURL(event.target.files[0]);
-    videoPreview.style.display = "block";
-    videoPreview.src = tempVideoUrl;
-    // Force the video to load
-    videoPreview.load();
-
-    // Don't forget to revoke the URL when done
-    videoPreview.onload = function() {
-      URL.revokeObjectURL(tempVideoUrl);
-    };
-    deleteImagePreviewButton.style.display = 'block';
-  } else {
-    clearVideoPreview()
-  }
-})
-
-uploadImageButton.addEventListener('click', () => {
-  imageInput.click();
-});
-
-uploadVideoButton.addEventListener('click', () => {
-  videoInput.click();
-})
-
-deleteImagePreviewButton.addEventListener('click', () => {
-  imageInput.value = '';
-  videoInput.value = '';
-  clearVideoPreview();
-  clearImagePreview();
-});
+  });
+}
 
 // Function to close the modal when clicking outside
 function closeModalOnClickOutside(event) {

@@ -9,7 +9,8 @@ export const botModes: BotMode[] = [
   'OPEN_WEBUI_CHAT',
   'DIFY_CHAT',
   'OPENAI_ASSISTANT',
-  'OPENAI_CHAT'
+  'OPENAI_CHAT',
+  'GEMINI'
 ]
 
 export const audioModes: AudioMode[] = ['ELEVEN_LABS', 'OPENAI'];

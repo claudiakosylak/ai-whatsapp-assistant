@@ -25,7 +25,7 @@ export type TestMessage = {
   id: {
     fromMe: boolean;
     _serialized: string;
-  },
+  };
   from: string;
   body: string;
   hasQuotedMsg: boolean;
@@ -34,7 +34,7 @@ export type TestMessage = {
   fromMe: boolean;
   downloadMedia: () => Promise<MessageMedia>;
   getQuotedMessage: () => Promise<TestMessage>;
-}
+};
 
 export type MockChatHistoryMessage = {
   from: string;
@@ -59,7 +59,12 @@ export type ProcessMessageParam =
   | ChatCompletionAssistantMessageParam
   | ChatCompletionSystemMessageParam;
 
-export type BotMode = 'OPENAI_ASSISTANT' | 'OPEN_WEBUI_CHAT' | 'DIFY_CHAT' | 'OPENAI_CHAT';
+export type BotMode =
+  | 'OPENAI_ASSISTANT'
+  | 'OPEN_WEBUI_CHAT'
+  | 'DIFY_CHAT'
+  | 'OPENAI_CHAT'
+  | 'GEMINI';
 
 export type AudioMode = 'ELEVEN_LABS' | 'OPENAI';
 
@@ -67,10 +72,25 @@ export type MockChat = {
   id: {
     user: 'status' | 'user';
     _serialized: string;
-  },
+  };
   isGroup: boolean;
-  fetchMessages: ({limit}: {limit: number}) => Promise<TestMessage[]>;
+  fetchMessages: ({ limit }: { limit: number }) => Promise<TestMessage[]>;
   sendStateTyping: () => void;
   clearState: () => void;
   sendStateRecording: () => void;
+};
+
+export type GeminiFileData = {
+  fileUri: string;
+  mimeType: string;
+}
+
+export type GeminiContextPart = {
+  fileData?: GeminiFileData;
+  text?: string;
+}
+
+export type GeminiContextContent = {
+  role: 'user' | 'model';
+  parts: GeminiContextPart[];
 }

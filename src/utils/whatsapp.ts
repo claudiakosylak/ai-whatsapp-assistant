@@ -10,6 +10,7 @@ import {
 import { addLog } from './controlPanel';
 import {
   BotMode,
+  GeminiContextContent,
   MockChat,
   OpenAIMessage,
   ProcessMessageParam,
@@ -26,10 +27,14 @@ import {
 import { processDifyResponse, uploadImageToDify } from './dify';
 import { convertToAudioResponse, transcribeVoice } from './audio';
 import { setToAudioCache } from '../cache';
+import { processGeminiResponse } from './gemini';
+import { ChatCompletionMessageParam } from 'openai/resources';
 
 export const getResponseText = async (
   message: Message | TestMessage,
-  messageList: Array<ProcessMessageParam | OpenAIMessage>,
+  messageList: Array<
+    ProcessMessageParam | OpenAIMessage | GeminiContextContent
+  >,
 ) => {
   let response;
   // Add custom prompt if exists
@@ -59,7 +64,7 @@ export const getResponseText = async (
           try {
             messageBody = await transcribeVoice(media);
           } catch (e) {
-            throw(e)
+            throw e;
           }
           setToAudioCache(message.id._serialized, messageBody);
         }
@@ -79,6 +84,12 @@ export const getResponseText = async (
           (messageList as OpenAIMessage[]).reverse(),
         );
         break;
+      case 'GEMINI':
+        response = await processGeminiResponse(
+          message.from,
+          (messageList as GeminiContextContent[]).reverse(),
+        );
+        break;
       default:
         messageList.push({
           role: 'system',
@@ -86,7 +97,7 @@ export const getResponseText = async (
         });
         response = await processChatCompletionResponse(
           message.from,
-          messageList.reverse(),
+          (messageList as ChatCompletionMessageParam[]).reverse(),
         );
         break;
     }

@@ -28,6 +28,8 @@ export let OPENAI_ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 export let DIFY_BASE_URL = process.env.DIFY_BASE_URL;
 export let DIFY_API_KEY = process.env.DIFY_API_KEY;
 export let NODE_CACHE_TIME = parseInt(process.env.NODE_CACHE_TIME || '259200');
+export let GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+export let GEMINI_MODEL = process.env.GEMINI_MODEL as string;
 
 const updateConfig = () => {
   ELEVEN_LABS_API_KEY = process.env.ELEVEN_LABS_API_KEY;
@@ -40,6 +42,8 @@ const updateConfig = () => {
   DIFY_BASE_URL = process.env.DIFY_BASE_URL;
   DIFY_API_KEY = process.env.DIFY_API_KEY;
   NODE_CACHE_TIME = parseInt(process.env.NODE_CACHE_TIME || '259200');
+  GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  GEMINI_MODEL = process.env.GEMINI_MODEL as string;
 };
 
 // Watch for changes in the .env file
