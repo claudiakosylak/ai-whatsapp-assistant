@@ -9,6 +9,10 @@ export const processGeminiResponse = async (
   messageList: GeminiContextContent[],
 ): Promise<WhatsappResponseAsText> => {
   addLog('Processing Gemini response.');
+  // context history has to start with a user message for gemini
+  while (messageList[0].role === 'model') {
+    messageList.shift()
+  }
   const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   let systemInstruction;
   if (getCustomPrompt()) {

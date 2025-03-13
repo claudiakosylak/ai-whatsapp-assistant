@@ -131,7 +131,6 @@ export const prepareContextMessageList = async (
   let messagesToProcess;
   try {
     messagesToProcess = await getMessagesToProcess(chatData);
-    addLog(`Messages to process: ${JSON.stringify(messagesToProcess)}`);
   } catch (error) {
     addLog(`Error retrieving messages to process: ${error}`);
     return;

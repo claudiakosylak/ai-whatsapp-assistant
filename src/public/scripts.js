@@ -215,8 +215,8 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
   if (imageInput && imageInput.files.length) {
     file = imageInput.files[0];
   }
-  clearChatForm();
   createPlaceholderUserMessage();
+  clearChatForm();
   tempImageUrl = '';
 
   let replyId = '';
