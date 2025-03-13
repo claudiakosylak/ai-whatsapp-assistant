@@ -50,7 +50,7 @@ export const processGeminiResponse = async (
       rawText: 'Error',
     };
   }
-//   addLog(`This is the media before sending back: ${JSON.stringify(media)}`)
+  addLog(`This is the media before sending back: ${media === undefined}`)
   return {
     from,
     messageContent: response.text || 'There was a problem with your request.',

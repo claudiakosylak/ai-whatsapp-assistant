@@ -160,18 +160,18 @@ export const handleIncomingMessage = async (
   const response = await processMessage(message, chatData);
   if (response) {
     if (chatData.isGroup) {
-      if (response.messageContent) {
-        message.reply(response.messageContent, undefined, {
-          sendAudioAsVoice: enableAudioResponse,
-        });
-      }
+      // if (response.messageContent) {
+      //   message.reply(response.messageContent, undefined, {
+      //     sendAudioAsVoice: enableAudioResponse,
+      //   });
+      // }
       if (response.messageMedia) {
         message.reply(response.messageMedia, undefined);
       }
       return;
     }
     if (response.messageContent) {
-      client.sendMessage(response.from, response.messageContent, {
+      await client.sendMessage(response.from, response.messageContent, {
         sendAudioAsVoice: enableAudioResponse,
       });
     }
