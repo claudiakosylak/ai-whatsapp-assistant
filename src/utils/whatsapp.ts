@@ -166,7 +166,7 @@ export const handleIncomingMessage = async (
         });
       }
       if (response.messageMedia) {
-        await message.reply(response.messageMedia, undefined);
+        await message.reply(response.messageMedia);
       }
       return;
     }

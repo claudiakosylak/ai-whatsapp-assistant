@@ -37,10 +37,10 @@ export const processGeminiResponse = async (
     response = await chat.sendMessage({ message: lastMessage.parts });
     // addLog(`Here is the gemini response: ${JSON.stringify(response)}`)
     if (response && response.candidates) {
-        response.candidates[0].content?.parts?.forEach((part) => {
-            if (part.inlineData && part.inlineData.data && part.inlineData.mimeType) {
-                addLog(`Response part: ${JSON.stringify(part.inlineData.mimeType)}`)
-                media = {data: part.inlineData.data, mimetype: part.inlineData.mimeType}
+        response.candidates[0].content?.parts?.forEach(async (part) => {
+            if (part.fileData && part.fileData.fileUri) {
+                addLog(`Response part: ${JSON.stringify(part.fileData.fileUri)}`)
+                media = await MessageMedia.fromUrl(part.fileData.fileUri)
             }
         })
     }
