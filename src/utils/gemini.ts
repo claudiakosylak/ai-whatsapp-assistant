@@ -33,11 +33,11 @@ export const processGeminiResponse = async (
       history: messageList,
     });
     response = await chat.sendMessage({ message: lastMessage.parts });
-    addLog(`Here is the gemini response: ${JSON.stringify(response)}`)
+    // addLog(`Here is the gemini response: ${JSON.stringify(response)}`)
     if (response && response.candidates) {
         response.candidates[0].content?.parts?.forEach((part) => {
             if (part.inlineData && part.inlineData.data && part.inlineData.mimeType) {
-                addLog(`Response part: ${JSON.stringify(part.inlineData)}`)
+                addLog(`Response part: ${JSON.stringify(part.inlineData.mimeType)}`)
                 media = {data: part.inlineData.data, mimetype: part.inlineData.mimeType}
             }
         })
@@ -50,7 +50,7 @@ export const processGeminiResponse = async (
       rawText: 'Error',
     };
   }
-  addLog(`This is the media before sending back: ${JSON.stringify(media)}`)
+//   addLog(`This is the media before sending back: ${JSON.stringify(media)}`)
   return {
     from,
     messageContent: response.text || 'There was a problem with your request.',
