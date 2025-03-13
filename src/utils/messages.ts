@@ -145,18 +145,23 @@ export const prepareContextMessageList = async (
       // Check if the message includes media or if it is of another type
       const isImage = getIsImage(msg);
       const isAudio = getIsAudio(msg);
-      const isOther = !isImage && !isAudio && msg.type != 'chat';
+      const isVideo = getIsVideo(msg);
+      const isOther = !isImage && !isAudio && !isVideo && msg.type != 'chat';
 
-      if (isOther || (isImage && !imageProcessingModes.includes(getBotMode())))
+      if (
+        isOther ||
+        (isImage && !imageProcessingModes.includes(getBotMode())) ||
+        (isVideo && getBotMode() !== 'GEMINI')
+      )
         continue;
 
       let media = null;
       try {
         media =
-          (isImage && imageCount < 2 && getBotMode() !== 'DIFY_CHAT') || isAudio
+          (isImage && imageCount < 2 && getBotMode() !== 'DIFY_CHAT') || isAudio || isVideo
             ? await msg.downloadMedia()
             : null;
-        if (media && isImage) imageCount++;
+        if (media && (isImage || isVideo)) imageCount++;
       } catch (error) {
         console.error(`Error downloading media: ${error}`);
         continue;
@@ -222,14 +227,14 @@ export const getContextMessageContent = async (
         break;
       case 'GEMINI':
         let imageUri;
-        const cachedImage = getImageMessage(msg.id._serialized)
+        const cachedImage = getImageMessage(msg.id._serialized);
         if (cachedImage) {
-          imageUri = cachedImage
+          imageUri = cachedImage;
         } else {
           try {
-            imageUri = await uploadImageToGemini(media.data, media.mimetype)
+            imageUri = await uploadImageToGemini(media.data, media.mimetype);
             if (imageUri) {
-              setToImageMessageCache(msg.id._serialized, imageUri)
+              setToImageMessageCache(msg.id._serialized, imageUri);
               geminiMediaPart = {
                 fileData: {
                   fileUri: imageUri,
@@ -238,8 +243,8 @@ export const getContextMessageContent = async (
               };
             }
           } catch (error) {
-            addLog(`Image upload error: ${error}`)
-            return
+            addLog(`Image upload error: ${error}`);
+            return;
           }
         }
         break;
@@ -411,4 +416,9 @@ export const getIsAudio = (message: Message | TestMessage): boolean => {
   const isAudio =
     message.type === MessageTypes.VOICE || message.type === MessageTypes.AUDIO;
   return isAudio;
+};
+
+export const getIsVideo = (message: Message | TestMessage): boolean => {
+  const isVideo = message.type === MessageTypes.VIDEO;
+  return isVideo;
 };
