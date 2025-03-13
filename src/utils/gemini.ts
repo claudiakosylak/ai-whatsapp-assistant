@@ -46,7 +46,9 @@ export const processGeminiResponse = async (
                       );
                 media = {
                     data: base64Data,
-                    mimetype: part.inlineData.mimeType
+                    mimetype: part.inlineData.mimeType,
+                    filename: null,
+                    filesize: null,
                 }
             }
         })
