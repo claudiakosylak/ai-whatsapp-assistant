@@ -28,14 +28,6 @@ export const processGeminiResponse = async (
   while (messageList[0].role === 'model') {
     messageList.shift();
   }
-  if (GEMINI_MODEL === 'gemini-2.0-flash-exp') {
-    messageList.unshift({
-      role: 'user',
-      parts: [
-        { text: `Your name is ${getBotName()}. ${getCustomPrompt() || ''}` },
-      ],
-    });
-  }
   const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   let systemInstruction;
   if (getCustomPrompt() && GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
@@ -53,7 +45,7 @@ export const processGeminiResponse = async (
       model: GEMINI_MODEL,
       config: {
         systemInstruction: systemInstruction,
-        responseModalities: ['Text', 'Image'],
+        responseModalities: GEMINI_MODEL !== 'gemini-2.0-flash-exp' ? ['Text', 'Image'] : undefined,
       },
       history: messageList,
     });
