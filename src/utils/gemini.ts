@@ -5,6 +5,8 @@ import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getCustomPrompt } from './botSettings';
 import { blobToBase64 } from './images';
 import { MessageMedia } from 'whatsapp-web.js';
+import fs from 'fs';
+import { TEST_PATH } from '../constants';
 
 export const processGeminiResponse = async (
   from: string,
@@ -50,7 +52,10 @@ export const processGeminiResponse = async (
       rawText: 'Error',
     };
   }
-  addLog(`This is the media before sending back: ${media === undefined}`)
+  addLog(`This is the media before sending back: ${media?.mimetype}`)
+  if (media) {
+    fs.writeFileSync(TEST_PATH, media.data)
+  }
   return {
     from,
     messageContent: response.text || 'There was a problem with your request.',
