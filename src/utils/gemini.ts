@@ -3,10 +3,21 @@ import { GeminiContextContent, WhatsappResponseAsText } from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getCustomPrompt } from './botSettings';
-import { blobToBase64 } from './images';
 import { MessageMedia } from 'whatsapp-web.js';
-import fs from 'fs';
-import { TEST_PATH } from '../constants';
+
+const removeBotName = (message: GeminiContextContent) => {
+  const botName = getBotName();
+  // Check if bot name is mentioned in the message
+  if (
+    message.parts[0].text &&
+    message.parts[0].text.toLowerCase().includes(botName.toLowerCase())
+  ) {
+    // Remove bot name from message for processing
+    message.parts[0].text = message.parts[0].text
+      .replace(new RegExp(botName, 'gi'), '')
+      .trim();
+  }
+};
 
 export const processGeminiResponse = async (
   from: string,
@@ -17,15 +28,24 @@ export const processGeminiResponse = async (
   while (messageList[0].role === 'model') {
     messageList.shift();
   }
+  if (GEMINI_MODEL === 'gemini-2.0-flash-exp') {
+    messageList.unshift({
+      role: 'user',
+      parts: [
+        { text: `Your name is ${getBotName()}. ${getCustomPrompt() || ''}` },
+      ],
+    });
+  }
   const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   let systemInstruction;
-  if (getCustomPrompt()) {
+  if (getCustomPrompt() && GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
     systemInstruction = {
       text: `Your name is ${getBotName()}. ${getCustomPrompt()}`,
     };
   }
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
+  removeBotName(lastMessage);
   let response;
   let media: MessageMedia | undefined;
   try {
@@ -38,7 +58,6 @@ export const processGeminiResponse = async (
       history: messageList,
     });
     response = await chat.sendMessage({ message: lastMessage.parts });
-    // addLog(`Here is the gemini response: ${JSON.stringify(response)}`)
     if (response && response.candidates) {
       response.candidates[0].content?.parts?.forEach(async (part) => {
         if (
@@ -46,7 +65,6 @@ export const processGeminiResponse = async (
           part.inlineData.data &&
           part.inlineData.mimeType
         ) {
-          // addLog(`Response part: ${JSON.stringify(part.fileData.fileUri)}`)
           const base64Data = part.inlineData.data.replace(
             /^data:image\/\w+;base64,/,
             '',
@@ -68,7 +86,6 @@ export const processGeminiResponse = async (
       rawText: 'Error',
     };
   }
-  addLog(`This is the media before sending back: ${media}`);
   return {
     from,
     messageContent: response.text

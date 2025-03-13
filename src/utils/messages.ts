@@ -226,7 +226,6 @@ export const getContextMessageContent = async (
         }
         break;
       case 'GEMINI':
-        addLog(`Media data from start: ${media.data}`)
         let imageUri;
         const cachedImage = getImageMessage(msg.id._serialized);
         if (cachedImage) {
