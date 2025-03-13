@@ -159,6 +159,7 @@ export const handleIncomingMessage = async (
   const chatData = await message.getChat();
   const response = await processMessage(message, chatData);
   if (response) {
+    addLog(`Is messagemedia at end? ${response.messageMedia !== undefined}`)
     if (chatData.isGroup) {
       if (response.messageContent && !response.messageMedia) {
         await message.reply(response.messageContent, undefined, {

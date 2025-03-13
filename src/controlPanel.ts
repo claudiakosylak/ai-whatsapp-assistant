@@ -258,12 +258,19 @@ app.post('/send-message', async (req, res) => {
       getQuotedMessage,
     };
 
+    let newImageUrl;
+    if (response.messageMedia) {
+      newImageUrl = saveImageFile(response.messageMedia.data, 'new-image');
+    }
+
     // Add assistant response to history
     chatHistory.push({
       id: assistantMessageID,
       role: 'assistant',
       name: 'assistant',
-      content: addMessageContentString(response.messageContent),
+      content: response.messageMedia
+        ? addMessageContentString(response.messageContent, newImageUrl)
+        : addMessageContentString(response.messageContent),
       rawText: response.rawText,
       message: assistantTestMessage,
       media:

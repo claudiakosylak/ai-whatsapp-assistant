@@ -38,9 +38,16 @@ export const processGeminiResponse = async (
     // addLog(`Here is the gemini response: ${JSON.stringify(response)}`)
     if (response && response.candidates) {
         response.candidates[0].content?.parts?.forEach(async (part) => {
-            if (part.fileData && part.fileData.fileUri) {
-                addLog(`Response part: ${JSON.stringify(part.fileData.fileUri)}`)
-                media = await MessageMedia.fromUrl(part.fileData.fileUri)
+            if (part.inlineData && part.inlineData.data && part.inlineData.mimeType) {
+                // addLog(`Response part: ${JSON.stringify(part.fileData.fileUri)}`)
+                 const base64Data = part.inlineData.data.replace(
+                        /^data:image\/\w+;base64,/,
+                        '',
+                      );
+                media = {
+                    data: base64Data,
+                    mimetype: part.inlineData.mimeType
+                }
             }
         })
     }
@@ -52,13 +59,10 @@ export const processGeminiResponse = async (
       rawText: 'Error',
     };
   }
-  addLog(`This is the media before sending back: ${media?.mimetype}`)
-  if (media) {
-    fs.writeFileSync(TEST_PATH, media.data)
-  }
+  addLog(`This is the media before sending back: ${media}`)
   return {
     from,
-    messageContent: response.text || 'There was a problem with your request.',
+    messageContent: response.text ? response.text : media ? '' : 'There was a problem with your request.',
     messageMedia: media,
     rawText: response.text || 'Error.',
   };
