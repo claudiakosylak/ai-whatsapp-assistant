@@ -109,3 +109,19 @@ export const getChatImageInterpretation = async (
     return `${message.body}; + attached image could not be processed.`;
   }
 };
+
+export function blobToBase64(blob: Partial<Blob>) {
+  return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob as Blob);
+      reader.onloadend = () => {
+          const dataUrl = reader.result as string; // Example: "data:image/png;base64,iVBORw0KGgo..."
+          if (!dataUrl) return reject("No data url.")
+          const [metadata, base64] = dataUrl.split(",");
+          const mimeMatch = metadata.match(/:(.*?);/);
+            const mimeType = mimeMatch?.[1] ?? "application/octet-stream";
+          resolve({ base64, mimeType });
+      };
+      reader.onerror = error => reject(error);
+  });
+}

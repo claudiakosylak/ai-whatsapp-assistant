@@ -3,6 +3,8 @@ import { GeminiContextContent, WhatsappResponseAsText } from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getCustomPrompt } from './botSettings';
+import { blobToBase64 } from './images';
+import { MessageMedia } from 'whatsapp-web.js';
 
 export const processGeminiResponse = async (
   from: string,
@@ -23,6 +25,7 @@ export const processGeminiResponse = async (
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
   let response;
+  let media: MessageMedia | undefined;
   try {
     const chat = client.chats.create({
       model: GEMINI_MODEL,
@@ -30,6 +33,13 @@ export const processGeminiResponse = async (
       history: messageList,
     });
     response = await chat.sendMessage({ message: lastMessage.parts });
+    if (response && response.candidates) {
+        response.candidates[0].content?.parts?.forEach((part) => {
+            if (part.inlineData && part.inlineData.data && part.inlineData.mimeType) {
+                media = {data: part.inlineData.data, mimetype: part.inlineData.mimeType}
+            }
+        })
+    }
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
     return {
@@ -41,6 +51,7 @@ export const processGeminiResponse = async (
   return {
     from,
     messageContent: response.text || 'There was a problem with your request.',
+    messageMedia: media,
     rawText: response.text || 'Error.',
   };
 };

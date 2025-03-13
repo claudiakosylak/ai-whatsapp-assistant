@@ -45,12 +45,14 @@ export type MockChatHistoryMessage = {
 export type WhatsappResponse = {
   from: string;
   messageContent: MessageMedia | string;
+  messageMedia?: MessageMedia;
   rawText: string;
 };
 
 export type WhatsappResponseAsText = {
   from: string;
   messageContent: string;
+  messageMedia?: MessageMedia;
   rawText: string;
 };
 
