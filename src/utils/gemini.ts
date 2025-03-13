@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { FileState, GoogleGenAI } from '@google/genai';
 import { GeminiContextContent, WhatsappResponseAsText } from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
@@ -50,8 +50,13 @@ export const uploadImageToGemini = async (base64String: string, mimeType: string
     try {
         const imageBuffer = Buffer.from(base64String, 'base64');
         const fileBlob = new Blob([imageBuffer], { type: mimeType });
-        const response = await client.files.upload({file: fileBlob})
-        addLog(`Image successfully uploaded to gemini.`)
+        let response = await client.files.upload({file: fileBlob})
+        const fileName = response.name;
+        addLog(`Image upload to gemini started.`)
+        while (response.state !== FileState.ACTIVE) {
+            response = await client.files.get({name: fileName as string})
+        }
+        addLog(`Image upload to gemini complete.`)
         return response.uri;
     } catch (error) {
         addLog(`Error uploading image to Gemini`)
