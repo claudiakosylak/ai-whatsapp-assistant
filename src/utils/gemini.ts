@@ -45,7 +45,7 @@ export const processGeminiResponse = async (
       model: GEMINI_MODEL,
       config: {
         systemInstruction: systemInstruction,
-        responseModalities: GEMINI_MODEL !== 'gemini-2.0-flash-exp' ? ['Text', 'Image'] : undefined,
+        responseModalities: GEMINI_MODEL === 'gemini-2.0-flash-exp' ? ['Text', 'Image'] : undefined,
       },
       history: messageList,
     });
