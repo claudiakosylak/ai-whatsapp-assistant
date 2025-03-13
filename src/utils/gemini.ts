@@ -40,3 +40,17 @@ export const processGeminiResponse = async (
     rawText: response.text || 'Error.',
   };
 };
+
+export const uploadImageToGemini = async (base64String: string, mimeType: string) => {
+    const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+    try {
+        const imageBuffer = Buffer.from(base64String, 'base64');
+        const fileBlob = new Blob([imageBuffer], { type: mimeType });
+        const response = await client.files.upload({file: fileBlob})
+        addLog(`Image successfully uploaded to gemini.`)
+        return response.uri;
+    } catch (error) {
+        addLog(`Error uploading image to Gemini`)
+        throw(error)
+    }
+}

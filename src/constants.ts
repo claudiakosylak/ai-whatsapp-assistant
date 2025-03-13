@@ -10,8 +10,8 @@ export const botModes: BotMode[] = [
   'DIFY_CHAT',
   'OPENAI_ASSISTANT',
   'OPENAI_CHAT',
-  'GEMINI'
-]
+  'GEMINI',
+];
 
 export const audioModes: AudioMode[] = ['ELEVEN_LABS', 'OPENAI'];
 
@@ -24,5 +24,6 @@ export const imageProcessingModes: BotMode[] = [
   'OPEN_WEBUI_CHAT',
   'DIFY_CHAT',
   'OPENAI_ASSISTANT',
-  'OPENAI_CHAT'
+  'OPENAI_CHAT',
+  'GEMINI',
 ];

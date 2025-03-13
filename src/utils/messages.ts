@@ -26,9 +26,11 @@ import {
   getAudioMessage,
   getImageMessage,
   setToAudioCache,
+  setToImageMessageCache,
 } from '../cache';
 import { getChatImageInterpretation } from './images';
 import { imageProcessingModes } from '../constants';
+import { uploadImageToGemini } from './gemini';
 
 export function parseCommand(input: string): {
   command?: string;
@@ -191,43 +193,71 @@ export const getContextMessageContent = async (
   isAudio: boolean,
 ) => {
   let messageBody: string | ImageMessageContentItem[] = msg.body;
-  if (media) {
-    if (isAudio) {
-      try {
-        const cachedMessage = getAudioMessage(msg.id._serialized);
-        if (cachedMessage) {
-          messageBody = cachedMessage;
-        } else {
-          messageBody = await transcribeVoice(media);
-          setToAudioCache(msg.id._serialized, messageBody);
-        }
-      } catch (error) {
-        console.error('Error transcribing voice:', error);
-        return;
-      }
-    } else if (
-      getBotMode() === 'OPEN_WEBUI_CHAT' ||
-      getBotMode() === 'OPENAI_CHAT'
-    ) {
-      messageBody = [
-        {
-          type: 'text',
-          text: msg.body,
-        },
-        {
-          type: 'image_url',
-          image_url: {
-            url: `data:${media.mimetype};base64,${media.data}`,
-          },
-        },
-      ];
-    } else {
-      const cachedMessage = getImageMessage(msg.id._serialized);
+
+  if (media && isAudio) {
+    try {
+      const cachedMessage = getAudioMessage(msg.id._serialized);
       if (cachedMessage) {
         messageBody = cachedMessage;
       } else {
-        messageBody = await getChatImageInterpretation(msg, media);
+        messageBody = await transcribeVoice(media);
+        setToAudioCache(msg.id._serialized, messageBody);
       }
+    } catch (error) {
+      console.error('Error transcribing voice:', error);
+      return;
+    }
+  }
+
+  let geminiMediaPart: GeminiContextPart | undefined;
+
+  if (media && !isAudio) {
+    switch (getBotMode()) {
+      case 'OPENAI_ASSISTANT':
+        const cachedMessage = getImageMessage(msg.id._serialized);
+        if (cachedMessage) {
+          messageBody = cachedMessage;
+        } else {
+          messageBody = await getChatImageInterpretation(msg, media);
+        }
+        break;
+      case 'GEMINI':
+        let imageUri;
+        const cachedImage = getImageMessage(msg.id._serialized)
+        if (cachedImage) {
+          imageUri = cachedImage
+        } else {
+          try {
+            imageUri = await uploadImageToGemini(media.data, media.mimetype)
+            if (imageUri) {
+              setToImageMessageCache(msg.id._serialized, imageUri)
+              geminiMediaPart = {
+                fileData: {
+                  fileUri: imageUri,
+                  mimeType: media.mimetype,
+                },
+              };
+            }
+          } catch (error) {
+            addLog(`Image upload error: ${error}`)
+            return
+          }
+        }
+        break;
+      default:
+        messageBody = [
+          {
+            type: 'text',
+            text: msg.body,
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: `data:${media.mimetype};base64,${media.data}`,
+            },
+          },
+        ];
+        break;
     }
   }
 
@@ -237,6 +267,9 @@ export const getContextMessageContent = async (
   switch (getBotMode()) {
     case 'GEMINI':
       const parts: GeminiContextPart[] = [{ text: messageBody as string }];
+      if (geminiMediaPart) {
+        parts.push(geminiMediaPart);
+      }
       return {
         role,
         parts,
