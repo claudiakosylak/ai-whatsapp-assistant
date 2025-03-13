@@ -31,15 +31,6 @@ client.on('qr', qr => {
     handleIncomingMessage(client, message)
   });
 
-  // used for testing so that you can message yourself on whatsapp with flag -test-bot
-  client.on('message_create', async (message: Message) => {
-    if (!isMessageReceivedAfterInit(initTime, message)) return
-    if (!message.body || !message.body.includes("-test-bot")) return;
-    // if (!getIsAudio(message)) return;
-    if (!message.id.fromMe) return;
-    handleIncomingMessage(client, message)
-  })
-
   try {
     startControlPanel();
     addLog('Starting WhatsApp client');
