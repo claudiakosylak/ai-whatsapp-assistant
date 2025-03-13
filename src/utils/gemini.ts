@@ -29,7 +29,7 @@ export const processGeminiResponse = async (
   try {
     const chat = client.chats.create({
       model: GEMINI_MODEL,
-      config: { systemInstruction: systemInstruction },
+      config: { systemInstruction: systemInstruction, responseModalities: ["Text", "Image"] },
       history: messageList,
     });
     response = await chat.sendMessage({ message: lastMessage.parts });
