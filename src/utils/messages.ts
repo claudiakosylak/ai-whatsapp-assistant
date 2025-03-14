@@ -146,19 +146,23 @@ export const prepareContextMessageList = async (
       const isImage = getIsImage(msg);
       const isAudio = getIsAudio(msg);
       const isVideo = getIsVideo(msg);
-      const isOther = !isImage && !isAudio && !isVideo && msg.type != 'chat';
+      const isDocument = getIsDocument(msg);
+      const isOther =
+        !isImage && !isAudio && !isVideo && !isDocument && msg.type != 'chat';
 
       if (
         isOther ||
         (isImage && !imageProcessingModes.includes(getBotMode())) ||
-        (isVideo && getBotMode() !== 'GEMINI')
+        ((isVideo || isDocument) && getBotMode() !== 'GEMINI')
       )
         continue;
 
       let media = null;
       try {
         media =
-          (isImage && imageCount < 2 && getBotMode() !== 'DIFY_CHAT') || isAudio || isVideo
+          (isImage && imageCount < 2 && getBotMode() !== 'DIFY_CHAT') ||
+          isAudio ||
+          isVideo || isDocument
             ? await msg.downloadMedia()
             : null;
         if (media && (isImage || isVideo)) imageCount++;
@@ -421,4 +425,9 @@ export const getIsAudio = (message: Message | TestMessage): boolean => {
 export const getIsVideo = (message: Message | TestMessage): boolean => {
   const isVideo = message.type === MessageTypes.VIDEO;
   return isVideo;
+};
+
+export const getIsDocument = (message: Message | TestMessage): boolean => {
+  const isDocument = message.type === MessageTypes.DOCUMENT;
+  return isDocument;
 };
