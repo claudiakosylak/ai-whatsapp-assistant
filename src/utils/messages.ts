@@ -153,7 +153,8 @@ export const prepareContextMessageList = async (
       if (
         isOther ||
         (isImage && !imageProcessingModes.includes(getBotMode())) ||
-        ((isVideo || isDocument) && getBotMode() !== 'GEMINI')
+        (isVideo && getBotMode() !== 'GEMINI') ||
+        (isDocument && !['GEMINI', 'DIFY_CHAT'].includes(getBotMode()))
       )
         continue;
 
@@ -162,7 +163,8 @@ export const prepareContextMessageList = async (
         media =
           (isImage && imageCount < 2 && getBotMode() !== 'DIFY_CHAT') ||
           isAudio ||
-          isVideo || isDocument
+          isVideo ||
+          isDocument
             ? await msg.downloadMedia()
             : null;
         if (media && (isImage || isVideo)) imageCount++;

@@ -461,7 +461,9 @@ export const uploadImageToDify = async (
   base64: string,
   mimeType: string,
 ) => {
-  const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
+  // const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
+  const base64Data = base64.replace(/^data:[^;]+;base64,/, '');
+
   const imageBuffer = Buffer.from(base64Data, 'base64');
 
   // Convert Buffer to Blob (Required for strict TypeScript environments)
