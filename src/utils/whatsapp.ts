@@ -18,6 +18,7 @@ import {
 } from '../types';
 import {
   getIsAudio,
+  getIsDocument,
   getIsImage,
   handleCommands,
   prepareContextMessageList,
@@ -43,8 +44,9 @@ export const getResponseText = async (
     switch (getBotMode()) {
       case 'DIFY_CHAT':
         const isImage = getIsImage(message);
+        const isDocument = getIsDocument(message);
         let fileUploadId;
-        if (isImage) {
+        if (isImage || isDocument) {
           const media = await message.downloadMedia();
           const response = await uploadImageToDify(
             message.from,
