@@ -1,9 +1,37 @@
-import { FileState, GoogleGenAI } from '@google/genai';
+import { FileState, GoogleGenAI, Type } from '@google/genai';
 import { GeminiContextContent, WhatsappResponseAsText } from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getCustomPrompt } from './botSettings';
 import { MessageMedia } from 'whatsapp-web.js';
+
+const generateImage = async (prompt: string) => {
+  const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+  const response = await client.models.generateContent({
+    model: 'gemini-2.0-flash-exp',
+    config: {
+      responseModalities: ['Image'],
+    },
+    contents: prompt,
+  });
+  if (response && response.candidates) {
+    response.candidates[0].content?.parts?.forEach(async (part) => {
+      if (part.inlineData && part.inlineData.data && part.inlineData.mimeType) {
+        const base64Data = part.inlineData.data.replace(
+          /^data:image\/\w+;base64,/,
+          '',
+        );
+        return new MessageMedia(
+          part.inlineData.mimeType,
+          base64Data,
+          null,
+          null,
+        );
+      }
+    });
+  }
+  return undefined;
+};
 
 const removeBotName = (message: GeminiContextContent) => {
   const botName = getBotName();
@@ -29,47 +57,81 @@ export const processGeminiResponse = async (
     messageList.shift();
   }
   const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-  let systemInstruction;
-  if (getCustomPrompt() && GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
-    systemInstruction = {
-      text: `Your name is ${getBotName()}. ${getCustomPrompt()}`,
-    };
-  }
+  let systemInstruction = {
+    text: `Your name is ${getBotName()}. ${getCustomPrompt()}`,
+  };
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
   removeBotName(lastMessage);
   let response;
   let media: MessageMedia | undefined;
+
+  const generateImageFunctionDeclaration = {
+    name: 'generateAndAttachImage',
+    description: 'Generate an image when user prompts creation of an image and attach it to the response message.',
+    parameters: {
+      type: 'OBJECT' as Type,
+      properties: {
+        prompt: {
+          type: 'STRING' as Type,
+          description:
+            "The text of the user's prompt describing the image to be generated.",
+        },
+      },
+      required: ['prompt'],
+    },
+  };
+  const getGeneratedImage = async (prompt: string) => {
+    media = await generateImage(prompt);
+  };
+
+  const functions: {[key: string]: any} = {
+    generateAndAttachImage: ({ prompt }: { prompt: string }) => {
+      return getGeneratedImage(prompt);
+    },
+  };
+
   try {
     const chat = client.chats.create({
       model: GEMINI_MODEL,
       config: {
         systemInstruction: systemInstruction,
-        responseModalities: GEMINI_MODEL === 'gemini-2.0-flash-exp' ? ['Text', 'Image'] : undefined,
+        tools: [
+          {
+            functionDeclarations: [generateImageFunctionDeclaration],
+          },
+        ],
       },
       history: messageList,
     });
     response = await chat.sendMessage({ message: lastMessage.parts });
-    if (response && response.candidates) {
-      response.candidates[0].content?.parts?.forEach(async (part) => {
-        if (
-          part.inlineData &&
-          part.inlineData.data &&
-          part.inlineData.mimeType
-        ) {
-          const base64Data = part.inlineData.data.replace(
-            /^data:image\/\w+;base64,/,
-            '',
-          );
-          media = new MessageMedia(
-            part.inlineData.mimeType,
-            base64Data,
-            null,
-            null,
-          );
-        }
-      });
+    let call
+    if (response.functionCalls) {
+      call = response.functionCalls[0];
+      if (call && call.name) {
+        const apiResponse = await functions[call.name](call.args)
+      }
     }
+    // if (response && response.candidates) {
+    //   response.candidates[0].content?.parts?.forEach(async (part) => {
+    //     if (
+    //       part.inlineData &&
+    //       part.inlineData.data &&
+    //       part.inlineData.mimeType
+    //     ) {
+    //       const base64Data = part.inlineData.data.replace(
+    //         /^data:image\/\w+;base64,/,
+    //         '',
+    //       );
+    //       media = new MessageMedia(
+    //         part.inlineData.mimeType,
+    //         base64Data,
+    //         null,
+    //         null,
+    //       );
+    //     }
+    //   });
+    // }
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
     return {
