@@ -1,9 +1,13 @@
-import { FileState, GoogleGenAI } from '@google/genai';
-import { GeminiContextContent, WhatsappResponseAsText } from '../types';
+import { FileState, GoogleGenAI, Type } from '@google/genai';
+import {
+  EmojiReaction,
+  GeminiContextContent,
+  WhatsappResponseAsText,
+} from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getCustomPrompt } from './botSettings';
-import { MessageMedia } from 'whatsapp-web.js';
+import { Message, MessageMedia } from 'whatsapp-web.js';
 
 const removeBotName = (message: GeminiContextContent) => {
   const botName = getBotName();
@@ -19,10 +23,12 @@ const removeBotName = (message: GeminiContextContent) => {
   }
 };
 
+
 export const processGeminiResponse = async (
   from: string,
   messageList: GeminiContextContent[],
-): Promise<WhatsappResponseAsText> => {
+  message?: Message,
+): Promise<WhatsappResponseAsText | undefined> => {
   addLog('Processing Gemini response.');
   // context history has to start with a user message for gemini
   while (messageList[0].role === 'model') {
@@ -36,20 +42,64 @@ export const processGeminiResponse = async (
     };
   }
   const lastMessage: GeminiContextContent =
-    messageList.pop() as GeminiContextContent;
+  messageList.pop() as GeminiContextContent;
   removeBotName(lastMessage);
   let response;
   let media: MessageMedia | undefined;
+  const doEmojiReaction = (emoji: string)=> {
+    if (message) {
+      message.react(emoji)
+      return;
+    }
+  };
+
+  const emojiReactionFunctionDeclaration = {
+    name: 'emojiReaction',
+    description: 'When a user requests a response via emoji, responds with an appropriate emoji.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        emoji: {
+          type: Type.STRING,
+          description: "An emoji string."
+        }
+      },
+      required: ["emoji"]
+    }
+  }
+
+  const functions: {[key: string]: any} = {
+    emojiReaction: ({emoji}: {emoji: string}) => {
+      return doEmojiReaction(emoji)
+    }
+  }
+
   try {
     const chat = client.chats.create({
       model: GEMINI_MODEL,
       config: {
         systemInstruction: systemInstruction,
-        responseModalities: GEMINI_MODEL === 'gemini-2.0-flash-exp' ? ['Text', 'Image'] : undefined,
+        responseModalities:
+          GEMINI_MODEL === 'gemini-2.0-flash-exp'
+            ? ['Text', 'Image']
+            : undefined,
+        tools: [
+          {
+            functionDeclarations: [emojiReactionFunctionDeclaration]
+          }
+        ]
       },
       history: messageList,
     });
     response = await chat.sendMessage({ message: lastMessage.parts });
+
+    if (response.functionCalls) {
+      const call = response.functionCalls[0]
+      if (call && call.name) {
+        return await functions[call.name](call.args)
+      }
+    }
+
     if (response && response.candidates) {
       response.candidates[0].content?.parts?.forEach(async (part) => {
         if (

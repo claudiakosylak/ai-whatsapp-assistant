@@ -88,6 +88,7 @@ export const getResponseText = async (
         response = await processGeminiResponse(
           message.from,
           (messageList as GeminiContextContent[]).reverse(),
+          message as Message,
         );
         break;
       default:
@@ -136,7 +137,7 @@ export const processMessage = async (
       chatData.sendStateTyping();
       const response = await getResponseText(message, messageList);
       chatData.clearState();
-      if (enableAudioResponse) {
+      if (enableAudioResponse && response) {
         chatData.sendStateRecording();
         const audioResponse = await convertToAudioResponse(response);
         chatData.clearState();

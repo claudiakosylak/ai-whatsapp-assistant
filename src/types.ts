@@ -96,3 +96,7 @@ export type GeminiContextContent = {
   role: 'user' | 'model';
   parts: GeminiContextPart[];
 }
+
+export type EmojiReaction = {
+  emoji: string;
+}
