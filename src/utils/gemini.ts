@@ -58,7 +58,7 @@ export const processGeminiResponse = async (
   }
   const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   let systemInstruction = {
-    text: `Your name is ${getBotName()}. ${getCustomPrompt()}`,
+    text: `Your name is ${getBotName()}. ${getCustomPrompt()}. If you get a request to generate an image, do not throw an error, call the function for generating images and you will be all good. `,
   };
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
