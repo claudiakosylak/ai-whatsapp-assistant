@@ -32,13 +32,14 @@ export const processChatCompletionResponse = async (
     const chatModel = getBotMode() === "OPENAI_CHAT" ? OPENAI_MODEL : OPEN_WEBUI_MODEL
 
     const doEmojiReaction = (emoji: string)=> {
-      if (message) {
+      if (message && emoji) {
         try {
           addLog(`emoji: ${emoji}`)
           message.react(emoji)
           return;
         } catch (e) {
-          throw(`Error with emoji reaction: ${e}`)
+          addLog(`Error with emoji reaction: ${e}`)
+          return;
         }
       }
     };
@@ -77,6 +78,7 @@ export const processChatCompletionResponse = async (
       if (completion.choices[0].message.tool_calls) {
         const call = completion.choices[0].message.tool_calls[0]
         if (call && call.function.name) {
+          addLog(`Function call: ${JSON.stringify(call)}`)
           return await functions[call.function.name](call.function.arguments)
         }
       }
