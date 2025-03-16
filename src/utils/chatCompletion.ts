@@ -10,10 +10,12 @@ import {
 } from '../config';
 import {  WhatsappResponseAsText } from '../types';
 import { getBotMode } from './botSettings';
+import { Message } from 'whatsapp-web.js';
 
 export const processChatCompletionResponse = async (
   from: string,
   messages: ChatCompletionMessageParam[],
+  message: Message,
 ): Promise<WhatsappResponseAsText> => {
   try {
     addLog('Processing chat completion response.');
@@ -29,12 +31,50 @@ export const processChatCompletionResponse = async (
 
     const chatModel = getBotMode() === "OPENAI_CHAT" ? OPENAI_MODEL : OPEN_WEBUI_MODEL
 
+    const doEmojiReaction = (emoji: string)=> {
+      if (message) {
+        message.react(emoji)
+        return;
+      }
+    };
+
+      const emojiReactionFunctionDeclaration = {
+        type: 'function' as 'function',
+        function: {
+          name: 'emojiReaction',
+          description: 'When a user requests a response via emoji, responds with an appropriate emoji.',
+          parameters: {
+            type: 'object',
+            properties: {
+              emoji: {
+                type: 'string',
+                description: "An emoji string."
+              }
+            },
+            required: ["emoji"]
+          }
+        }
+      }
+
+      const functions: {[key: string]: any} = {
+        emojiReaction: ({emoji}: {emoji: string}) => {
+          return doEmojiReaction(emoji)
+        }
+      }
+
     let completion;
     try {
       completion = await client.chat.completions.create({
         messages,
         model: chatModel,
+        tools: [emojiReactionFunctionDeclaration]
       });
+      if (completion.choices[0].message.tool_calls) {
+        const call = completion.choices[0].message.tool_calls[0]
+        if (call && call.function.name) {
+          return await functions[call.function.name](call.function.arguments)
+        }
+      }
     } catch (error) {
       addLog(`Error fetching chat completion response: ${error}`);
       return {

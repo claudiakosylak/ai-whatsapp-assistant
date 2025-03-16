@@ -9,7 +9,6 @@ import {
 } from './botSettings';
 import { addLog } from './controlPanel';
 import {
-  BotMode,
   GeminiContextContent,
   MockChat,
   OpenAIMessage,
@@ -99,6 +98,7 @@ export const getResponseText = async (
         response = await processChatCompletionResponse(
           message.from,
           (messageList as ChatCompletionMessageParam[]).reverse(),
+          message as Message,
         );
         break;
     }
