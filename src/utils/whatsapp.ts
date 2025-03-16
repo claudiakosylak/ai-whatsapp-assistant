@@ -74,13 +74,10 @@ export const getResponseText = async (
         );
         break;
       case 'OPENAI_ASSISTANT':
-        messageList.push({
-          role: 'user',
-          content: `Your name is ${getBotName()}.` + customPrompt,
-        });
         response = await processAssistantResponse(
           message.from,
           (messageList as OpenAIMessage[]).reverse(),
+          message as Message,
         );
         break;
       case 'GEMINI':

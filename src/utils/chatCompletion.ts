@@ -34,7 +34,6 @@ export const processChatCompletionResponse = async (
     const doEmojiReaction = (emoji: string)=> {
       if (message && emoji) {
         try {
-          addLog(`emoji: ${emoji}`)
           message.react(emoji)
           return;
         } catch (e) {
@@ -78,7 +77,6 @@ export const processChatCompletionResponse = async (
       if (completion.choices[0].message.tool_calls) {
         const call = completion.choices[0].message.tool_calls[0]
         if (call && call.function.name) {
-          addLog(`Function call: ${JSON.stringify(call)}`)
           return await functions[call.function.name](JSON.parse(call.function.arguments))
         }
       }

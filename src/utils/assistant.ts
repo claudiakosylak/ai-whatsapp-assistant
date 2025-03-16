@@ -2,10 +2,14 @@ import OpenAI from 'openai';
 import { addLog } from './controlPanel';
 import { OpenAIMessage, WhatsappResponseAsText } from '../types';
 import { OPENAI_API_KEY, OPENAI_ASSISTANT_ID } from '../config';
+import { getBotName, getCustomPrompt } from './botSettings';
+import { Message } from 'whatsapp-web.js';
+import { FunctionToolCall, RunStepsPage, ToolCall } from 'openai/resources/beta/threads/runs/steps';
 
 export const processAssistantResponse = async (
   from: string,
   messages: OpenAIMessage[],
+  message: Message,
 ): Promise<WhatsappResponseAsText> => {
   try {
     const client = new OpenAI({
@@ -38,10 +42,49 @@ export const processAssistantResponse = async (
       };
     }
 
+    const doEmojiReaction = (emoji: string)=> {
+      if (message && emoji) {
+        try {
+          message.react(emoji)
+          return;
+        } catch (e) {
+          addLog(`Error with emoji reaction: ${e}`)
+          return;
+        }
+      }
+    };
+
+    const emojiReactionFunctionDeclaration = {
+      type: 'function' as 'function',
+      function: {
+        name: 'emojiReaction',
+        description: 'When a user requests a response via emoji, responds with an appropriate emoji.',
+        parameters: {
+          type: 'object',
+          properties: {
+            emoji: {
+              type: 'string',
+              description: "An emoji string."
+            }
+          },
+          required: ["emoji"]
+        }
+      }
+    }
+
+    const functions: {[key: string]: any} = {
+      emojiReaction: ({emoji}: {emoji: string}) => {
+        return doEmojiReaction(emoji)
+      }
+    }
+
     let run;
     try {
       run = await client.beta.threads.runs.create(thread.id, {
         assistant_id: ASSISTANT_ID,
+        additional_instructions: `Your name is ${getBotName()}. ${getCustomPrompt()}`,
+        tools: [emojiReactionFunctionDeclaration]
+
       });
       addLog(`Created new run: ${run.id}`);
     } catch (error) {
@@ -62,6 +105,20 @@ export const processAssistantResponse = async (
       addLog('Run completed!');
     } catch (error) {
       addLog(`Error retrieving run status: ${error}`);
+    }
+
+    if (run.tools.length > 0) {
+      try {
+        let runSteps: RunStepsPage = await client.beta.threads.runs.steps.list(thread.id, run.id)
+        runSteps.data.forEach(async (step) => {
+          if (step.step_details.type === 'tool_calls') {
+            let toolCall: ToolCall = step.step_details.tool_calls[0] as FunctionToolCall
+            return await functions[toolCall.function.name](JSON.parse(toolCall.function.arguments))
+          }
+        })
+      } catch (e) {
+        addLog(`Error retrieving function call: ${e}`)
+      }
     }
 
     let messageResponse;
