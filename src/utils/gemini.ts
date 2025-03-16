@@ -48,8 +48,12 @@ export const processGeminiResponse = async (
   let media: MessageMedia | undefined;
   const doEmojiReaction = (emoji: string)=> {
     if (message) {
-      message.react(emoji)
-      return;
+      try {
+        message.react(emoji)
+        return;
+      } catch (e) {
+        throw(`Error with emoji reaction: ${e}`)
+      }
     }
   };
 

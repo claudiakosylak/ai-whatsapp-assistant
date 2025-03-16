@@ -33,9 +33,13 @@ export const processChatCompletionResponse = async (
 
     const doEmojiReaction = (emoji: string)=> {
       if (message) {
-        addLog(`emoji: ${emoji}`)
-        message.react(emoji)
-        return;
+        try {
+          addLog(`emoji: ${emoji}`)
+          message.react(emoji)
+          return;
+        } catch (e) {
+          throw(`Error with emoji reaction: ${e}`)
+        }
       }
     };
 
