@@ -101,12 +101,17 @@ export const processAssistantResponse = async (
     }
 
     try {
-      while (run.status !== 'completed') {
+      while (run.status !== 'completed' && run.status !== 'requires_action') {
         run = await client.beta.threads.runs.retrieve(thread.id, run.id);
         addLog(`Run status: ${run.status}`);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-      addLog('Run completed!');
+      if (run.status === 'completed') {
+        addLog('Run completed!');
+      }
+      if (run.status === 'requires_action') {
+        addLog(`Run requires use of tool.`)
+      }
     } catch (error) {
       addLog(`Error retrieving run status: ${error}`);
     }
@@ -124,6 +129,7 @@ export const processAssistantResponse = async (
           }
         });
         if (toolCall) {
+          addLog(`Calling tool function: ${toolCall.function.name}`)
           return await functions[toolCall.function.name](
             JSON.parse(toolCall.function.arguments),
           );
