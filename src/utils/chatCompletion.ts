@@ -33,6 +33,7 @@ export const processChatCompletionResponse = async (
 
     const doEmojiReaction = (emoji: string)=> {
       if (message) {
+        addLog(`emoji: ${emoji}`)
         message.react(emoji)
         return;
       }
