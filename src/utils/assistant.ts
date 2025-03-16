@@ -4,7 +4,11 @@ import { OpenAIMessage, WhatsappResponseAsText } from '../types';
 import { OPENAI_API_KEY, OPENAI_ASSISTANT_ID } from '../config';
 import { getBotName, getCustomPrompt } from './botSettings';
 import { Message } from 'whatsapp-web.js';
-import { FunctionToolCall, RunStepsPage, ToolCall } from 'openai/resources/beta/threads/runs/steps';
+import {
+  FunctionToolCall,
+  RunStepsPage,
+  ToolCall,
+} from 'openai/resources/beta/threads/runs/steps';
 
 export const processAssistantResponse = async (
   from: string,
@@ -42,13 +46,13 @@ export const processAssistantResponse = async (
       };
     }
 
-    const doEmojiReaction = (emoji: string)=> {
+    const doEmojiReaction = (emoji: string) => {
       if (message && emoji) {
         try {
-          message.react(emoji)
+          message.react(emoji);
           return;
         } catch (e) {
-          addLog(`Error with emoji reaction: ${e}`)
+          addLog(`Error with emoji reaction: ${e}`);
           return;
         }
       }
@@ -58,33 +62,33 @@ export const processAssistantResponse = async (
       type: 'function' as 'function',
       function: {
         name: 'emojiReaction',
-        description: 'When a user requests a response via emoji, responds with an appropriate emoji.',
+        description:
+          'When a user requests a response via emoji, responds with an appropriate emoji.',
         parameters: {
           type: 'object',
           properties: {
             emoji: {
               type: 'string',
-              description: "An emoji string."
-            }
+              description: 'An emoji string.',
+            },
           },
-          required: ["emoji"]
-        }
-      }
-    }
+          required: ['emoji'],
+        },
+      },
+    };
 
-    const functions: {[key: string]: any} = {
-      emojiReaction: ({emoji}: {emoji: string}) => {
-        return doEmojiReaction(emoji)
-      }
-    }
+    const functions: { [key: string]: any } = {
+      emojiReaction: ({ emoji }: { emoji: string }) => {
+        return doEmojiReaction(emoji);
+      },
+    };
 
     let run;
     try {
       run = await client.beta.threads.runs.create(thread.id, {
         assistant_id: ASSISTANT_ID,
         additional_instructions: `Your name is ${getBotName()}. ${getCustomPrompt()}`,
-        tools: [emojiReactionFunctionDeclaration]
-
+        tools: [emojiReactionFunctionDeclaration],
       });
       addLog(`Created new run: ${run.id}`);
     } catch (error) {
@@ -108,16 +112,24 @@ export const processAssistantResponse = async (
     }
 
     if (run.tools.length > 0) {
+      let toolCall: FunctionToolCall | undefined;
       try {
-        let runSteps: RunStepsPage = await client.beta.threads.runs.steps.list(thread.id, run.id)
+        let runSteps: RunStepsPage = await client.beta.threads.runs.steps.list(
+          thread.id,
+          run.id,
+        );
         runSteps.data.forEach(async (step) => {
           if (step.step_details.type === 'tool_calls') {
-            let toolCall: ToolCall = step.step_details.tool_calls[0] as FunctionToolCall
-            return await functions[toolCall.function.name](JSON.parse(toolCall.function.arguments))
+            toolCall = step.step_details.tool_calls[0] as FunctionToolCall;
           }
-        })
+        });
+        if (toolCall) {
+          return await functions[toolCall.function.name](
+            JSON.parse(toolCall.function.arguments),
+          );
+        }
       } catch (e) {
-        addLog(`Error retrieving function call: ${e}`)
+        addLog(`Error retrieving function call: ${e}`);
       }
     }
 
