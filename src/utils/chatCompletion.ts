@@ -79,7 +79,7 @@ export const processChatCompletionResponse = async (
         const call = completion.choices[0].message.tool_calls[0]
         if (call && call.function.name) {
           addLog(`Function call: ${JSON.stringify(call)}`)
-          return await functions[call.function.name](call.function.arguments)
+          return await functions[call.function.name](JSON.parse(call.function.arguments))
         }
       }
     } catch (error) {
