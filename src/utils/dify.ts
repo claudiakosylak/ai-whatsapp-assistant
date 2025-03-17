@@ -7,9 +7,9 @@ import { DIFY_API_KEY, DIFY_BASE_URL } from '../config';
 import { WhatsappResponseAsText } from '../types';
 import {
   getBotName,
-  getCustomPrompt,
   getMaxMessageAge,
   getMessageHistoryLimit,
+  getPrompt,
 } from './botSettings';
 import { addLog } from './controlPanel';
 
@@ -51,7 +51,7 @@ export const processDifyResponse = async (
     const requestBody: any = {
       // one MUST enter the variable in your agent dashboard on dify inside the prompt there, {{customPrompt}}
       inputs: {
-        customPrompt: getCustomPrompt(),
+        customPrompt: getPrompt(),
         contextLimit: getMessageHistoryLimit(),
         botName: getBotName(),
         maxMessageAge: getMaxMessageAge(),

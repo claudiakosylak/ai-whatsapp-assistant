@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { addLog } from './controlPanel';
 import { OpenAIMessage, WhatsappResponseAsText } from '../types';
 import { OPENAI_API_KEY, OPENAI_ASSISTANT_ID } from '../config';
-import { getBotName, getCustomPrompt } from './botSettings';
+import { getPrompt } from './botSettings';
 import { Message } from 'whatsapp-web.js';
 import {
   FunctionToolCall,
@@ -87,7 +87,7 @@ export const processAssistantResponse = async (
     try {
       run = await client.beta.threads.runs.create(thread.id, {
         assistant_id: ASSISTANT_ID,
-        additional_instructions: `Your name is ${getBotName()}. ${getCustomPrompt()}`,
+        additional_instructions: getPrompt(),
         tools: [emojiReactionFunctionDeclaration],
       });
       addLog(`Created new run: ${run.id}`);

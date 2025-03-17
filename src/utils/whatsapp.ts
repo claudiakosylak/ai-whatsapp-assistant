@@ -4,8 +4,7 @@ import { processChatCompletionResponse } from './chatCompletion';
 import {
   enableAudioResponse,
   getBotMode,
-  getBotName,
-  getCustomPrompt,
+  getPrompt,
 } from './botSettings';
 import { addLog } from './controlPanel';
 import {
@@ -36,8 +35,6 @@ export const getResponseText = async (
   >,
 ) => {
   let response;
-  // Add custom prompt if exists
-  let customPrompt = getCustomPrompt();
   try {
     switch (getBotMode()) {
       case 'DIFY_CHAT':
@@ -90,7 +87,7 @@ export const getResponseText = async (
       default:
         messageList.push({
           role: 'system',
-          content: `Your name is ${getBotName()}.` + customPrompt,
+          content: getPrompt(),
         });
         response = await processChatCompletionResponse(
           message.from,

@@ -1,12 +1,8 @@
 import { FileState, GoogleGenAI, Type } from '@google/genai';
-import {
-  EmojiReaction,
-  GeminiContextContent,
-  WhatsappResponseAsText,
-} from '../types';
+import { GeminiContextContent, WhatsappResponseAsText } from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
-import { getBotName, getCustomPrompt } from './botSettings';
+import { getBotName, getPrompt } from './botSettings';
 import { Message, MessageMedia } from 'whatsapp-web.js';
 
 const removeBotName = (message: GeminiContextContent) => {
@@ -23,7 +19,6 @@ const removeBotName = (message: GeminiContextContent) => {
   }
 };
 
-
 export const processGeminiResponse = async (
   from: string,
   messageList: GeminiContextContent[],
@@ -36,23 +31,23 @@ export const processGeminiResponse = async (
   }
   const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   let systemInstruction;
-  if (getCustomPrompt() && GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
+  if (GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
     systemInstruction = {
-      text: `Your name is ${getBotName()}. ${getCustomPrompt()}`,
+      text: getPrompt(),
     };
   }
   const lastMessage: GeminiContextContent =
-  messageList.pop() as GeminiContextContent;
+    messageList.pop() as GeminiContextContent;
   removeBotName(lastMessage);
   let response;
   let media: MessageMedia | undefined;
-  const doEmojiReaction = (emoji: string)=> {
+  const doEmojiReaction = (emoji: string) => {
     if (message && emoji) {
       try {
-        message.react(emoji)
+        message.react(emoji);
         return;
       } catch (e) {
-        addLog(`Error with emoji reaction: ${e}`)
+        addLog(`Error with emoji reaction: ${e}`);
         return;
       }
     }
@@ -60,24 +55,25 @@ export const processGeminiResponse = async (
 
   const emojiReactionFunctionDeclaration = {
     name: 'emojiReaction',
-    description: 'When a user requests a response via emoji, responds with an appropriate emoji.',
+    description:
+      'When a user requests a response via emoji, responds with an appropriate emoji.',
     parameters: {
       type: Type.OBJECT,
       properties: {
         emoji: {
           type: Type.STRING,
-          description: "An emoji string."
-        }
+          description: 'An emoji string.',
+        },
       },
-      required: ["emoji"]
-    }
-  }
+      required: ['emoji'],
+    },
+  };
 
-  const functions: {[key: string]: any} = {
-    emojiReaction: ({emoji}: {emoji: string}) => {
-      return doEmojiReaction(emoji)
-    }
-  }
+  const functions: { [key: string]: any } = {
+    emojiReaction: ({ emoji }: { emoji: string }) => {
+      return doEmojiReaction(emoji);
+    },
+  };
 
   try {
     const chat = client.chats.create({
@@ -90,18 +86,18 @@ export const processGeminiResponse = async (
             : undefined,
         tools: [
           {
-            functionDeclarations: [emojiReactionFunctionDeclaration]
-          }
-        ]
+            functionDeclarations: [emojiReactionFunctionDeclaration],
+          },
+        ],
       },
       history: messageList,
     });
     response = await chat.sendMessage({ message: lastMessage.parts });
 
     if (response.functionCalls) {
-      const call = response.functionCalls[0]
+      const call = response.functionCalls[0];
       if (call && call.name) {
-        return await functions[call.name](call.args)
+        return await functions[call.name](call.args);
       }
     }
 
