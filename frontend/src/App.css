@@ -7,7 +7,6 @@ body {
   max-width: 1280px;
   margin: 0 auto;
   padding: 1rem 2rem;
-  text-align: center;
 }
 
 .button {
@@ -93,6 +92,10 @@ body {
 .fa-reply:hover,
 .fa-x:hover {
   cursor: pointer;
+}
+
+h3 {
+  margin: 0px 0px 20px 0px;
 }
 
 .header {
@@ -203,6 +206,33 @@ textarea:focus {
 }
 
 .theme-switch input {
+  display: none;
+}
+
+.settingsItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settingsItem label {
+  text-align: left;
+}
+
+.settingsItemCheckbox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.settingsSwitch {
+  height: 26px;
+  width: 50px;
+  position: relative;
+}
+
+.settingsSwitch input {
   display: none;
 }
 

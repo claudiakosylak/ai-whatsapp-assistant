@@ -3,7 +3,6 @@ import path from 'path';
 import { config } from 'dotenv';
 import { Request, Response } from 'express';
 import {
-  audioMode,
   getAudioMode,
   getAudioResponseEnabled,
   getBotMode,
@@ -12,7 +11,16 @@ import {
   getMaxMessageAge,
   getMessageHistoryLimit,
   isResetCommandEnabled,
+  setAudioMode,
+  setAudioResponseEnabled,
+  setBotMode,
+  setBotName,
+  setCustomPrompt,
+  setMaxMessageAge,
+  setMessageHistoryLimit,
+  setResetCommandEnabled,
 } from './utils/botSettings';
+import { addLog } from './utils/controlPanel';
 
 // Create Express application
 const app = express();
@@ -34,6 +42,12 @@ apiRouter.get('/prompt', (req: Request, res: Response) => {
   res.json({ prompt });
 });
 
+apiRouter.put('/prompt', (req: Request, res: Response) => {
+  const { prompt } = req.body;
+  setCustomPrompt(prompt);
+  addLog(`Custom prompt updated from control panel`);
+});
+
 apiRouter.get('/settings', (req: Request, res: Response) => {
   const settings = {
     messageHistoryLimit: getMessageHistoryLimit(),
@@ -45,6 +59,63 @@ apiRouter.get('/settings', (req: Request, res: Response) => {
     audioMode: getAudioMode(),
   };
   res.json({ settings });
+});
+
+apiRouter.put('/settings', (req: Request, res: Response) => {
+  const {
+    messageHistoryLimit,
+    resetCommandEnabled,
+    maxMessageAge,
+    botMode,
+    respondAsVoice,
+    botName,
+    audioMode,
+  } = req.body;
+
+  if (messageHistoryLimit && messageHistoryLimit !== getMessageHistoryLimit()) {
+    const limit = parseInt(messageHistoryLimit);
+    if (limit >= 1 && limit <= 50) {
+      setMessageHistoryLimit(limit);
+      addLog(`Message history limit updated to: ${limit}`);
+    }
+  }
+
+  if (maxMessageAge && maxMessageAge !== getMaxMessageAge()) {
+    const hours = parseInt(maxMessageAge);
+    if (hours >= 1 && hours <= 72) {
+      setMaxMessageAge(hours);
+      addLog(`Max message age updated to: ${hours} hours`);
+    }
+  }
+
+  if (resetCommandEnabled !== isResetCommandEnabled()) {
+    setResetCommandEnabled(!!resetCommandEnabled);
+    addLog(`Reset command ${resetCommandEnabled ? 'enabled' : 'disabled'}`);
+  }
+
+  if (respondAsVoice !== getAudioResponseEnabled()) {
+    setAudioResponseEnabled(!!respondAsVoice);
+    addLog(
+      `Respond in voice messages ${respondAsVoice ? 'enabled' : 'disabled'}`,
+    );
+  }
+
+  if (botMode !== getBotMode()) {
+    setBotMode(botMode);
+    addLog(`Bot mode changed to ${botMode}`);
+  }
+
+  if (botName && botName !== getBotName()) {
+    setBotName(botName);
+    addLog(`Bot name changed to ${botName}`);
+  }
+
+  if (audioMode !== getAudioMode()) {
+    setAudioMode(audioMode);
+    addLog(`Audio handling changed to ${audioMode}`);
+  }
+
+  res.json({ message: 'success' });
 });
 
 // Mount API router under /api path

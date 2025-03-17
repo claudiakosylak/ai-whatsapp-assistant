@@ -57,7 +57,7 @@ export const BotSettings = () => {
     e.preventDefault();
     setError(null);
     const response = await fetch('/api/settings', {
-      method: 'POST',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settings),
     });
@@ -71,14 +71,14 @@ export const BotSettings = () => {
 
   return (
     <div>
+      <CustomPrompt />
       <h3>Bot Settings</h3>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form
         onSubmit={handleSubmit}
         style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
       >
-        <SettingsItem>
-          <label>Bot Name:</label>
+        <SettingsItem label="Bot Name:">
           <input
             type="text"
             name="botName"
@@ -87,8 +87,7 @@ export const BotSettings = () => {
             style={{ width: '180px', marginLeft: '10px' }}
           />
         </SettingsItem>
-        <SettingsItem>
-          <label>Message History Limit:</label>
+        <SettingsItem label="Message History Limit:">
           <input
             type="number"
             name="messageHistoryLimit"
@@ -96,11 +95,10 @@ export const BotSettings = () => {
             min="1"
             max="50"
             onChange={handleChange}
-            style={{ width: '180px', marginLeft: '10px' }}
+            style={{ width: '80px', marginLeft: '10px' }}
           />
         </SettingsItem>
-        <SettingsItem>
-          <label>Max Message Age (hours):</label>
+        <SettingsItem label="Max Message Age (hours):">
           <input
             type="number"
             name="maxMessageAge"
@@ -108,33 +106,31 @@ export const BotSettings = () => {
             min="1"
             max="72"
             onChange={handleChange}
-            style={{ width: '180px', marginLeft: '10px' }}
+            style={{ width: '80px', marginLeft: '10px' }}
           />
         </SettingsItem>
-        <SettingsItem checkbox>
+        <SettingsItem checkbox label={`Enable "-reset" command`}>
           <input
             type="checkbox"
             name="resetCommandEnabled"
             checked={settings.resetCommandEnabled}
             onChange={handleChange}
-          />{' '}
-          Enable "-reset" command
+          />
         </SettingsItem>
-        <SettingsItem checkbox>
+        <SettingsItem checkbox label="Respond with voice messages">
           <input
             type="checkbox"
             name="respondAsVoice"
             checked={settings.respondAsVoice}
             onChange={handleChange}
-          />{' '}
-          Respond with voice messages
+          />
         </SettingsItem>
-        <SettingsItem>
-          <label>Choose a chat API:</label>
+        <SettingsItem label="Chat API:">
           <select
             name="botMode"
             value={settings.botMode}
             onChange={handleChange}
+            style={{ width: '180px' }}
           >
             <option value="OPENAI_CHAT">Chat Completions (OpenAI)</option>
             <option value="OPENAI_ASSISTANT">Assistant (OpenAI)</option>
@@ -145,12 +141,12 @@ export const BotSettings = () => {
             <option value="GEMINI">Gemini</option>
           </select>
         </SettingsItem>
-        <SettingsItem>
-          <label>Choose an audio handling API:</label>
+        <SettingsItem label="Audio API:">
           <select
             name="audioMode"
             value={settings.audioMode}
             onChange={handleChange}
+            style={{ width: '180px' }}
           >
             <option value="ELEVEN_LABS">Eleven Labs API</option>
             <option value="OPENAI">OpenAI</option>
@@ -164,7 +160,6 @@ export const BotSettings = () => {
           Save Settings
         </button>
       </form>
-      <CustomPrompt />
     </div>
   );
 };

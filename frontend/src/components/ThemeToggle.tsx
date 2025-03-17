@@ -8,10 +8,10 @@ export const ThemeToggle = () => {
       <span className="theme-icon">
         <i className={`fas fa-${theme === 'light' ? 'moon' : 'sun'}`}></i>
       </span>
-      <label className="theme-switch" htmlFor="checkbox">
+      <label className="theme-switch" htmlFor="themeCheckbox">
         <input
           type="checkbox"
-          id="checkbox"
+          id="themeCheckbox"
           checked={theme === 'dark'}
           onChange={toggleTheme}
         />

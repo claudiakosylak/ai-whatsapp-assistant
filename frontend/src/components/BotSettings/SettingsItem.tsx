@@ -1,25 +1,23 @@
 type Props = {
   children: React.ReactNode;
+  label: string;
   checkbox?: boolean;
 };
 
-export const SettingsItem = ({ children, checkbox = false }: Props) => {
+export const SettingsItem = ({ children, label, checkbox = false }: Props) => {
   return (
     <>
       {checkbox ? (
-        <div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div className="settingsItemCheckbox">
+          <span>{label}</span>
+          <label className="settingsSwitch">
             {children}
+            <div className="slider"></div>
           </label>
         </div>
       ) : (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
+        <div className="settingsItem">
+          <label>{label}</label>
           {children}
         </div>
       )}
