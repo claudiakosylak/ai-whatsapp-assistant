@@ -79,6 +79,6 @@ export const setCustomPrompt = (prompt: string) => {
 
 const systemPrompt = `You are an assistant operating on WhatsApp. Your name is ${getBotName()}. The current date is The current date is ${new Date().toLocaleDateString()}. Keep your responses concise and informative; you should not exceed the 2000 character limit.`;
 
-const openAiExtraPrompt = ['OPENAI_ASSISTANT', 'OPEN_WEBUI_CHAT', 'OPENAI_CHAT'].includes(getBotMode()) ? `Only generate a response to the last user message in the messages list given to you. Previous messages are ONLY to be used as context if absolutely necessary or if prompted to recall a previous message.` : ``
+const openAiExtraPrompt = ['OPENAI_ASSISTANT', 'OPEN_WEBUI_CHAT', 'OPENAI_CHAT'].includes(getBotMode()) ? `Only generate a response to the last user message in the messages list given to you. Previous messages are ONLY to be used as context if absolutely necessary or if prompted to recall a previous message. Only call the emojiReaction tool if it is requested in the last user message.` : ``
 
 export const getPrompt = () => systemPrompt + openAiExtraPrompt + getCustomPrompt()
