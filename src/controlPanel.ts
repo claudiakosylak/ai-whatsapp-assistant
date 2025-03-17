@@ -200,10 +200,18 @@ app.post('/send-message', async (req, res) => {
         from: 'test',
         downloadMedia: getMessageMedia,
         getQuotedMessage: getQuotedMessage,
+        react: (emoji: string) => undefined,
       };
       resolve(quotedMessage);
     });
   };
+
+  const addReaction = (emoji: string) => {
+    const chatItem = chatHistory.find((chat) => chat.id === userMessageId)
+    if (chatItem && emoji) {
+      chatItem.reaction = emoji;
+    }
+  }
 
   const userTestMessage: TestMessage = {
     id: {
@@ -218,6 +226,7 @@ app.post('/send-message', async (req, res) => {
     from: 'test',
     downloadMedia: getMessageMedia,
     getQuotedMessage,
+    react: addReaction,
   };
 
   // Add user message to history
@@ -256,6 +265,7 @@ app.post('/send-message', async (req, res) => {
       from: 'test',
       downloadMedia: getMessageMedia,
       getQuotedMessage,
+      react: (emoji: string) => undefined,
     };
 
     let newImageUrl;

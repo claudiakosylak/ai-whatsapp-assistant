@@ -8,14 +8,14 @@ import {
   OPENAI_API_KEY,
   OPENAI_MODEL,
 } from '../config';
-import {  WhatsappResponseAsText } from '../types';
+import {  TestMessage, WhatsappResponseAsText } from '../types';
 import { getBotMode } from './botSettings';
 import { Message } from 'whatsapp-web.js';
 
 export const processChatCompletionResponse = async (
   from: string,
   messages: ChatCompletionMessageParam[],
-  message: Message,
+  message: Message | TestMessage,
 ): Promise<WhatsappResponseAsText> => {
   try {
     addLog('Processing chat completion response.');

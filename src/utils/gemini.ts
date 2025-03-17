@@ -1,5 +1,5 @@
 import { FileState, GoogleGenAI, Type } from '@google/genai';
-import { GeminiContextContent, WhatsappResponseAsText } from '../types';
+import { GeminiContextContent, TestMessage, WhatsappResponseAsText } from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getPrompt } from './botSettings';
@@ -22,7 +22,7 @@ const removeBotName = (message: GeminiContextContent) => {
 export const processGeminiResponse = async (
   from: string,
   messageList: GeminiContextContent[],
-  message?: Message,
+  message?: Message | TestMessage,
 ): Promise<WhatsappResponseAsText | undefined> => {
   addLog('Processing Gemini response.');
   // context history has to start with a user message for gemini

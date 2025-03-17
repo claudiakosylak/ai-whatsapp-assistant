@@ -74,14 +74,14 @@ export const getResponseText = async (
         response = await processAssistantResponse(
           message.from,
           (messageList as OpenAIMessage[]).reverse(),
-          message as Message,
+          message,
         );
         break;
       case 'GEMINI':
         response = await processGeminiResponse(
           message.from,
           (messageList as GeminiContextContent[]).reverse(),
-          message as Message,
+          message,
         );
         break;
       default:
@@ -92,7 +92,7 @@ export const getResponseText = async (
         response = await processChatCompletionResponse(
           message.from,
           (messageList as ChatCompletionMessageParam[]).reverse(),
-          message as Message,
+          message,
         );
         break;
     }

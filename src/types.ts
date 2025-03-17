@@ -19,6 +19,7 @@ export type ChatHistoryItem = {
   rawText: string;
   message: TestMessage;
   media: MessageMedia | undefined;
+  reaction?: string;
 };
 
 export type TestMessage = {
@@ -34,6 +35,7 @@ export type TestMessage = {
   fromMe: boolean;
   downloadMedia: () => Promise<MessageMedia>;
   getQuotedMessage: () => Promise<TestMessage>;
+  react: (emoji: string) => void;
 };
 
 export type MockChatHistoryMessage = {

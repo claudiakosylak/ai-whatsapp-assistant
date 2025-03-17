@@ -100,9 +100,11 @@ const showTypingIndicator = () => {
 };
 
 const hideTypingIndicator = () => {
-  typingIndicator.style.opacity = '0';
-  typingIndicator.style.display = 'none';
-  chatMessagesList.removeChild(typingIndicator);
+  if (chatMessagesList.contains(typingIndicator)) {
+    typingIndicator.style.opacity = '0';
+    typingIndicator.style.display = 'none';
+    chatMessagesList.removeChild(typingIndicator);
+  }
 };
 
 setInterval(() => {
@@ -153,6 +155,9 @@ setInterval(() => {
               msg.content +
               '</div>' +
               `<i class="fa-solid fa-reply" id='reply-${msg.id}'></i>` +
+              (msg.reaction
+                ? `<p class="reaction">${msg.reaction}</p>`
+                : '') +
               '</div>',
           )
           .join('');
@@ -250,11 +255,15 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
           replyingMessageId: replyId,
           audio: '',
         }),
-      }).then((response) => {
-        if (!response.ok) {
+      })
+        .then((response) => {
+          if (!response.ok) {
+            hideTypingIndicator();
+          }
+        })
+        .catch((e) => {
           hideTypingIndicator();
-        }
-      });
+        });
     };
 
     reader.readAsDataURL(file);
@@ -278,11 +287,15 @@ document.getElementById('chatForm').addEventListener('submit', async (e) => {
       replyingMessageId: replyId,
       audio: base64String,
     }),
-  }).then((response) => {
-    if (!response.ok) {
+  })
+    .then((response) => {
+      if (!response.ok) {
+        hideTypingIndicator();
+      }
+    })
+    .catch((e) => {
       hideTypingIndicator();
-    }
-  });
+    });
 });
 
 document

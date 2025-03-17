@@ -1,19 +1,18 @@
 import OpenAI from 'openai';
 import { addLog } from './controlPanel';
-import { OpenAIMessage, WhatsappResponseAsText } from '../types';
+import { OpenAIMessage, TestMessage, WhatsappResponseAsText } from '../types';
 import { OPENAI_API_KEY, OPENAI_ASSISTANT_ID } from '../config';
 import { getPrompt } from './botSettings';
 import { Message } from 'whatsapp-web.js';
 import {
   FunctionToolCall,
   RunStepsPage,
-  ToolCall,
 } from 'openai/resources/beta/threads/runs/steps';
 
 export const processAssistantResponse = async (
   from: string,
   messages: OpenAIMessage[],
-  message: Message,
+  message: Message | TestMessage,
 ): Promise<WhatsappResponseAsText> => {
   try {
     const client = new OpenAI({
@@ -110,7 +109,7 @@ export const processAssistantResponse = async (
         addLog('Run completed!');
       }
       if (run.status === 'requires_action') {
-        addLog(`Run requires use of tool.`)
+        addLog(`Run requires use of tool.`);
       }
     } catch (error) {
       addLog(`Error retrieving run status: ${error}`);
@@ -129,7 +128,7 @@ export const processAssistantResponse = async (
           }
         });
         if (toolCall) {
-          addLog(`Calling tool function: ${toolCall.function.name}`)
+          addLog(`Calling tool function: ${toolCall.function.name}`);
           return await functions[toolCall.function.name](
             JSON.parse(toolCall.function.arguments),
           );

@@ -157,6 +157,7 @@ export const getHTML = () => `
             max-width: 80%;
             display: flex;
             justify-content: space-between;
+            position: relative;
         }
         .message.user {
             background: #e3f2fd;
@@ -169,6 +170,11 @@ export const getHTML = () => `
         .message.user2 {
             background:rgb(239, 227, 253);
             margin-right: auto;
+        }
+        .reaction {
+            position: absolute;
+            left: -10px;
+            top: -10px;
         }
         .chat-input {
             display: flex;
