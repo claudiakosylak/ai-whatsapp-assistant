@@ -1,8 +1,6 @@
 :root {
   font-family: Arial, sans-serif;
-  max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
   --background: white;
   --text-color: black;
   --primary: #4caf50;
