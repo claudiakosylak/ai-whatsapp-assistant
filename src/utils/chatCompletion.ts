@@ -72,7 +72,11 @@ export const processChatCompletionResponse = async (
       completion = await client.chat.completions.create({
         messages,
         model: chatModel,
-        tools: [emojiReactionFunctionDeclaration]
+        tools: [emojiReactionFunctionDeclaration],
+        frequency_penalty: 0.5,
+        presence_penalty: 0,
+        store: true,
+        top_p: 1,
       });
       if (completion.choices[0].message.tool_calls) {
         const call = completion.choices[0].message.tool_calls[0]
