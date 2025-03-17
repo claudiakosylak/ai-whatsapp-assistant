@@ -4,7 +4,7 @@
   padding: 2rem;
   text-align: center;
 }
-button {
+.button {
   background: #4caf50;
   color: white;
   border: none;
@@ -19,7 +19,7 @@ button {
   padding: 10px 20px;
   border-radius: 4px;
 }
-button:hover {
+.button:hover {
   background: #45a049;
 }
 .chat-input {

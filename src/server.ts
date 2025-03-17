@@ -8,6 +8,7 @@ import {
   getAudioResponseEnabled,
   getBotMode,
   getBotName,
+  getCustomPrompt,
   getMaxMessageAge,
   getMessageHistoryLimit,
   isResetCommandEnabled,
@@ -26,6 +27,11 @@ const apiRouter = express.Router();
 
 apiRouter.get('/hello', (req: Request, res: Response) => {
   res.json({ message: 'Hello World!' });
+});
+
+apiRouter.get('/prompt', (req: Request, res: Response) => {
+  const prompt = getCustomPrompt();
+  res.json({ prompt });
 });
 
 apiRouter.get('/settings', (req: Request, res: Response) => {
