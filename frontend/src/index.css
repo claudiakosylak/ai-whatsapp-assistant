@@ -3,10 +3,50 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  background: #f5f5f5;
+  --background: white;
+  --text-color: black;
+  --primary: #4caf50;
+  --primary-hover: #45a049;
+  --disabled: gray;
+  --border-color: #ddd;
+  --chat-bg: #f8f9fa;
+  --chat-user-bg: #e3f2fd;
+  --chat-assistant-bg: #f5f5f5;
+  --chat-user2-bg: rgb(239, 227, 253);
+  --panel-bg: white;
+  --log-bg: #1e1e1e;
+  --log-text: #fff;
+  --error-color: red;
+  --delete-bg: red;
+  --delete-hover-bg: rgb(160, 69, 69);
+  --reply-box-bg: gray;
+  --typing-bg: #e3f2fd;
+  --typing-dot: #3498db;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme="dark"] {
+  --background: #121212;
+  --text-color: #f5f5f5;
+  --primary: #81c784;
+  --primary-hover: #66bb6a;
+  --disabled: #555;
+  --border-color: #333;
+  --chat-bg: #1e1e1e;
+  --chat-user-bg: #2c3e50;
+  --chat-assistant-bg: #1c1c1c;
+  --chat-user2-bg: #3b2d56;
+  --panel-bg: #1e1e1e;
+  --log-bg: #000;
+  --log-text: #ddd;
+  --error-color: #ff6b6b;
+  --delete-bg: #b71c1c;
+  --delete-hover-bg: #8a1212;
+  --reply-box-bg: #444;
+  --typing-bg: #2a2a2a;
+  --typing-dot: #80cbc4;
 }
