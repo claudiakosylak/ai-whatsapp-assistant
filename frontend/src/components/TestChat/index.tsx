@@ -25,7 +25,8 @@ export const TestChat = () => {
     }
   };
 
-  const sendNewMessage = async () => {
+  const sendNewMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
     const response = await fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
