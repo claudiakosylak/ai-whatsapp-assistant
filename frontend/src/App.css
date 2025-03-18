@@ -179,7 +179,9 @@ textarea:focus {
 
 .media-modal {
   top: -60px;
-  right: 0px;
+  right: -10px;
+  display: flex;
+  gap: 10px;
 }
 
 .modal {

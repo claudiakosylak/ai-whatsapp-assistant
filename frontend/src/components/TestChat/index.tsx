@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChatHistoryItem, MockChat } from '../../types';
 import { ChatMessage } from './ChatMessage';
 import { ChatSettings } from './ChatSettings';
+import { AddMedia } from './AddMedia';
 
 export const TestChat = () => {
   const [chat, setChat] = useState<MockChat | null>(null);
@@ -11,7 +12,9 @@ export const TestChat = () => {
     'audio' | 'image' | null
   >(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [isMediaModalOpen, setIsMediaModalOpen] = useState<boolean>(false);
+  const [textInput, setTextInput] = useState('');
+  const [imageInput, setImageInput] = useState('');
+  const [audioInput, setAudioInput] = useState('');
 
   const fetchChatData = async () => {
     const response = await fetch('/api/chat');
@@ -22,9 +25,25 @@ export const TestChat = () => {
     }
   };
 
+  const sendNewMessage = async () => {
+    const response = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: textInput, user: activeUser }),
+    });
+    setTextInput('');
+    if (response.ok) {
+      await fetchChatData();
+    }
+  };
+
   useEffect(() => {
     fetchChatData();
   }, []);
+
+  const isSendDisabled = useMemo(() => {
+    return !textInput && !imageInput && !audioInput;
+  }, [textInput, imageInput, audioInput]);
 
   if (!chat || !messages) return null;
 
@@ -42,14 +61,21 @@ export const TestChat = () => {
       <div className="chat-messages" id="chatMessages">
         <div id="chatMessagesInner">
           {messages.map((msg) => (
-            <ChatMessage message={msg} />
+            <ChatMessage message={msg} isGroup={chat.isGroup} />
           ))}
         </div>
       </div>
-      <form className="chat-input" id="chatForm">
+      <form className="chat-input" id="chatForm" onSubmit={sendNewMessage}>
         <div className="chat-input-top" id="chatInputTop">
           {chat.isGroup && (
-            <select id="userName" name="userName" value={activeUser}>
+            <select
+              id="userName"
+              name="userName"
+              value={activeUser}
+              onChange={(e) =>
+                setActiveUser(e.target.value as 'user' | 'user2')
+              }
+            >
               <option value="user">User 1</option>
               <option value="user2">User 2</option>
             </select>
@@ -59,6 +85,8 @@ export const TestChat = () => {
               type="text"
               id="messageInput"
               placeholder="Type your message..."
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
             />
           ) : (
             <>
@@ -90,25 +118,15 @@ export const TestChat = () => {
             </>
           )}
           {activeMediaInput === null && (
-            <button
-              type="button"
-              id="addMediaButton"
-              onClick={() => setIsMediaModalOpen(true)}
-            >
-              <i className="fa-solid fa-plus"></i>
-            </button>
+            <AddMedia setActiveMediaInput={setActiveMediaInput} />
           )}
-          {isMediaModalOpen && (
-            <div id="addMediaModal" className="media-modal">
-              <button type="button" id="imageInputButton">
-                <i className="fa-solid fa-image"></i>
-              </button>
-              <button type="button" id="recordAudio">
-                <i className="fa-solid fa-microphone"></i>
-              </button>
-            </div>
-          )}
-          <button type="submit">Send</button>
+          <button
+            type="submit"
+            className={isSendDisabled ? 'button-disabled' : 'button'}
+            disabled={isSendDisabled}
+          >
+            <i className="fa-solid fa-paper-plane"></i>
+          </button>
         </div>
         <div className="image-input-container">
           <div style={{ display: 'flex', gap: '20px' }}>
