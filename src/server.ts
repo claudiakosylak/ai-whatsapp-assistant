@@ -20,7 +20,13 @@ import {
   setMessageHistoryLimit,
   setResetCommandEnabled,
 } from './utils/botSettings';
-import { addLog } from './utils/controlPanel';
+import {
+  addLog,
+  changeChatType,
+  chatHistory,
+  getTestChatData,
+  setChatHistory,
+} from './utils/controlPanel';
 
 // Create Express application
 const app = express();
@@ -35,6 +41,21 @@ const apiRouter = express.Router();
 
 apiRouter.get('/hello', (req: Request, res: Response) => {
   res.json({ message: 'Hello World!' });
+});
+
+apiRouter.get('/chat', (req: Request, res: Response) => {
+  const testChat = getTestChatData();
+  const chatMessages = chatHistory;
+  res.json({ chat: testChat, messages: chatMessages });
+});
+
+apiRouter.put('/chat', (req: Request, res: Response) => {
+  const { isGroup } = req.body;
+  if (isGroup !== getTestChatData().isGroup) {
+    changeChatType();
+  }
+  setChatHistory([]);
+  res.json({ isGroup });
 });
 
 apiRouter.get('/prompt', (req: Request, res: Response) => {

@@ -1,6 +1,7 @@
 import './App.css';
 import { BotSettings } from './components/BotSettings';
 import { Header } from './components/Header';
+import { TestChat } from './components/TestChat';
 
 function App() {
   return (
@@ -10,6 +11,9 @@ function App() {
         <div className="top-panels">
           <div className="panel">
             <BotSettings />
+          </div>
+          <div className="panel">
+            <TestChat />
           </div>
         </div>
       </div>
