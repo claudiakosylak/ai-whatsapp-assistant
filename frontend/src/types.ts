@@ -22,13 +22,6 @@ export type ChatHistoryItem = {
   imageUrl?: string;
 };
 
-export type DummyChatItem = {
-  id: string;
-  name: string;
-  content: string;
-  imageUrl?: string;
-}
-
 export type TestMessage = {
   id: {
     fromMe: boolean;

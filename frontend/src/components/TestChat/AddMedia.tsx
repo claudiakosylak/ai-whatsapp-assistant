@@ -2,10 +2,10 @@ import { RefObject, useEffect, useRef, useState } from 'react';
 
 type Props = {
   imageInputRef: RefObject<HTMLInputElement | null>;
-  setActiveMediaInput: (media: 'image' | 'audio' | null) => void;
+  audioInputRef: RefObject<HTMLButtonElement | null>;
 };
 
-export const AddMedia = ({ imageInputRef, setActiveMediaInput }: Props) => {
+export const AddMedia = ({ imageInputRef, audioInputRef}: Props) => {
   const settingsModalRef = useRef<HTMLDivElement>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState<boolean>(false);
 
@@ -55,14 +55,16 @@ export const AddMedia = ({ imageInputRef, setActiveMediaInput }: Props) => {
           >
             <i className="fa-solid fa-image"></i>
           </button>
-          <button type="button" id="recordAudio" className="button">
-            <i
-              className="fa-solid fa-microphone"
-              onClick={() => {
-                setActiveMediaInput('audio');
-                setIsMediaModalOpen(false);
-              }}
-            ></i>
+          <button
+            type="button"
+            id="recordAudio"
+            className="button"
+            onClick={() => {
+              audioInputRef && audioInputRef.current?.click()
+              setIsMediaModalOpen(false);
+            }}
+          >
+            <i className="fa-solid fa-microphone"></i>
           </button>
         </div>
       )}

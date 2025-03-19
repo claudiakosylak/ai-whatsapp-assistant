@@ -1,4 +1,5 @@
-import { ChatHistoryItem, DummyChatItem } from '../../types';
+import { DummyChatItem } from '.';
+import { ChatHistoryItem} from '../../types';
 
 type Props = {
   isGroup: boolean;

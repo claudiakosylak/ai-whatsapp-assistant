@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChatHistoryItem, DummyChatItem, MockChat } from '../../types';
+import { ChatHistoryItem, MockChat } from '../../types';
+import { DummyChatItem } from '.';
 
 type Props = {
   chat: MockChat;

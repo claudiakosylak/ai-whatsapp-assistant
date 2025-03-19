@@ -1,10 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChatHistoryItem, DummyChatItem, MockChat } from '../../types';
+import { ChatHistoryItem, MockChat } from '../../types';
 import { ChatMessage } from './ChatMessage';
 import { ChatSettings } from './ChatSettings';
 import { AddMedia } from './AddMedia';
 import { ImageInput } from './ImageInput';
 import { readImageFile } from '../../helpers/images';
+import { AudioInput } from './AudioInput';
+
+export type AudioInputType = {
+  audioUrl: string;
+  base64String: string;
+  mimeType: string;
+};
+
+export type DummyChatItem = {
+  id: string;
+  name: string;
+  content: string;
+  imageUrl?: string;
+};
 
 export const TestChat = () => {
   const [chat, setChat] = useState<MockChat | null>(null);
@@ -15,13 +29,13 @@ export const TestChat = () => {
   const [activeMediaInput, setActiveMediaInput] = useState<
     'audio' | 'image' | null
   >(null);
-  const [isRecording, setIsRecording] = useState<boolean>(false);
   const [textInput, setTextInput] = useState('');
   const [imageInput, setImageInput] = useState<string | undefined>(undefined);
-  const [audioInput, setAudioInput] = useState('');
+  const [audioInput, setAudioInput] = useState<AudioInputType | undefined>();
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const audioInputRef = useRef<HTMLButtonElement | null>(null);
 
   const fetchChatData = async () => {
     const response = await fetch('/api/chat');
@@ -45,7 +59,7 @@ export const TestChat = () => {
       const fileResult = await readImageFile(imageInputRef.current.files[0]);
       mimeType = fileResult.mimeType;
       base64String = fileResult.base64String;
-      imageInputRef.current.value = ''
+      imageInputRef.current.value = '';
     }
 
     const dummyChatItem: DummyChatItem = {
@@ -70,8 +84,8 @@ export const TestChat = () => {
       }),
     });
     setTextInput('');
-    setImageInput(undefined)
-    setActiveMediaInput(null)
+    setImageInput(undefined);
+    setActiveMediaInput(null);
     if (response.ok) {
       await fetchChatData();
     }
@@ -134,7 +148,7 @@ export const TestChat = () => {
               <option value="user2">User 2</option>
             </select>
           )}
-          {activeMediaInput !== 'audio' ? (
+          {activeMediaInput !== 'audio' && (
             <input
               type="text"
               id="messageInput"
@@ -142,39 +156,18 @@ export const TestChat = () => {
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
             />
-          ) : (
-            <>
-              {isRecording ? (
-                <>
-                  <p id="recordingStatus" className="recording-status">
-                    Recording...
-                  </p>
-                  <button type="button" id="stopRecordAudio">
-                    <i className="fa-solid fa-stop"></i>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <audio
-                    id="inputAudio"
-                    controls
-                    className="input-audio"
-                  ></audio>
-                  <button
-                    type="button"
-                    id="deleteRecordedAudio"
-                    className="delete-button"
-                  >
-                    <i className="fa-solid fa-trash"></i>
-                  </button>
-                </>
-              )}
-            </>
           )}
+          <AudioInput
+            audioInput={audioInput}
+            setAudioInput={setAudioInput}
+            audioInputRef={audioInputRef}
+            setActiveMediaInput={setActiveMediaInput}
+          />
+
           {activeMediaInput === null && (
             <AddMedia
               imageInputRef={imageInputRef}
-              setActiveMediaInput={setActiveMediaInput}
+              audioInputRef={audioInputRef}
             />
           )}
           <button
