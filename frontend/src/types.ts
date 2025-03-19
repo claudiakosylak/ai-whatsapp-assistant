@@ -26,6 +26,7 @@ export type DummyChatItem = {
   id: string;
   name: string;
   content: string;
+  imageUrl?: string;
 }
 
 export type TestMessage = {

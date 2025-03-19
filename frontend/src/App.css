@@ -207,6 +207,12 @@ textarea:focus {
   position: relative;
 }
 
+.message:has(img) {
+  max-width: fit-content; /* Adjusts width to match image size */
+  padding: 0; /* Remove extra padding from text messages */
+  overflow: hidden; /* Prevents weird spacing issues */
+}
+
 .message.user {
   background: var(--chat-user-bg);
   margin-left: auto;

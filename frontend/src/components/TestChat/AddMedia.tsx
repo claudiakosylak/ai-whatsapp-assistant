@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 
 type Props = {
+  imageInputRef: RefObject<HTMLInputElement | null>;
   setActiveMediaInput: (media: 'image' | 'audio' | null) => void;
 };
 
-export const AddMedia = ({ setActiveMediaInput }: Props) => {
+export const AddMedia = ({ imageInputRef, setActiveMediaInput }: Props) => {
   const settingsModalRef = useRef<HTMLDivElement>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState<boolean>(false);
 
@@ -48,7 +49,7 @@ export const AddMedia = ({ setActiveMediaInput }: Props) => {
             id="imageInputButton"
             className="button"
             onClick={() => {
-              setActiveMediaInput('image');
+              imageInputRef && imageInputRef.current?.click();
               setIsMediaModalOpen(false);
             }}
           >

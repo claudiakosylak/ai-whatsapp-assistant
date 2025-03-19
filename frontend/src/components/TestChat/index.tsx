@@ -3,20 +3,25 @@ import { ChatHistoryItem, DummyChatItem, MockChat } from '../../types';
 import { ChatMessage } from './ChatMessage';
 import { ChatSettings } from './ChatSettings';
 import { AddMedia } from './AddMedia';
+import { ImageInput } from './ImageInput';
+import { readImageFile } from '../../helpers/images';
 
 export const TestChat = () => {
   const [chat, setChat] = useState<MockChat | null>(null);
-  const [messages, setMessages] = useState<ChatHistoryItem[] | DummyChatItem[] | null>(null);
+  const [messages, setMessages] = useState<
+    ChatHistoryItem[] | DummyChatItem[] | null
+  >(null);
   const [activeUser, setActiveUser] = useState<'user' | 'user2'>('user');
   const [activeMediaInput, setActiveMediaInput] = useState<
     'audio' | 'image' | null
   >(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [textInput, setTextInput] = useState('');
-  const [imageInput, setImageInput] = useState('');
+  const [imageInput, setImageInput] = useState<string | undefined>(undefined);
   const [audioInput, setAudioInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchChatData = async () => {
     const response = await fetch('/api/chat');
@@ -29,21 +34,44 @@ export const TestChat = () => {
 
   const sendNewMessage = async (e: React.FormEvent) => {
     e.preventDefault();
+    let mimeType;
+    let base64String;
+
+    if (
+      imageInputRef.current &&
+      imageInputRef.current.files &&
+      imageInputRef.current.files[0]
+    ) {
+      const fileResult = await readImageFile(imageInputRef.current.files[0]);
+      mimeType = fileResult.mimeType;
+      base64String = fileResult.base64String;
+      imageInputRef.current.value = ''
+    }
+
     const dummyChatItem: DummyChatItem = {
       name: activeUser,
       content: textInput,
-      id: ''
-    }
-    const newMessages = messages ? [...messages] : []
-    newMessages.push(dummyChatItem)
-    setMessages(newMessages)
+      id: '',
+      imageUrl: imageInput,
+    };
+    const newMessages = messages ? [...messages] : [];
+    newMessages.push(dummyChatItem);
+    setMessages(newMessages);
     setIsTyping(true);
     const response = await fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: textInput, user: activeUser }),
+      body: JSON.stringify({
+        message: textInput,
+        user: activeUser,
+        imageBase64: base64String,
+        mimeType,
+        imageUrl: imageInput,
+      }),
     });
     setTextInput('');
+    setImageInput(undefined)
+    setActiveMediaInput(null)
     if (response.ok) {
       await fetchChatData();
     }
@@ -79,7 +107,7 @@ export const TestChat = () => {
       <div className="chat-messages" id="chatMessages">
         <div id="chatMessagesInner">
           {messages.map((msg) => (
-            <ChatMessage message={msg} isGroup={chat.isGroup} />
+            <ChatMessage message={msg} isGroup={chat.isGroup} key={msg.id} />
           ))}
           {isTyping && (
             <div className="typing-indicator">
@@ -144,7 +172,10 @@ export const TestChat = () => {
             </>
           )}
           {activeMediaInput === null && (
-            <AddMedia setActiveMediaInput={setActiveMediaInput} />
+            <AddMedia
+              imageInputRef={imageInputRef}
+              setActiveMediaInput={setActiveMediaInput}
+            />
           )}
           <button
             type="submit"
@@ -154,24 +185,12 @@ export const TestChat = () => {
             <i className="fa-solid fa-paper-plane"></i>
           </button>
         </div>
-        <div className="image-input-container">
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <input
-              type="file"
-              id="imageInput"
-              accept="image/png, image/jpeg, image/jpg, image/gif, image/webp"
-              style={{ display: 'none' }}
-            />
-            <img src="" className="image-preview" id="imagePreview" />
-            <button
-              type="button"
-              id="deleteSelectedImage"
-              className="delete-button"
-            >
-              <i className="fa-solid fa-trash"></i>
-            </button>
-          </div>
-        </div>
+        <ImageInput
+          imageInputRef={imageInputRef}
+          imageInput={imageInput}
+          setImageInput={setImageInput}
+          setActiveMediaInput={setActiveMediaInput}
+        />
       </form>
     </div>
   );

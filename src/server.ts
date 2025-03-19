@@ -39,7 +39,8 @@ config();
 const PORT = 3000;
 
 // Middleware for parsing JSON
-app.use(express.json());
+app.use(express.json({ limit: '10mb'}));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // API Routes
 const apiRouter = express.Router();
