@@ -153,8 +153,18 @@ export const handleIncomingMessage = async (
   try {
     if (sendTo) {
       chatData.sendSeen();
-      client.sendMessage(sendTo.number, sendTo.message);
-      addLog(`Send message to ${sendTo.number}`);
+      try {
+        // Wrap this specific call in its own try/catch
+        await client.sendMessage(sendTo.number, sendTo.message);
+        addLog(`Sent message to ${sendTo.number}`);
+      } catch (error: any) {
+        const errorMsg = `Failed to send message to ${sendTo.number}: ${error.message}`;
+        console.error(errorMsg);
+        addLog(errorMsg);
+
+        // Optionally notify the original sender about the failure
+        await message.reply(`Failed to forward message: ${error.message}`);
+      }
       return;
     }
     const response = await processMessage(message, chatData);
