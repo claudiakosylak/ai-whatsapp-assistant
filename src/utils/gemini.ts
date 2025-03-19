@@ -47,14 +47,11 @@ export const processGeminiResponse = async (
     repliedMessage &&
     (getIsImage(repliedMessage) || getIsDocument(repliedMessage))
   ) {
-    addLog(`Got image in replied message.`);
     let imageUri;
     const media = await repliedMessage.downloadMedia();
     const cachedImage = getImageMessage(repliedMessage.id._serialized);
     if (cachedImage) {
-      addLog(`Cached image: ${cachedImage}`);
       imageUri = cachedImage;
-      addLog(`uri coming from cache: ${imageUri}`);
     } else {
       try {
         imageUri = await uploadImageToGemini(media.data, media.mimetype);
@@ -67,7 +64,6 @@ export const processGeminiResponse = async (
       }
     }
     if (imageUri) {
-      addLog(`There is a uri for the image/document`);
       let geminiMediaPart = {
         fileData: {
           fileUri: imageUri,
@@ -116,27 +112,11 @@ export const processGeminiResponse = async (
 
   messageList.push(lastMessage);
 
-  // let config: GenerateContentConfig = {};
   let body: any = {
     contents: messageList,
   };
 
-  addLog(`Gemini message list: ${JSON.stringify(messageList)}`);
-
   if (GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
-    // config.systemInstruction = {
-    //   text: getPrompt(),
-    // };
-    // config.tools = [
-    //   {
-    //     functionDeclarations: [emojiReactionFunctionDeclaration],
-    //   },
-    // ];
-    // config.toolConfig = {
-    //   functionCallingConfig: {
-    //     mode: FunctionCallingConfigMode.AUTO,
-    //   },
-    // };
     body.systemInstruction = {
       parts: [
         {
