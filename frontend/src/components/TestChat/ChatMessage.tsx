@@ -1,8 +1,8 @@
-import { ChatHistoryItem } from '../../types';
+import { ChatHistoryItem, DummyChatItem } from '../../types';
 
 type Props = {
   isGroup: boolean;
-  message: ChatHistoryItem;
+  message: ChatHistoryItem | DummyChatItem;
 };
 
 export const ChatMessage = ({ message, isGroup }: Props) => {

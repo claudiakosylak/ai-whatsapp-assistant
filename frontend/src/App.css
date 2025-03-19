@@ -77,6 +77,11 @@ body {
   padding: 15px;
   background: var(--chat-bg);
   position: relative;
+  scrollbar-width: none;
+}
+
+.chat-messages::-webkit-scrollbar {
+  display: none;
 }
 
 #chatMessagesInner {
@@ -354,15 +359,15 @@ textarea {
 }
 
 .typing-indicator {
-  display: none;
+  display: flex;
   align-items: center;
   gap: 4px;
   padding: 10px;
-  background: var(--typing-bg);
+  background: #e3f2fd;
   border-radius: 20px;
   width: 50px;
   justify-content: center;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.3s ease-in-out;
 }
 

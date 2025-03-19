@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChatHistoryItem, MockChat } from '../../types';
+import { ChatHistoryItem, DummyChatItem, MockChat } from '../../types';
 
 type Props = {
   chat: MockChat;
-  messages: ChatHistoryItem[];
+  messages: ChatHistoryItem[] | DummyChatItem[];
   setChat: (chat: MockChat) => void;
   setMessages: (messages: ChatHistoryItem[]) => void;
 };

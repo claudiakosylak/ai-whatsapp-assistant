@@ -1,4 +1,4 @@
-import { FileState, GoogleGenAI, Type } from '@google/genai';
+import { FileState, FunctionCallingConfigMode, GoogleGenAI, Type } from '@google/genai';
 import { GeminiContextContent, TestMessage, WhatsappResponseAsText } from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
@@ -89,6 +89,11 @@ export const processGeminiResponse = async (
             functionDeclarations: [emojiReactionFunctionDeclaration],
           },
         ],
+        toolConfig: {
+          functionCallingConfig: {
+            mode: FunctionCallingConfigMode.AUTO
+          }
+        }
       },
       history: messageList,
     });

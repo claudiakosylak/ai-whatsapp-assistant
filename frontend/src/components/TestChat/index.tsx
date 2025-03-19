@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ChatHistoryItem, MockChat } from '../../types';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChatHistoryItem, DummyChatItem, MockChat } from '../../types';
 import { ChatMessage } from './ChatMessage';
 import { ChatSettings } from './ChatSettings';
 import { AddMedia } from './AddMedia';
 
 export const TestChat = () => {
   const [chat, setChat] = useState<MockChat | null>(null);
-  const [messages, setMessages] = useState<ChatHistoryItem[] | null>(null);
+  const [messages, setMessages] = useState<ChatHistoryItem[] | DummyChatItem[] | null>(null);
   const [activeUser, setActiveUser] = useState<'user' | 'user2'>('user');
   const [activeMediaInput, setActiveMediaInput] = useState<
     'audio' | 'image' | null
@@ -15,6 +15,8 @@ export const TestChat = () => {
   const [textInput, setTextInput] = useState('');
   const [imageInput, setImageInput] = useState('');
   const [audioInput, setAudioInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const fetchChatData = async () => {
     const response = await fetch('/api/chat');
@@ -26,7 +28,16 @@ export const TestChat = () => {
   };
 
   const sendNewMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    const dummyChatItem: DummyChatItem = {
+      name: activeUser,
+      content: textInput,
+      id: ''
+    }
+    const newMessages = messages ? [...messages] : []
+    newMessages.push(dummyChatItem)
+    setMessages(newMessages)
+    setIsTyping(true);
     const response = await fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -36,11 +47,17 @@ export const TestChat = () => {
     if (response.ok) {
       await fetchChatData();
     }
+    setIsTyping(false);
   };
 
   useEffect(() => {
     fetchChatData();
   }, []);
+
+  useEffect(() => {
+    // Scroll to bottom whenever messages change
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const isSendDisabled = useMemo(() => {
     return !textInput && !imageInput && !audioInput;
@@ -64,6 +81,14 @@ export const TestChat = () => {
           {messages.map((msg) => (
             <ChatMessage message={msg} isGroup={chat.isGroup} />
           ))}
+          {isTyping && (
+            <div className="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
         </div>
       </div>
       <form className="chat-input" id="chatForm" onSubmit={sendNewMessage}>
