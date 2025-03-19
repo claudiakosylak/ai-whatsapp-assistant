@@ -163,7 +163,7 @@ export const handleIncomingMessage = async (
         addLog(errorMsg);
 
         // Optionally notify the original sender about the failure
-        await message.reply(`Failed to forward message: ${error.message}`);
+        await message.reply(`Failed to forward message. Please check the format of the forwarding number and try again.`);
       }
       return;
     }
