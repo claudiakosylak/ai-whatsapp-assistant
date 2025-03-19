@@ -239,16 +239,18 @@ export const getContextMessageContent = async (
             imageUri = await uploadImageToGemini(media.data, media.mimetype);
             if (imageUri) {
               setToImageMessageCache(msg.id._serialized, imageUri);
-              geminiMediaPart = {
-                fileData: {
-                  fileUri: imageUri,
-                  mimeType: media.mimetype,
-                },
-              };
             }
           } catch (error) {
             addLog(`Image upload error: ${error}`);
             return;
+          }
+          if (imageUri) {
+            geminiMediaPart = {
+              fileData: {
+                fileUri: imageUri,
+                mimeType: media.mimetype,
+              },
+            };
           }
         }
         break;

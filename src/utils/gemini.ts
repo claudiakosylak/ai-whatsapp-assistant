@@ -10,6 +10,8 @@ import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getPrompt } from './botSettings';
 import { Message, MessageMedia } from 'whatsapp-web.js';
+import { getIsImage } from './messages';
+import { getImageMessage, setToImageMessageCache } from '../cache';
 
 const removeBotName = (message: GeminiContextContent) => {
   const botName = getBotName();
@@ -38,6 +40,36 @@ export const processGeminiResponse = async (
   const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
+
+  const repliedMessage = await message?.getQuotedMessage();
+  if (repliedMessage && getIsImage(repliedMessage)) {
+    let imageUri;
+    const media = await repliedMessage.downloadMedia()
+    const cachedImage = getImageMessage(repliedMessage.id._serialized);
+    if (cachedImage) {
+      imageUri = cachedImage;
+    } else {
+      try {
+        imageUri = await uploadImageToGemini(media.data, media.mimetype);
+        if (imageUri) {
+          setToImageMessageCache(repliedMessage.id._serialized, imageUri);
+        }
+      } catch (error) {
+        addLog(`Image upload error: ${error}`);
+        return;
+      }
+      if (imageUri) {
+        let geminiMediaPart = {
+          fileData: {
+            fileUri: imageUri,
+            mimeType: media.mimetype,
+          },
+        };
+        lastMessage.parts.push(geminiMediaPart)
+      }
+    }
+  }
+
   removeBotName(lastMessage);
   let response;
   let media: MessageMedia | undefined;
@@ -90,9 +122,9 @@ export const processGeminiResponse = async (
       functionCallingConfig: {
         mode: FunctionCallingConfigMode.AUTO,
       },
-    }
+    };
   } else {
-    config.responseModalities = ['Text', 'Image']
+    config.responseModalities = ['Text', 'Image'];
   }
 
   try {
