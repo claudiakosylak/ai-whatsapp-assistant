@@ -1,11 +1,7 @@
 import { Chat, Client, Message } from 'whatsapp-web.js';
 import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
-import {
-  enableAudioResponse,
-  getBotMode,
-  getPrompt,
-} from './botSettings';
+import { enableAudioResponse, getBotMode, getPrompt } from './botSettings';
 import { addLog } from './controlPanel';
 import {
   GeminiContextContent,
@@ -18,6 +14,7 @@ import {
   getIsAudio,
   getIsImage,
   handleCommands,
+  handleSendTo,
   prepareContextMessageList,
   removeBotName,
   shouldProcessMessage,
@@ -152,27 +149,49 @@ export const handleIncomingMessage = async (
   message: Message,
 ) => {
   const chatData = await message.getChat();
-  const response = await processMessage(message, chatData);
-  if (response) {
-    if (chatData.isGroup) {
+  const sendTo = await handleSendTo(message);
+  try {
+    if (sendTo) {
+      chatData.sendSeen();
+      try {
+        // Wrap this specific call in its own try/catch
+        await client.sendMessage(sendTo.number, sendTo.message);
+        message.react('👍')
+        addLog(`Sent message to ${sendTo.number}`);
+      } catch (error: any) {
+        const errorMsg = `Failed to send message to ${sendTo.number}: ${error.message}`;
+        console.error(errorMsg);
+        addLog(errorMsg);
+
+        // Optionally notify the original sender about the failure
+        await message.reply(`Failed to forward message. Please check the format of the forwarding number and try again.`);
+      }
+      return;
+    }
+    const response = await processMessage(message, chatData);
+    if (response) {
+      if (chatData.isGroup) {
+        if (response.messageContent && !response.messageMedia) {
+          await message.reply(response.messageContent, undefined, {
+            sendAudioAsVoice: enableAudioResponse,
+          });
+        }
+        if (response.messageMedia) {
+          await message.reply(response.messageMedia);
+        }
+        return;
+      }
       if (response.messageContent && !response.messageMedia) {
-        await message.reply(response.messageContent, undefined, {
+        await client.sendMessage(response.from, response.messageContent, {
           sendAudioAsVoice: enableAudioResponse,
         });
       }
       if (response.messageMedia) {
-        await message.reply(response.messageMedia);
+        await client.sendMessage(response.from, response.messageMedia);
       }
-      return;
+      addLog(`Sent response to ${response.from}`);
     }
-    if (response.messageContent && !response.messageMedia) {
-      await client.sendMessage(response.from, response.messageContent, {
-        sendAudioAsVoice: enableAudioResponse,
-      });
-    }
-    if (response.messageMedia) {
-      await client.sendMessage(response.from, response.messageMedia);
-    }
-    addLog(`Sent response to ${response.from}`);
+  } catch (e) {
+    addLog(`Error sending response back: ${e}`);
   }
 };

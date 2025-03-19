@@ -162,7 +162,8 @@ export const prepareContextMessageList = async (
         media =
           (isImage && imageCount < 2 && getBotMode() !== 'DIFY_CHAT') ||
           isAudio ||
-          isVideo || isDocument
+          isVideo ||
+          isDocument
             ? await msg.downloadMedia()
             : null;
         if (media && (isImage || isVideo)) imageCount++;
@@ -239,17 +240,19 @@ export const getContextMessageContent = async (
             imageUri = await uploadImageToGemini(media.data, media.mimetype);
             if (imageUri) {
               setToImageMessageCache(msg.id._serialized, imageUri);
-              geminiMediaPart = {
-                fileData: {
-                  fileUri: imageUri,
-                  mimeType: media.mimetype,
-                },
-              };
             }
           } catch (error) {
             addLog(`Image upload error: ${error}`);
             return;
           }
+        }
+        if (imageUri) {
+          geminiMediaPart = {
+            fileData: {
+              fileUri: imageUri,
+              mimeType: media.mimetype,
+            },
+          };
         }
         break;
       default:
@@ -309,8 +312,9 @@ export const getHelpMessage = () => {
 - -help: Show this help message
 - -reset: Reset conversation context
 - -update [prompt]: Update the custom prompt
-- -mode [assistant|webui|dify]: Switch between OpenAI Assistant, Open WebUI Chat, and Dify modes
-- -status: Show current bot settings`;
+- -mode [assistant|chat|chat-webui|dify|gemini]: Switch between OpenAI Assistant, OpenAI Chat, Open WebUI Chat, Dify and Gemini modes
+- -status: Show current bot settings
+- -sendTo: Send message to a certain number`;
 };
 
 export const getStatusMessage = () => {
@@ -331,7 +335,11 @@ export const changeBotMode = (message: Message | TestMessage) => {
       setBotMode('OPENAI_ASSISTANT');
       messageString = 'Switched to OpenAI Assistant mode';
       break;
-    case 'webui':
+    case 'chat':
+      setBotMode('OPENAI_CHAT')
+      messageString = "Switched to OpenAI Chat mode";
+      break;
+    case 'chat-webui':
       setBotMode('OPEN_WEBUI_CHAT');
       messageString = 'Switched to Open WebUI Chat mode';
       break;
@@ -339,8 +347,12 @@ export const changeBotMode = (message: Message | TestMessage) => {
       setBotMode('DIFY_CHAT');
       messageString = 'Switched to Dify mode';
       break;
+    case 'gemini':
+      setBotMode("GEMINI")
+      messageString = 'Switched to Gemini mode'
+      break;
     default:
-      messageString = 'Invalid mode. Use "assistant", "webui", or "dify".';
+      messageString = 'Invalid mode. Use "assistant", "chat", "chat-webui", "dify", or "gemini".';
       break;
   }
   addLog(messageString);
@@ -430,4 +442,17 @@ export const getIsVideo = (message: Message | TestMessage): boolean => {
 export const getIsDocument = (message: Message | TestMessage): boolean => {
   const isDocument = message.type === MessageTypes.DOCUMENT;
   return isDocument;
+};
+
+export const handleSendTo = async (msg: Message) => {
+  if (msg.body.startsWith('-sendTo ')) {
+    // Direct send a new message to specific id
+    let number = msg.body.split(' ')[1];
+    let messageIndex = msg.body.indexOf(number) + number.length;
+    let message = msg.body.slice(messageIndex, msg.body.length);
+    number = number.includes('@c.us') ? number : `${number}@c.us`;
+    return { message, number };
+  } else {
+    return false;
+  }
 };
