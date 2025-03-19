@@ -1,4 +1,10 @@
-import { FileState, FunctionCallingConfigMode, GoogleGenAI, Type } from '@google/genai';
+import {
+  FileState,
+  FunctionCallingConfigMode,
+  GenerateContentConfig,
+  GoogleGenAI,
+  Type,
+} from '@google/genai';
 import { GeminiContextContent, WhatsappResponseAsText } from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
@@ -30,12 +36,6 @@ export const processGeminiResponse = async (
     messageList.shift();
   }
   const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-  let systemInstruction;
-  if (GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
-    systemInstruction = {
-      text: getPrompt(),
-    };
-  }
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
   removeBotName(lastMessage);
@@ -75,26 +75,30 @@ export const processGeminiResponse = async (
     },
   };
 
+  let config: GenerateContentConfig = {};
+
+  if (GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
+    config.systemInstruction = {
+      text: getPrompt(),
+    };
+    config.tools = [
+      {
+        functionDeclarations: [emojiReactionFunctionDeclaration],
+      },
+    ];
+    config.toolConfig = {
+      functionCallingConfig: {
+        mode: FunctionCallingConfigMode.AUTO,
+      },
+    }
+  } else {
+    config.responseModalities = ['Text', 'Image']
+  }
+
   try {
     const chat = client.chats.create({
       model: GEMINI_MODEL,
-      config: {
-        systemInstruction: systemInstruction,
-        responseModalities:
-          GEMINI_MODEL === 'gemini-2.0-flash-exp'
-            ? ['Text', 'Image']
-            : undefined,
-        tools: [
-          {
-            functionDeclarations: [emojiReactionFunctionDeclaration],
-          },
-        ],
-        toolConfig: {
-          functionCallingConfig: {
-            mode: FunctionCallingConfigMode.AUTO
-          }
-        }
-      },
+      config,
       history: messageList,
     });
     response = await chat.sendMessage({ message: lastMessage.parts });
