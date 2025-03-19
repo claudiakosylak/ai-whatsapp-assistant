@@ -156,6 +156,7 @@ export const handleIncomingMessage = async (
       try {
         // Wrap this specific call in its own try/catch
         await client.sendMessage(sendTo.number, sendTo.message);
+        message.react('👍')
         addLog(`Sent message to ${sendTo.number}`);
       } catch (error: any) {
         const errorMsg = `Failed to send message to ${sendTo.number}: ${error.message}`;
