@@ -310,7 +310,8 @@ export const getHelpMessage = () => {
 - -reset: Reset conversation context
 - -update [prompt]: Update the custom prompt
 - -mode [assistant|webui|dify]: Switch between OpenAI Assistant, Open WebUI Chat, and Dify modes
-- -status: Show current bot settings`;
+- -status: Show current bot settings
+- -sendTo: Send message to a certain number`;
 };
 
 export const getStatusMessage = () => {
@@ -431,3 +432,16 @@ export const getIsDocument = (message: Message | TestMessage): boolean => {
   const isDocument = message.type === MessageTypes.DOCUMENT;
   return isDocument;
 };
+
+export const handleSendTo = async (msg: Message) => {
+  if (msg.body.startsWith('-sendTo ')) {
+    // Direct send a new message to specific id
+    let number = msg.body.split(' ')[1];
+    let messageIndex = msg.body.indexOf(number) + number.length;
+    let message = msg.body.slice(messageIndex, msg.body.length);
+    number = number.includes('@c.us') ? number : `${number}@c.us`;
+    return {message, number}
+  } else {
+    return false;
+  }
+}

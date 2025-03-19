@@ -18,6 +18,7 @@ import {
   getIsAudio,
   getIsImage,
   handleCommands,
+  handleSendTo,
   prepareContextMessageList,
   removeBotName,
   shouldProcessMessage,
@@ -152,6 +153,13 @@ export const handleIncomingMessage = async (
   message: Message,
 ) => {
   const chatData = await message.getChat();
+  const sendTo = await handleSendTo(message)
+  if (sendTo) {
+    chatData.sendSeen()
+    client.sendMessage(sendTo.number, sendTo.message)
+    addLog(`Send message to ${sendTo.number}`)
+    return
+  }
   const response = await processMessage(message, chatData);
   if (response) {
     if (chatData.isGroup) {
