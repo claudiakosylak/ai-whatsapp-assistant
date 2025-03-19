@@ -161,13 +161,19 @@ select {
   padding: 10px;
   border-radius: 10px;
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
   align-items: 'center';
   justify-content: 'center';
   width: 200px;
-  height: 100px;
+  /* height: 100px; */
   text-align: 'center';
   box-shadow: 0 0 10px var(--shadow);
+}
+
+.audio-canvas {
+  border-radius: 10px;
+  box-shadow: 0 0 10px var(--shadow);
+  /* background-color: var(--background); */
 }
 
 input:focus,
