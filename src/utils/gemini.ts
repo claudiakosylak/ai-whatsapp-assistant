@@ -11,7 +11,7 @@ import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getPrompt } from './botSettings';
 import { Message, MessageMedia } from 'whatsapp-web.js';
-import { getIsImage } from './messages';
+import { getIsDocument, getIsImage } from './messages';
 import { getImageMessage, setToImageMessageCache } from '../cache';
 
 const removeBotName = (message: GeminiContextContent) => {
@@ -35,15 +35,16 @@ export const processGeminiResponse = async (
 ): Promise<WhatsappResponseAsText | undefined> => {
   addLog('Processing Gemini response.');
   // context history has to start with a user message for gemini
-  while (messageList[0].role === 'model') {
-    messageList.shift();
+  if (messageList[0].role === 'model') {
+    messageList.unshift({role: 'user', parts: [{text: ''}]});
   }
-  // const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
 
   const repliedMessage = await message?.getQuotedMessage();
-  if (repliedMessage && getIsImage(repliedMessage)) {
+  if (repliedMessage && (getIsImage(repliedMessage) || getIsDocument(repliedMessage))) {
+    addLog(`Got image in replied message.`)
     let imageUri;
     const media = await repliedMessage.downloadMedia();
     const cachedImage = getImageMessage(repliedMessage.id._serialized);
@@ -109,10 +110,13 @@ export const processGeminiResponse = async (
 
   messageList.push(lastMessage);
 
+
   // let config: GenerateContentConfig = {};
   let body: any = {
     contents: messageList,
   };
+
+  addLog(`Gemini message list: ${JSON.stringify(messageList)}`)
 
   if (GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
     // config.systemInstruction = {
@@ -146,7 +150,6 @@ export const processGeminiResponse = async (
       },
     };
   } else {
-    // config.responseModalities = ['Text', 'Image'];
     body.generationConfig = {
       responseModalities: ['TEXT', 'IMAGE']
     }
@@ -183,12 +186,6 @@ export const processGeminiResponse = async (
     }
     let responseContent: Content = response.candidates[0].content;
 
-    // const chat = client.chats.create({
-    //   model: GEMINI_MODEL,
-    //   config,
-    //   history: messageList,
-    // });
-    // response = await chat.sendMessage({ message: lastMessage.parts });
     if (!responseContent.parts) throw new Error('no parts');
     for (let part of responseContent.parts) {
       if (part.functionCall) {
@@ -218,33 +215,6 @@ export const processGeminiResponse = async (
       return await functions[call.name](call.args);
     }
 
-    // if (response.functionCalls) {
-    //   const call = response.functionCalls[0];
-    //   if (call && call.name) {
-    //     return await functions[call.name](call.args);
-    //   }
-    // }
-
-    // if (response && response.candidates) {
-    //   response.candidates[0].content?.parts?.forEach(async (part) => {
-    //     if (
-    //       part.inlineData &&
-    //       part.inlineData.data &&
-    //       part.inlineData.mimeType
-    //     ) {
-    //       const base64Data = part.inlineData.data.replace(
-    //         /^data:image\/\w+;base64,/,
-    //         '',
-    //       );
-    //       media = new MessageMedia(
-    //         part.inlineData.mimeType,
-    //         base64Data,
-    //         null,
-    //         null,
-    //       );
-    //     }
-    //   });
-    // }
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
     return {
