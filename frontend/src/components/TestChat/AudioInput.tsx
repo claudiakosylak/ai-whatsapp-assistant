@@ -41,6 +41,17 @@ export const AudioInput = ({
 
       analyserNode.current.fftSize = 256; // Number of frequency bins
     }
+    // Reset the play button when the audio finishes
+    audioRef.addEventListener('ended', () => {
+      setIsPlaying(false);
+    });
+
+    return () => {
+      // Cleanup the event listener when component unmounts
+      audioRef.removeEventListener('ended', () => {
+        setIsPlaying(false);
+      });
+    };
   }, [audioRef]);
 
   const animateWave = () => {
@@ -149,6 +160,20 @@ export const AudioInput = ({
     }
   };
 
+  // const resetAudio = () => {
+  //   if (!audioRef) return;
+  //   setIsPlaying(false);
+  //   // Reset the audio context, analyzer, and canvas when the audio is cleared
+  //   if (audioRef.current) {
+  //     audioRef.current.pause();
+  //     audioRef.current.currentTime = 0;
+  //   }
+  //   if (animationFrameId.current) {
+  //     cancelAnimationFrame(animationFrameId.current);
+  //   }
+  //   // Reset the canvas or other UI elements as needed
+  // };
+
   return (
     <>
       <button
@@ -193,40 +218,47 @@ export const AudioInput = ({
           <div className="input-audio">
             <canvas
               ref={canvasRef}
-            //   width={300}
+              //   width={300}
               height={20}
-              className='audio-canvas'
+              className="audio-canvas"
             />
             <div className="audio-controls">
               <button
                 onClick={startWaveAnimation}
                 style={{ padding: '5px 10px', margin: '5px' }}
                 type="button"
+                className="button"
               >
-                {isPlaying ? 'Pause' : 'Play'}
+                {isPlaying ? (
+                  <i className="fa-solid fa-pause"></i>
+                ) : (
+                  <i className="fa-solid fa-play"></i>
+                )}
               </button>
               <button
                 onClick={stopAudio}
                 style={{ padding: '5px 10px', margin: '5px' }}
-                className='button'
+                className="button"
                 type="button"
               >
-                Stop
+                <i className="fa-solid fa-stop"></i>
+              </button>
+              <button
+                type="button"
+                id="deleteRecordedAudio"
+                className="delete-button button"
+                style={{ padding: '5px 10px', margin: '5px' }}
+                onClick={() => {
+                  // resetAudio(); // Reset audio and animation when cleared
+                  setAudioInput(undefined);
+                  setActiveMediaInput(null);
+                  setAudioRef(null);
+                }}
+              >
+                <i className="fa-solid fa-trash"></i>
               </button>
             </div>
           </div>
-          <button
-            type="button"
-            id="deleteRecordedAudio"
-            className="delete-button button"
-            onClick={() => {
-              setAudioInput(undefined);
-              setActiveMediaInput(null);
-              setAudioRef(null);
-            }}
-          >
-            <i className="fa-solid fa-trash"></i>
-          </button>
         </>
       )}
     </>
