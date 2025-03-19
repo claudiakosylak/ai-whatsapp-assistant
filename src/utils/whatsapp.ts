@@ -78,7 +78,7 @@ export const getResponseText = async (
         response = await processGeminiResponse(
           message.from,
           (messageList as GeminiContextContent[]).reverse(),
-          message as Message,
+          message,
         );
         break;
       default:

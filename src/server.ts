@@ -39,7 +39,7 @@ config();
 const PORT = 3000;
 
 // Middleware for parsing JSON
-app.use(express.json({ limit: '10mb'}));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // API Routes
@@ -67,7 +67,8 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     mimeType,
     imageUrl,
     replyingMessageId,
-    audio,
+    audioUrl,
+    audioBase64,
     user,
   } = req.body;
 
@@ -76,12 +77,10 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
   const userMessageMedia: MessageMedia | undefined = imageBase64
     ? {
         data: imageBase64,
-        filename: null,
-        filesize: null,
         mimetype: mimeType,
       }
-    : audio
-    ? { data: audio, mimetype: mimeType }
+    : audioBase64
+    ? { data: audioBase64, mimetype: mimeType }
     : undefined;
 
   const getMessageMedia: () => Promise<MessageMedia> = () =>
@@ -135,9 +134,9 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     body: message,
     hasQuotedMsg: replyingMessageId !== '',
     timestamp: parseInt(new Date().toString()),
-    type: imageBase64 ? 'image' : audio ? 'audio' : 'chat',
+    type: imageBase64 ? 'image' : audioUrl ? 'audio' : 'chat',
     fromMe: false,
-    from: 'test',
+    from: 'test2',
     downloadMedia: getMessageMedia,
     getQuotedMessage,
     react: addReaction,
@@ -153,6 +152,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     message: userTestMessage,
     media: userMessageMedia,
     imageUrl,
+    audioUrl,
   });
 
   try {
@@ -315,6 +315,6 @@ export const startControlPanel = () => {
   });
 };
 
-startControlPanel()
+startControlPanel();
 
 export default app;

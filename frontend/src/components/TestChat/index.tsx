@@ -18,6 +18,7 @@ export type DummyChatItem = {
   name: string;
   content: string;
   imageUrl?: string;
+  audioUrl?: string;
 };
 
 export const TestChat = () => {
@@ -49,7 +50,8 @@ export const TestChat = () => {
   const sendNewMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     let mimeType;
-    let base64String;
+    let imageBase64;
+    let audioBase64;
 
     if (
       imageInputRef.current &&
@@ -58,8 +60,12 @@ export const TestChat = () => {
     ) {
       const fileResult = await readImageFile(imageInputRef.current.files[0]);
       mimeType = fileResult.mimeType;
-      base64String = fileResult.base64String;
+      imageBase64 = fileResult.base64String;
       imageInputRef.current.value = '';
+    }
+    if (audioInput) {
+      mimeType = audioInput.mimeType
+      audioBase64 = audioInput.base64String
     }
 
     const dummyChatItem: DummyChatItem = {
@@ -67,6 +73,7 @@ export const TestChat = () => {
       content: textInput,
       id: '',
       imageUrl: imageInput,
+      audioUrl: audioInput?.audioUrl,
     };
     const newMessages = messages ? [...messages] : [];
     newMessages.push(dummyChatItem);
@@ -78,14 +85,17 @@ export const TestChat = () => {
       body: JSON.stringify({
         message: textInput,
         user: activeUser,
-        imageBase64: base64String,
+        imageBase64,
         mimeType,
         imageUrl: imageInput,
+        audioBase64,
+        audioUrl: audioInput?.audioUrl,
       }),
     });
     setTextInput('');
     setImageInput(undefined);
     setActiveMediaInput(null);
+    setAudioInput(undefined)
     if (response.ok) {
       await fetchChatData();
     }
