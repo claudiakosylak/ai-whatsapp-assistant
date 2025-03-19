@@ -245,14 +245,14 @@ export const getContextMessageContent = async (
             addLog(`Image upload error: ${error}`);
             return;
           }
-          if (imageUri) {
-            geminiMediaPart = {
-              fileData: {
-                fileUri: imageUri,
-                mimeType: media.mimetype,
-              },
-            };
-          }
+        }
+        if (imageUri) {
+          geminiMediaPart = {
+            fileData: {
+              fileUri: imageUri,
+              mimeType: media.mimetype,
+            },
+          };
         }
         break;
       default:

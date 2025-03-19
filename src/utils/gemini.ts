@@ -36,22 +36,25 @@ export const processGeminiResponse = async (
   addLog('Processing Gemini response.');
   // context history has to start with a user message for gemini
   if (messageList[0].role === 'model') {
-    messageList.unshift({role: 'user', parts: [{text: ''}]});
+    messageList.unshift({ role: 'user', parts: [{ text: '' }] });
   }
 
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
 
   const repliedMessage = await message?.getQuotedMessage();
-  if (repliedMessage && (getIsImage(repliedMessage) || getIsDocument(repliedMessage))) {
-    addLog(`Got image in replied message.`)
+  if (
+    repliedMessage &&
+    (getIsImage(repliedMessage) || getIsDocument(repliedMessage))
+  ) {
+    addLog(`Got image in replied message.`);
     let imageUri;
     const media = await repliedMessage.downloadMedia();
     const cachedImage = getImageMessage(repliedMessage.id._serialized);
     if (cachedImage) {
-      addLog(`Cached image: ${cachedImage}`)
+      addLog(`Cached image: ${cachedImage}`);
       imageUri = cachedImage;
-      addLog(`uri coming from cache: ${imageUri}`)
+      addLog(`uri coming from cache: ${imageUri}`);
     } else {
       try {
         imageUri = await uploadImageToGemini(media.data, media.mimetype);
@@ -62,16 +65,16 @@ export const processGeminiResponse = async (
         addLog(`Image upload error: ${error}`);
         return;
       }
-      if (imageUri) {
-        addLog(`There is a uri for the image/document`)
-        let geminiMediaPart = {
-          fileData: {
-            fileUri: imageUri,
-            mimeType: media.mimetype,
-          },
-        };
-        lastMessage.parts.push(geminiMediaPart);
-      }
+    }
+    if (imageUri) {
+      addLog(`There is a uri for the image/document`);
+      let geminiMediaPart = {
+        fileData: {
+          fileUri: imageUri,
+          mimeType: media.mimetype,
+        },
+      };
+      lastMessage.parts.push(geminiMediaPart);
     }
   }
 
@@ -113,13 +116,12 @@ export const processGeminiResponse = async (
 
   messageList.push(lastMessage);
 
-
   // let config: GenerateContentConfig = {};
   let body: any = {
     contents: messageList,
   };
 
-  addLog(`Gemini message list: ${JSON.stringify(messageList)}`)
+  addLog(`Gemini message list: ${JSON.stringify(messageList)}`);
 
   if (GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
     // config.systemInstruction = {
@@ -154,8 +156,8 @@ export const processGeminiResponse = async (
     };
   } else {
     body.generationConfig = {
-      responseModalities: ['TEXT', 'IMAGE']
-    }
+      responseModalities: ['TEXT', 'IMAGE'],
+    };
   }
 
   let response: GenerateContentResponse;
@@ -192,32 +194,23 @@ export const processGeminiResponse = async (
     if (!responseContent.parts) throw new Error('no parts');
     for (let part of responseContent.parts) {
       if (part.functionCall) {
-        call = part.functionCall
+        call = part.functionCall;
         break;
       }
-      const blob = part.inlineData
+      const blob = part.inlineData;
       if (blob && blob.data && blob.mimeType) {
-        const base64Data = blob.data.replace(
-          /^data:image\/\w+;base64,/,
-          '',
-        );
-        media = new MessageMedia(
-          blob.mimeType,
-          base64Data,
-          null,
-          null,
-        );
+        const base64Data = blob.data.replace(/^data:image\/\w+;base64,/, '');
+        media = new MessageMedia(blob.mimeType, base64Data, null, null);
         break;
       }
       if (part.text) {
-        responseText = part.text
+        responseText = part.text;
       }
     }
 
     if (call && call.name) {
       return await functions[call.name](call.args);
     }
-
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
     return {
@@ -228,12 +221,11 @@ export const processGeminiResponse = async (
   }
   return {
     from,
-    messageContent:
-      responseText
-        ? responseText
-        : media
-        ? ''
-        : 'There was a problem with your request.',
+    messageContent: responseText
+      ? responseText
+      : media
+      ? ''
+      : 'There was a problem with your request.',
     messageMedia: media,
     rawText: responseText || 'Error.',
   };
