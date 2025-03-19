@@ -127,6 +127,9 @@ export const processGeminiResponse = async (
     config.responseModalities = ['Text', 'Image'];
   }
 
+  addLog(`Message history to gemini: ${JSON.stringify(messageList)}`)
+  addLog(`Gemini model :${GEMINI_MODEL}`)
+
   try {
     const chat = client.chats.create({
       model: GEMINI_MODEL,
