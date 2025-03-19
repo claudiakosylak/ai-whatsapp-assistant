@@ -1,7 +1,8 @@
 import {
+  Content,
   FileState,
   FunctionCallingConfigMode,
-  GenerateContentConfig,
+  GenerateContentResponse,
   GoogleGenAI,
   Type,
 } from '@google/genai';
@@ -37,14 +38,14 @@ export const processGeminiResponse = async (
   while (messageList[0].role === 'model') {
     messageList.shift();
   }
-  const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+  // const client = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
 
   const repliedMessage = await message?.getQuotedMessage();
   if (repliedMessage && getIsImage(repliedMessage)) {
     let imageUri;
-    const media = await repliedMessage.downloadMedia()
+    const media = await repliedMessage.downloadMedia();
     const cachedImage = getImageMessage(repliedMessage.id._serialized);
     if (cachedImage) {
       imageUri = cachedImage;
@@ -65,13 +66,12 @@ export const processGeminiResponse = async (
             mimeType: media.mimetype,
           },
         };
-        lastMessage.parts.push(geminiMediaPart)
+        lastMessage.parts.push(geminiMediaPart);
       }
     }
   }
 
   removeBotName(lastMessage);
-  let response;
   let media: MessageMedia | undefined;
   const doEmojiReaction = (emoji: string) => {
     if (message && emoji) {
@@ -107,64 +107,142 @@ export const processGeminiResponse = async (
     },
   };
 
-  let config: GenerateContentConfig = {};
+  messageList.push(lastMessage);
+
+  // let config: GenerateContentConfig = {};
+  let body: any = {
+    contents: messageList,
+  };
 
   if (GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
-    config.systemInstruction = {
-      text: getPrompt(),
+    // config.systemInstruction = {
+    //   text: getPrompt(),
+    // };
+    // config.tools = [
+    //   {
+    //     functionDeclarations: [emojiReactionFunctionDeclaration],
+    //   },
+    // ];
+    // config.toolConfig = {
+    //   functionCallingConfig: {
+    //     mode: FunctionCallingConfigMode.AUTO,
+    //   },
+    // };
+    body.systemInstruction = {
+      parts: [
+        {
+          text: getPrompt(),
+        },
+      ],
     };
-    config.tools = [
+    body.tools = [
       {
         functionDeclarations: [emojiReactionFunctionDeclaration],
       },
     ];
-    config.toolConfig = {
+    body.toolConfig = {
       functionCallingConfig: {
         mode: FunctionCallingConfigMode.AUTO,
       },
     };
   } else {
-    config.responseModalities = ['Text', 'Image'];
+    // config.responseModalities = ['Text', 'Image'];
+    body.generationConfig.responseModalities = ['TEXT', 'IMAGE'];
   }
 
-  addLog(`Message history to gemini: ${JSON.stringify(messageList)}`)
-  addLog(`Gemini model :${GEMINI_MODEL}`)
+  let response: GenerateContentResponse;
+
+  let call;
+  let responseText;
 
   try {
-    const chat = client.chats.create({
-      model: GEMINI_MODEL,
-      config,
-      history: messageList,
-    });
-    response = await chat.sendMessage({ message: lastMessage.parts });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      },
+    );
 
-    if (response.functionCalls) {
-      const call = response.functionCalls[0];
-      if (call && call.name) {
-        return await functions[call.name](call.args);
+    response = await res.json();
+
+    if (
+      !res.ok ||
+      !response ||
+      !response.candidates ||
+      !response.candidates[0] ||
+      !response.candidates[0].content ||
+      !response.candidates[0].content.parts
+    ) {
+      throw new Error(JSON.stringify(response));
+    }
+    let responseContent: Content = response.candidates[0].content;
+
+    // const chat = client.chats.create({
+    //   model: GEMINI_MODEL,
+    //   config,
+    //   history: messageList,
+    // });
+    // response = await chat.sendMessage({ message: lastMessage.parts });
+    if (!responseContent.parts) throw new Error('no parts');
+    for (let part of responseContent.parts) {
+      if (part.functionCall) {
+        call = part.functionCall
+        break;
+      }
+      const blob = part.inlineData
+      if (blob && blob.data && blob.mimeType) {
+        const base64Data = blob.data.replace(
+          /^data:image\/\w+;base64,/,
+          '',
+        );
+        media = new MessageMedia(
+          blob.mimeType,
+          base64Data,
+          null,
+          null,
+        );
+        break;
+      }
+      if (part.text) {
+        responseText = part.text
       }
     }
 
-    if (response && response.candidates) {
-      response.candidates[0].content?.parts?.forEach(async (part) => {
-        if (
-          part.inlineData &&
-          part.inlineData.data &&
-          part.inlineData.mimeType
-        ) {
-          const base64Data = part.inlineData.data.replace(
-            /^data:image\/\w+;base64,/,
-            '',
-          );
-          media = new MessageMedia(
-            part.inlineData.mimeType,
-            base64Data,
-            null,
-            null,
-          );
-        }
-      });
+    if (call && call.name) {
+      return await functions[call.name](call.args);
     }
+
+    // if (response.functionCalls) {
+    //   const call = response.functionCalls[0];
+    //   if (call && call.name) {
+    //     return await functions[call.name](call.args);
+    //   }
+    // }
+
+    // if (response && response.candidates) {
+    //   response.candidates[0].content?.parts?.forEach(async (part) => {
+    //     if (
+    //       part.inlineData &&
+    //       part.inlineData.data &&
+    //       part.inlineData.mimeType
+    //     ) {
+    //       const base64Data = part.inlineData.data.replace(
+    //         /^data:image\/\w+;base64,/,
+    //         '',
+    //       );
+    //       media = new MessageMedia(
+    //         part.inlineData.mimeType,
+    //         base64Data,
+    //         null,
+    //         null,
+    //       );
+    //     }
+    //   });
+    // }
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
     return {
@@ -175,13 +253,14 @@ export const processGeminiResponse = async (
   }
   return {
     from,
-    messageContent: response.text
-      ? response.text
-      : media
-      ? ''
-      : 'There was a problem with your request.',
+    messageContent:
+      responseText
+        ? responseText
+        : media
+        ? ''
+        : 'There was a problem with your request.',
     messageMedia: media,
-    rawText: response.text || 'Error.',
+    rawText: responseText || 'Error.',
   };
 };
 
