@@ -61,6 +61,7 @@ export const processGeminiResponse = async (
         return;
       }
       if (imageUri) {
+        addLog(`There is a uri for the image/document`)
         let geminiMediaPart = {
           fileData: {
             fileUri: imageUri,
