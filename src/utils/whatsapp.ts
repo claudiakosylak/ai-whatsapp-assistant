@@ -1,11 +1,7 @@
 import { Chat, Client, Message } from 'whatsapp-web.js';
 import { processAssistantResponse } from './assistant';
 import { processChatCompletionResponse } from './chatCompletion';
-import {
-  enableAudioResponse,
-  getBotMode,
-  getPrompt,
-} from './botSettings';
+import { enableAudioResponse, getBotMode, getPrompt } from './botSettings';
 import { addLog } from './controlPanel';
 import {
   GeminiContextContent,
@@ -153,34 +149,38 @@ export const handleIncomingMessage = async (
   message: Message,
 ) => {
   const chatData = await message.getChat();
-  const sendTo = await handleSendTo(message)
-  if (sendTo) {
-    chatData.sendSeen()
-    client.sendMessage(sendTo.number, sendTo.message)
-    addLog(`Send message to ${sendTo.number}`)
-    return
-  }
-  const response = await processMessage(message, chatData);
-  if (response) {
-    if (chatData.isGroup) {
+  const sendTo = await handleSendTo(message);
+  try {
+    if (sendTo) {
+      chatData.sendSeen();
+      client.sendMessage(sendTo.number, sendTo.message);
+      addLog(`Send message to ${sendTo.number}`);
+      return;
+    }
+    const response = await processMessage(message, chatData);
+    if (response) {
+      if (chatData.isGroup) {
+        if (response.messageContent && !response.messageMedia) {
+          await message.reply(response.messageContent, undefined, {
+            sendAudioAsVoice: enableAudioResponse,
+          });
+        }
+        if (response.messageMedia) {
+          await message.reply(response.messageMedia);
+        }
+        return;
+      }
       if (response.messageContent && !response.messageMedia) {
-        await message.reply(response.messageContent, undefined, {
+        await client.sendMessage(response.from, response.messageContent, {
           sendAudioAsVoice: enableAudioResponse,
         });
       }
       if (response.messageMedia) {
-        await message.reply(response.messageMedia);
+        await client.sendMessage(response.from, response.messageMedia);
       }
-      return;
+      addLog(`Sent response to ${response.from}`);
     }
-    if (response.messageContent && !response.messageMedia) {
-      await client.sendMessage(response.from, response.messageContent, {
-        sendAudioAsVoice: enableAudioResponse,
-      });
-    }
-    if (response.messageMedia) {
-      await client.sendMessage(response.from, response.messageMedia);
-    }
-    addLog(`Sent response to ${response.from}`);
+  } catch (e) {
+    addLog(`Error sending response back: ${e}`);
   }
 };
