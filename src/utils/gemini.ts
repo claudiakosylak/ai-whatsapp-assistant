@@ -175,6 +175,8 @@ export const processGeminiResponse = async (
     }
     let responseContent: Content = response.candidates[0].content;
 
+    addLog(`second candidate content? : ${JSON.stringify(response.candidates[1].content)}`)
+
     if (!responseContent.parts) throw new Error('no parts');
     for (let part of responseContent.parts) {
       if (part.functionCall) {
