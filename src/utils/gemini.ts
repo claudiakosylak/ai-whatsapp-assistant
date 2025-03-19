@@ -50,6 +50,7 @@ export const processGeminiResponse = async (
     const cachedImage = getImageMessage(repliedMessage.id._serialized);
     if (cachedImage) {
       imageUri = cachedImage;
+      addLog(`uri coming from cache`)
     } else {
       try {
         imageUri = await uploadImageToGemini(media.data, media.mimetype);
