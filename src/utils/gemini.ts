@@ -147,7 +147,9 @@ export const processGeminiResponse = async (
     };
   } else {
     // config.responseModalities = ['Text', 'Image'];
-    body.generationConfig.responseModalities = ['TEXT', 'IMAGE'];
+    body.generationConfig = {
+      responseModalities: ['TEXT', 'IMAGE']
+    }
   }
 
   let response: GenerateContentResponse;
