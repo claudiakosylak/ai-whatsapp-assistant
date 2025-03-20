@@ -25,6 +25,7 @@ import {
   changeChatType,
   chatHistory,
   getTestChatData,
+  logs,
   setChatHistory,
 } from './utils/controlPanel';
 import { randomUUID } from 'crypto';
@@ -49,6 +50,10 @@ apiRouter.get('/chat', (req: Request, res: Response) => {
   const testChat = getTestChatData();
   const chatMessages = chatHistory;
   res.json({ chat: testChat, messages: chatMessages });
+});
+
+apiRouter.get('/logs', (req, res) => {
+  res.json(logs);
 });
 
 apiRouter.put('/chat', (req: Request, res: Response) => {
