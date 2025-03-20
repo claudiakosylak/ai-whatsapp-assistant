@@ -67,8 +67,16 @@ export const ChatSettings = ({
         type="button"
         className="button"
         onClick={() => setIsSettingsModalOpen(true)}
+        style={{
+          background: 'none',
+          padding: '0',
+          alignSelf: 'flex-start',
+        }}
       >
-        <i className="fa-solid fa-gear"></i>
+        <i
+          className="fa-solid fa-gear"
+          style={{ fontSize: '20px', verticalAlign: 'top' }}
+        ></i>
       </button>
       {isSettingsModalOpen && (
         <div className="modal chat-settings" ref={settingsModalRef}>

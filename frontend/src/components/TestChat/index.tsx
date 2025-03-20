@@ -169,6 +169,12 @@ export const TestChat = () => {
               <option value="user2">User 2</option>
             </select>
           )}
+          {activeMediaInput === null && (
+            <AddMedia
+              imageInputRef={imageInputRef}
+              audioInputRef={audioInputRef}
+            />
+          )}
           {activeMediaInput !== 'audio' && (
             <input
               type="text"
@@ -185,15 +191,11 @@ export const TestChat = () => {
             setActiveMediaInput={setActiveMediaInput}
           />
 
-          {activeMediaInput === null && (
-            <AddMedia
-              imageInputRef={imageInputRef}
-              audioInputRef={audioInputRef}
-            />
-          )}
           <button
             type="submit"
-            className={isSendDisabled ? 'button-disabled' : 'button'}
+            className={`${
+              isSendDisabled ? 'button-disabled' : 'button'
+            } send-button`}
             disabled={isSendDisabled}
           >
             <i className="fa-solid fa-paper-plane"></i>
