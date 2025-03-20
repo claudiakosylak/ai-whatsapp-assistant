@@ -65,9 +65,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     message,
     imageBase64,
     mimeType,
-    imageUrl,
     replyingMessageId,
-    audioUrl,
     audioBase64,
     user,
   } = req.body;
@@ -134,7 +132,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     body: message,
     hasQuotedMsg: replyingMessageId !== '',
     timestamp: parseInt(new Date().toString()),
-    type: imageBase64 ? 'image' : audioUrl ? 'audio' : 'chat',
+    type: imageBase64 ? 'image' : audioBase64 ? 'audio' : 'chat',
     fromMe: false,
     from: 'test2',
     downloadMedia: getMessageMedia,
@@ -151,8 +149,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     rawText: message,
     message: userTestMessage,
     media: userMessageMedia,
-    imageUrl,
-    audioUrl,
+    mediaType: imageBase64 ? 'image' : 'audio',
   });
 
   try {

@@ -1,6 +1,5 @@
 import {
   ChatCompletionAssistantMessageParam,
-  ChatCompletionDeveloperMessageParam,
   ChatCompletionSystemMessageParam,
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
@@ -19,9 +18,8 @@ export type ChatHistoryItem = {
   rawText: string;
   message: TestMessage;
   media: MessageMedia | undefined;
+  mediaType?: 'image' | 'audio';
   reaction?: string;
-  imageUrl?: string;
-  audioUrl?: string;
 };
 
 export type TestMessage = {
@@ -89,18 +87,18 @@ export type MockChat = {
 export type GeminiFileData = {
   fileUri: string;
   mimeType: string;
-}
+};
 
 export type GeminiContextPart = {
   fileData?: GeminiFileData;
   text?: string;
-}
+};
 
 export type GeminiContextContent = {
   role: 'user' | 'model';
   parts: GeminiContextPart[];
-}
+};
 
 export type EmojiReaction = {
   emoji: string;
-}
+};

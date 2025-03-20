@@ -17,8 +17,11 @@ export type DummyChatItem = {
   id: string;
   name: string;
   content: string;
-  imageUrl?: string;
-  audioUrl?: string;
+  media?: {
+    data: string;
+    mimetype: string;
+  };
+  mediaType?: 'image' | 'audio';
 };
 
 export const TestChat = () => {
@@ -64,38 +67,46 @@ export const TestChat = () => {
       imageInputRef.current.value = '';
     }
     if (audioInput) {
-      mimeType = audioInput.mimeType
-      audioBase64 = audioInput.base64String
+      mimeType = audioInput.mimeType;
+      audioBase64 = audioInput.base64String;
     }
+
+    const hasMedia = imageBase64 || audioBase64;
 
     const dummyChatItem: DummyChatItem = {
       name: activeUser,
       content: textInput,
       id: '',
-      imageUrl: imageInput,
-      audioUrl: audioInput?.audioUrl,
+      mediaType: imageBase64 ? 'image' : 'audio',
+      media: hasMedia
+        ? {
+            data: imageBase64 || audioBase64 || '',
+            mimetype: mimeType || '',
+          }
+        : undefined,
     };
     const newMessages = messages ? [...messages] : [];
     newMessages.push(dummyChatItem);
     setMessages(newMessages);
     setIsTyping(true);
-    const response = await fetch('/api/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: textInput,
-        user: activeUser,
-        imageBase64,
-        mimeType,
-        imageUrl: imageInput,
-        audioBase64,
-        audioUrl: audioInput?.audioUrl,
-      }),
-    });
+
+    const body = {
+      message: textInput,
+      user: activeUser,
+      imageBase64,
+      mimeType,
+      audioBase64,
+    };
     setTextInput('');
     setImageInput(undefined);
     setActiveMediaInput(null);
-    setAudioInput(undefined)
+    setAudioInput(undefined);
+    const response = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
     if (response.ok) {
       await fetchChatData();
     }

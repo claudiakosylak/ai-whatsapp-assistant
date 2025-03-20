@@ -18,9 +18,8 @@ export type ChatHistoryItem = {
   rawText: string;
   message: TestMessage;
   media: MessageMedia | undefined;
+  mediaType?: 'image' | 'audio';
   reaction?: string;
-  imageUrl?: string;
-  audioUrl?: string;
 };
 
 export type TestMessage = {

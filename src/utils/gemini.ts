@@ -112,10 +112,6 @@ export const processGeminiResponse = async (
 
   messageList.push(lastMessage);
 
-  addLog(`Message list to gemini: ${JSON.stringify(messageList)}`)
-  addLog(`Function calling mode: ${FunctionCallingConfigMode.AUTO}`)
-  addLog(`Gemini model: ${GEMINI_MODEL}`)
-
   let body: any = {
     contents: messageList,
   };
