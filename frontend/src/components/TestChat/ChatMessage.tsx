@@ -38,7 +38,7 @@ export const ChatMessage = ({ message, isGroup }: Props) => {
               <AudioPlayer audioUrl={audioUrl} />
             ) : null}
           </div>
-          <i className="fa-solid fa-reply" id={`reply-${message.id}`}></i>
+          {/* <i className="fa-solid fa-reply" id={`reply-${message.id}`}></i> */}
         </div>
       )}
     </>

@@ -15,12 +15,20 @@ body {
   /* flex: 1; */
 }
 
+.audio-control-button {
+  height: 100%;
+  aspect-ratio: 1/1;
+  /* display: flex;
+  justify-content: center;
+  align-items: center; */
+}
+
 .audio-canvas {
   flex: 1;
   border: 1px solid var(--primary);
-  border-radius: 10px;
+  border-radius: 10px 0 0 10px;
   box-shadow: 0 0 10px var(--shadow);
-  background-color: var(--background);
+  /* background-color: var(--background); */
 }
 
 .button {
@@ -170,9 +178,8 @@ select {
 
 .input-audio {
   flex: 1;
-  /* filter: invert(var(--dark-mode-invert, 0));  */
-  background-color: var(--chat-bg); /* Match the input background */
-  padding: 10px;
+  /* background-color: var(--chat-bg); */
+  /* padding: 10px; */
   border-radius: 10px;
   display: flex;
   /* flex-direction: column; */
@@ -232,9 +239,13 @@ textarea:focus {
 }
 
 .message:has(img) {
-  max-width: fit-content; /* Adjusts width to match image size */
-  padding: 0; /* Remove extra padding from text messages */
-  overflow: hidden; /* Prevents weird spacing issues */
+  max-width: fit-content;
+  padding: 0;
+  overflow: hidden;
+}
+
+.message:has(audio) {
+  padding: 0;
 }
 
 .message.user {

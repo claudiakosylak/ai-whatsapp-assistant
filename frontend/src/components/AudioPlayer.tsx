@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AudioInputType } from './TestChat';
+import { useTheme } from '../ThemeProvider';
 
 // Create a single shared AudioContext for the application
 // This prevents creating multiple contexts that might conflict
@@ -18,6 +19,7 @@ export const AudioPlayer = ({
   setAudioInput,
   setActiveMediaInput,
 }: Props) => {
+  const {theme} = useTheme()
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,7 +32,8 @@ export const AudioPlayer = ({
   useEffect(() => {
     if (!sharedAudioContext) {
       try {
-        sharedAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        sharedAudioContext = new (window.AudioContext ||
+          (window as any).webkitAudioContext)();
       } catch (error) {
         console.error('Failed to create AudioContext:', error);
       }
@@ -105,7 +108,12 @@ export const AudioPlayer = ({
 
   const setupAudio = () => {
     // If already set up or missing required elements, return
-    if (isAudioSetup.current || !audioRef.current || !canvasRef.current || !sharedAudioContext) {
+    if (
+      isAudioSetup.current ||
+      !audioRef.current ||
+      !canvasRef.current ||
+      !sharedAudioContext
+    ) {
       return false;
     }
 
@@ -118,7 +126,9 @@ export const AudioPlayer = ({
       analyserNode.current.fftSize = 256;
 
       // Create new source node
-      sourceNode.current = sharedAudioContext.createMediaElementSource(audioRef.current);
+      sourceNode.current = sharedAudioContext.createMediaElementSource(
+        audioRef.current,
+      );
       sourceNode.current.connect(analyserNode.current);
       analyserNode.current.connect(sharedAudioContext.destination);
 
@@ -158,7 +168,7 @@ export const AudioPlayer = ({
       const g = 250 * (i / bufferLength);
       const b = 50;
 
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillStyle = theme === "dark" ? `rgb(${r},${g},${b})` : "#4caf50";
       ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
       x += barWidth;
     }
@@ -257,13 +267,16 @@ export const AudioPlayer = ({
         preload="auto"
       ></audio>
       <div className="input-audio">
-        <canvas ref={canvasRef} height={20} className="audio-canvas" />
+        <canvas ref={canvasRef} height={40} className="audio-canvas" />
         <div className="audio-controls">
           <button
             onClick={startWaveAnimation}
-            style={{ padding: '5px 10px', margin: '5px' }}
+            style={{
+              padding: '5px 10px',
+              borderRadius: showDelete ? '0' : '0 10px 10px 0',
+            }}
             type="button"
-            className="button"
+            className="button audio-control-button"
           >
             {isPlaying ? (
               <i className="fa-solid fa-pause"></i>
@@ -271,20 +284,20 @@ export const AudioPlayer = ({
               <i className="fa-solid fa-play"></i>
             )}
           </button>
-          <button
+          {/* <button
             onClick={stopAudio}
             style={{ padding: '5px 10px', margin: '5px' }}
             className="button"
             type="button"
           >
             <i className="fa-solid fa-stop"></i>
-          </button>
+          </button> */}
           {showDelete && (
             <button
               type="button"
               id="deleteRecordedAudio"
-              className="delete-button button"
-              style={{ padding: '5px 10px', margin: '5px' }}
+              className="delete-button button audio-control-button"
+              style={{ padding: '5px 10px', borderRadius: '0 10px 10px 0' }}
               onClick={handleDeleteClick}
             >
               <i className="fa-solid fa-trash"></i>
