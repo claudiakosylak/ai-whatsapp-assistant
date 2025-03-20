@@ -69,12 +69,12 @@ export const ChatSettings = ({
         onClick={() => setIsSettingsModalOpen(true)}
         style={{
           background: 'none',
-          padding: '0',
+          padding: '0 10px',
           alignSelf: 'flex-start',
         }}
       >
         <i
-          className="fa-solid fa-gear"
+          className="fa-solid fa-ellipsis-vertical"
           style={{ fontSize: '20px', verticalAlign: 'top' }}
         ></i>
       </button>

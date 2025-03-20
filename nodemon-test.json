@@ -1,6 +1,6 @@
 {
     "watch": ["src"],
     "ext": "ts",
-    "exec": "ts-node src/server.ts",
-    "ignore": ["src/utils/botSettings.ts"]
+    "exec": "ts-node src/testOnly.ts",
+    "ignore": ["src/utils/botSettings.ts", "src/config.ts"]
 }

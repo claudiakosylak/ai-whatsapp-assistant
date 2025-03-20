@@ -29,6 +29,7 @@ import {
   getTestChatData,
   logs,
   setChatHistory,
+  whatsappConnected,
 } from './utils/controlPanel';
 import { randomUUID } from 'crypto';
 import { MessageMedia } from 'whatsapp-web.js';
@@ -337,6 +338,10 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
   res.json({ message: 'success' });
 });
 
+apiRouter.get('/whatsapp-connection', (req: Request, res: Response) => {
+  res.json({ connected: whatsappConnected });
+});
+
 // Mount API router under /api path
 app.use('/api', apiRouter);
 
@@ -355,7 +360,5 @@ export const startControlPanel = () => {
     console.log(`Server running on port ${PORT}`);
   });
 };
-
-startControlPanel();
 
 export default app;

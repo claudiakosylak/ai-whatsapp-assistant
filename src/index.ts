@@ -1,9 +1,9 @@
 import { Message, Client, LocalAuth } from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
 import { handleIncomingMessage } from './utils/whatsapp';
-import { startControlPanel } from './controlPanel';
 import { addLog, setWhatsAppConnected } from './utils/controlPanel';
 import { isMessageReceivedAfterInit } from './utils/messages';
+import { startControlPanel } from './server';
 
 const initTime = new Date();
 

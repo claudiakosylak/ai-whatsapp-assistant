@@ -151,7 +151,7 @@ body {
   align-self: flex-end;
 }
 
-.fa-gear {
+.fa-ellipsis-vertical {
   color: var(--text-color);
 }
 

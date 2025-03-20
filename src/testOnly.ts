@@ -1,4 +1,4 @@
-import { startControlPanel } from "./controlPanel";
+import { startControlPanel } from "./server";
 import { addLog } from "./utils/controlPanel";
 
 
