@@ -130,7 +130,17 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     const replyingMessageChat = chatHistory.find(
       (msg) => msg.id === replyingMessageId,
     );
-    replyingMessage = replyingMessageChat && replyingMessageChat.message;
+    if (replyingMessageChat) {
+      replyingMessage = replyingMessageChat.message;
+    }
+  }
+
+  const getReplyingMessageMedia: () => Promise<MessageMedia> = () => {
+    return new Promise((resolve) => {
+      if (replyingMessage) {
+        resolve(replyingMessage.downloadMedia())
+      }
+    })
   }
 
   const getQuotedMessage: () => Promise<TestMessage> = () => {
@@ -146,7 +156,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
         type: replyingMessage ? replyingMessage.type : 'chat',
         fromMe: replyingMessage ? replyingMessage.fromMe : false,
         from: 'test',
-        downloadMedia: getMessageMedia,
+        downloadMedia: getReplyingMessageMedia,
         getQuotedMessage: getQuotedMessage,
         react: (emoji: string) => undefined,
       };
@@ -171,7 +181,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     timestamp: parseInt(new Date().toString()),
     type: imageBase64 ? 'image' : audioBase64 ? 'audio' : 'chat',
     fromMe: false,
-    from: 'test2',
+    from: 'test',
     downloadMedia: getMessageMedia,
     getQuotedMessage,
     react: addReaction,

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChatHistoryItem, MockChat } from '../../types';
+import { ChatHistoryItem, MockChat, TestMessage } from '../../types';
 import { ChatMessage } from './ChatMessage';
 import { ChatSettings } from './ChatSettings';
 import { AddMedia } from './AddMedia';
@@ -22,12 +22,21 @@ export type DummyChatItem = {
     mimetype: string;
   };
   mediaType?: 'image' | 'audio';
+  message: {
+    hasQuotedMsg: boolean;
+    getQuotedMessage: () => Promise<TestMessage | undefined>;
+  }
+};
+
+export type ReplyingMessage = {
+  message: ChatHistoryItem;
+  imageUrl?: string;
 };
 
 export const TestChat = () => {
   const [chat, setChat] = useState<MockChat | null>(null);
   const [messages, setMessages] = useState<
-    ChatHistoryItem[] | DummyChatItem[] | null
+    (ChatHistoryItem | DummyChatItem)[] | null
   >(null);
   const [activeUser, setActiveUser] = useState<'user' | 'user2'>('user');
   const [activeMediaInput, setActiveMediaInput] = useState<
@@ -37,11 +46,10 @@ export const TestChat = () => {
   const [imageInput, setImageInput] = useState<string | undefined>(undefined);
   const [audioInput, setAudioInput] = useState<AudioInputType | undefined>();
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [replyingMessage, setReplyingMessage] =
+    useState<ReplyingMessage | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLButtonElement | null>(null);
-
-  console.log(JSON.stringify(messages))
 
   const fetchChatData = async () => {
     const response = await fetch('/api/chat');
@@ -75,6 +83,14 @@ export const TestChat = () => {
 
     const hasMedia = imageBase64 || audioBase64;
 
+    const getQuotedMessage: () => Promise<TestMessage> = () => {
+      return new Promise((resolve) => {
+        if (replyingMessage) {
+          resolve(replyingMessage.message.message);
+        }
+      });
+    };
+
     const dummyChatItem: DummyChatItem = {
       name: activeUser,
       content: textInput,
@@ -86,6 +102,10 @@ export const TestChat = () => {
             mimetype: mimeType || '',
           }
         : undefined,
+      message: {
+        hasQuotedMsg: replyingMessage ? true : false,
+        getQuotedMessage,
+      }
     };
     const newMessages = messages ? [...messages] : [];
     newMessages.push(dummyChatItem);
@@ -98,11 +118,13 @@ export const TestChat = () => {
       imageBase64,
       mimeType,
       audioBase64,
+      replyingMessageId: replyingMessage?.message.id,
     };
     setTextInput('');
     setImageInput(undefined);
     setActiveMediaInput(null);
     setAudioInput(undefined);
+    setReplyingMessage(null);
     const response = await fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -120,8 +142,10 @@ export const TestChat = () => {
   }, []);
 
   useEffect(() => {
-    // Scroll to bottom whenever messages change
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const chatMessagesContainer = document.getElementById('chatMessages');
+    if (chatMessagesContainer) {
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
   }, [messages]);
 
   const isSendDisabled = useMemo(() => {
@@ -144,7 +168,20 @@ export const TestChat = () => {
       <div className="chat-messages" id="chatMessages">
         <div id="chatMessagesInner">
           {messages.map((msg) => (
-            <ChatMessage message={msg} isGroup={chat.isGroup} key={msg.id} />
+            <ChatMessage
+              message={msg}
+              isGroup={chat.isGroup}
+              key={msg.id}
+              replyToMessage={(messageId: string, imageUrl?: string) => {
+                const message = messages.find((mess) => mess.id === messageId);
+                if (message) {
+                  setReplyingMessage({
+                    message: message as ChatHistoryItem,
+                    imageUrl,
+                  });
+                }
+              }}
+            />
           ))}
           {isTyping && (
             <div className="typing-indicator">
@@ -153,10 +190,43 @@ export const TestChat = () => {
               <span></span>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
       </div>
       <form className="chat-input" id="chatForm" onSubmit={sendNewMessage}>
+        {replyingMessage && (
+          <div className="reply-box">
+            <div className="reply-content">
+              <p style={{ fontWeight: 600 }}>{replyingMessage.message.name}</p>
+              <p
+                style={{
+                  display: 'flex',
+                  gap: '10px',
+                  alignItems: 'center',
+                  fontSize: '14px',
+                }}
+              >
+                {replyingMessage.message.content || (
+                  <>
+                    <i className="fa-solid fa-image"></i>
+                    Image
+                  </>
+                )}
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {replyingMessage.imageUrl && (
+                <img src={replyingMessage.imageUrl} className="reply-image" />
+              )}
+              <button
+                className="reply-close"
+                onClick={() => setReplyingMessage(null)}
+                type="button"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+        )}
         <div className="chat-input-top" id="chatInputTop">
           {chat.isGroup && (
             <select

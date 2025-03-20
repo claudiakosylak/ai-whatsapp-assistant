@@ -6,9 +6,10 @@ import { AudioPlayer } from '../AudioPlayer';
 type Props = {
   isGroup: boolean;
   message: ChatHistoryItem | DummyChatItem;
+  replyToMessage: (messageId: string, imageUrl?: string) => void;
 };
 
-export const ChatMessage = ({ message, isGroup }: Props) => {
+export const ChatMessage = ({ message, isGroup, replyToMessage }: Props) => {
   let imageUrl;
   let audioUrl;
 
@@ -26,6 +27,14 @@ export const ChatMessage = ({ message, isGroup }: Props) => {
     reaction = message.reaction;
   }
 
+  let quotedMessage;
+  if (message.message.hasQuotedMsg) {
+    const getQuotedMessage = async () => {
+      quotedMessage = await message.message.getQuotedMessage();
+    };
+    getQuotedMessage();
+  }
+
   return (
     <>
       {imageUrl && (
@@ -34,8 +43,18 @@ export const ChatMessage = ({ message, isGroup }: Props) => {
             reaction && !message.content ? 'reaction-message' : ''
           }`}
         >
-          <img src={imageUrl} className="image-preview" />
-          {(reaction && !message.content) && (
+          <div className="message-content">
+            <img src={imageUrl} className="image-preview" />
+            <div
+              className="reply-icon"
+              onClick={() => {
+                replyToMessage(message.id, imageUrl);
+              }}
+            >
+              <i className="fa-solid fa-reply" id={`reply-${message.id}`}></i>
+            </div>
+          </div>
+          {reaction && !message.content && (
             <div
               className={`reaction ${
                 message.name === 'assistant' ? 'assistant' : 'user'
@@ -47,8 +66,12 @@ export const ChatMessage = ({ message, isGroup }: Props) => {
         </div>
       )}
       {(message.content || audioUrl) && (
-        <div className={`message ${message.name} ${reaction ? 'reaction-message' : ''}`}>
-          <div style={{ flex: 1, maxWidth: '100%' }}>
+        <div
+          className={`message ${message.name} ${
+            reaction ? 'reaction-message' : ''
+          }`}
+        >
+          <div className="message-content">
             {isGroup && <strong>{message.name}: </strong>}
             {message.content ? (
               message.content
@@ -56,7 +79,14 @@ export const ChatMessage = ({ message, isGroup }: Props) => {
               <AudioPlayer audioUrl={audioUrl} />
             ) : null}
           </div>
-          {/* <i className="fa-solid fa-reply" id={`reply-${message.id}`}></i> */}
+          <div
+            className="reply-icon"
+            onClick={() => {
+              replyToMessage(message.id);
+            }}
+          >
+            <i className="fa-solid fa-reply" id={`reply-${message.id}`}></i>
+          </div>
           {reaction && (
             <div
               className={`reaction ${

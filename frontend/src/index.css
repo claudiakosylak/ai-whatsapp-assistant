@@ -17,10 +17,11 @@
   --error-color: red;
   --delete-bg: red;
   --delete-hover-bg: rgb(160, 69, 69);
-  --reply-box-bg: gray;
+  --reply-box-bg: rgb(241, 241, 241);
   --typing-bg: #e3f2fd;
   --typing-dot: #3498db;
   --chat-border: #ddd;
+  --accent: #FF8C42;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -37,7 +38,7 @@
   --border-color: #333;
   --chat-bg: #1e1e1e;
   --chat-user-bg: #2c3e50;
-  --chat-assistant-bg: #1c1c1c;
+  --chat-assistant-bg: #292525;
   --chat-user2-bg: #3b2d56;
   --panel-bg: #1e1e1e;
   --log-bg: #000;
@@ -45,8 +46,9 @@
   --error-color: #ff6b6b;
   --delete-bg: #b71c1c;
   --delete-hover-bg: #8a1212;
-  --reply-box-bg: #444;
+  --reply-box-bg: #292929;
   --typing-bg: #2a2a2a;
   --typing-dot: #80cbc4;
   --chat-border: #1e1e1e;
+  --accent: #FFA559;
 }

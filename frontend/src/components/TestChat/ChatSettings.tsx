@@ -4,7 +4,7 @@ import { DummyChatItem } from '.';
 
 type Props = {
   chat: MockChat;
-  messages: ChatHistoryItem[] | DummyChatItem[];
+  messages: (ChatHistoryItem | DummyChatItem)[];
   setChat: (chat: MockChat) => void;
   setMessages: (messages: ChatHistoryItem[]) => void;
 };
