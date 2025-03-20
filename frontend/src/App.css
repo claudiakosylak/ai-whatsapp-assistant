@@ -253,7 +253,7 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   position: relative;
-  max-width: fit-content;
+  width: fit-content;
 }
 
 .message:has(img) {
@@ -289,8 +289,23 @@ textarea:focus {
 
 .reaction {
   position: absolute;
-  left: -10px;
-  top: -10px;
+  bottom: -15px;
+  padding: 3px 7px;
+  background-color: var(--chat-assistant-bg);
+  border-radius: 100%;
+  font-size: 12px;
+}
+
+.reaction.user {
+  right: 10px;
+}
+
+.reaction.assistant {
+  left: 10px;
+}
+
+.reaction-message {
+  margin-bottom: 20px;
 }
 
 .recording-status {
@@ -331,6 +346,12 @@ textarea:focus {
 
 .theme-switch input {
   display: none;
+}
+
+#userName {
+  height: 40px;
+  margin-right: 5px;
+  border-radius: 4px;
 }
 
 .send-button {

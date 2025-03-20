@@ -155,6 +155,11 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
   try {
     const response = await processMessage(userTestMessage, getTestChatData());
 
+    if (!response && chatHistory[chatHistory.length -1].reaction) {
+      res.status(201).json({success: true})
+      return
+    }
+
     if (!response) {
       res.status(500).json({ success: false });
       return;
