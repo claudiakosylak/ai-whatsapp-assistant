@@ -79,6 +79,18 @@ export const setCustomPrompt = (prompt: string) => {
 
 const systemPrompt = `You are an assistant operating on WhatsApp. Your name is ${getBotName()}. The current date is The current date is ${new Date().toLocaleDateString()}. Keep your responses concise and informative; you should not exceed the 2000 character limit.`;
 
-const openAiExtraPrompt = ['OPENAI_ASSISTANT', 'OPEN_WEBUI_CHAT', 'OPENAI_CHAT'].includes(getBotMode()) ? `Only generate a response to the last user message in the messages list given to you. Previous messages are ONLY to be used as context if absolutely necessary or if prompted to recall a previous message. Only call the emojiReaction tool if it is requested in the last user message.` : ``
+const openAiExtraPrompt = [
+  'OPENAI_ASSISTANT',
+  'OPEN_WEBUI_CHAT',
+  'OPENAI_CHAT',
+].includes(getBotMode())
+  ? `Only generate a response to the last user message in the messages list given to you. Previous messages are ONLY to be used as context if absolutely necessary or if prompted to recall a previous message. Only call the emojiReaction tool if it is requested in the last user message.`
+  : ``;
 
-export const getPrompt = () => systemPrompt + openAiExtraPrompt + getCustomPrompt()
+const geminiExtraPrompt =
+  getBotMode() === 'GEMINI'
+    ? 'You are able to respond to questions. ONly refer to your functions if someone specifically requests a reaction/emoji response in the last message. Examples of messages that require you to use your emojiReaction function include: "Give me a thumbs up", "React to this message with a smiley face", "give me a unicorn emoji".'
+    : '';
+
+export const getPrompt = () =>
+  systemPrompt + openAiExtraPrompt + geminiExtraPrompt + getCustomPrompt();
