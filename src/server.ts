@@ -196,7 +196,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
       id: assistantMessageID,
       role: 'assistant',
       name: 'assistant',
-      content: response.messageContent as string,
+      content: typeof response.messageContent === 'string' ? response.messageContent : '',
       rawText: response.rawText,
       message: assistantTestMessage,
       media:

@@ -48,7 +48,7 @@ export const ChatMessage = ({ message, isGroup }: Props) => {
       )}
       {(message.content || audioUrl) && (
         <div className={`message ${message.name} ${reaction ? 'reaction-message' : ''}`}>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, maxWidth: '100%' }}>
             {isGroup && <strong>{message.name}: </strong>}
             {message.content ? (
               message.content

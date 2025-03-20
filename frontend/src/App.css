@@ -253,7 +253,7 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   position: relative;
-  width: fit-content;
+  max-width: fit-content;
 }
 
 .message:has(img) {
