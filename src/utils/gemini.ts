@@ -112,10 +112,6 @@ export const processGeminiResponse = async (
 
   messageList.push(lastMessage);
 
-  addLog(`Message list to gemini: ${JSON.stringify(messageList)}`)
-  addLog(`Function calling mode: ${FunctionCallingConfigMode.AUTO}`)
-  addLog(`Gemini model: ${GEMINI_MODEL}`)
-
   let body: any = {
     contents: messageList,
   };
@@ -174,8 +170,6 @@ export const processGeminiResponse = async (
       throw new Error(JSON.stringify(response));
     }
     let responseContent: Content = response.candidates[0].content;
-
-    addLog(`second candidate content? : ${(response.candidates[1] && response.candidates[1].content) ? JSON.stringify(response.candidates[1].content) : 'none'}`)
 
     if (!responseContent.parts) throw new Error('no parts');
     for (let part of responseContent.parts) {
