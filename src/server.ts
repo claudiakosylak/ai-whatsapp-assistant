@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { config } from 'dotenv';
 import { Request, Response } from 'express';
 import {
@@ -24,6 +25,7 @@ import {
   addLog,
   changeChatType,
   chatHistory,
+  getEnvContent,
   getTestChatData,
   logs,
   setChatHistory,
@@ -33,6 +35,7 @@ import { MessageMedia } from 'whatsapp-web.js';
 import { TestMessage } from './types';
 import { base64ToBlobUrl } from './utils/images';
 import { processMessage } from './utils/whatsapp';
+import { ENV_PATH } from './constants';
 
 // Create Express application
 const app = express();
@@ -52,7 +55,35 @@ apiRouter.get('/chat', (req: Request, res: Response) => {
   res.json({ chat: testChat, messages: chatMessages });
 });
 
-apiRouter.get('/logs', (req, res) => {
+apiRouter.get('/config', (req: Request, res: Response) => {
+  const config = getEnvContent();
+  res.json({ config });
+});
+
+apiRouter.put('/config', (req: Request, res: Response) => {
+  const config = req.body.config;
+
+  try {
+    fs.writeFileSync(ENV_PATH, config);
+    // Parse and reload the environment variables after writing the file
+    const parsed = require('dotenv').config({ path: ENV_PATH }).parsed;
+    if (parsed) {
+      process.env = {
+        ...process.env,
+        ...parsed,
+      };
+    }
+    addLog('Configuration updated successfully');
+    res.json({ config });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    addLog(`Error saving configuration: ${errorMessage}`);
+    res.status(500).send('Error saving configuration');
+  }
+});
+
+apiRouter.get('/logs', (req: Request, res: Response) => {
   res.json(logs);
 });
 
@@ -160,9 +191,9 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
   try {
     const response = await processMessage(userTestMessage, getTestChatData());
 
-    if (!response && chatHistory[chatHistory.length -1].reaction) {
-      res.status(201).json({success: true})
-      return
+    if (!response && chatHistory[chatHistory.length - 1].reaction) {
+      res.status(201).json({ success: true });
+      return;
     }
 
     if (!response) {
@@ -201,7 +232,10 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
       id: assistantMessageID,
       role: 'assistant',
       name: 'assistant',
-      content: typeof response.messageContent === 'string' ? response.messageContent : '',
+      content:
+        typeof response.messageContent === 'string'
+          ? response.messageContent
+          : '',
       rawText: response.rawText,
       message: assistantTestMessage,
       media:

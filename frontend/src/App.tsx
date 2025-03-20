@@ -1,5 +1,6 @@
 import './App.css';
 import { BotSettings } from './components/BotSettings';
+import { EditConfig } from './components/EditConfig';
 import { Header } from './components/Header';
 import { Logs } from './components/Logs';
 import { TestChat } from './components/TestChat';
@@ -17,7 +18,8 @@ function App() {
             <TestChat />
           </div>
         </div>
-        <Logs/>
+        <Logs />
+        <EditConfig />
       </div>
     </>
   );
