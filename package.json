@@ -4,11 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "testmode": "nodemon --config nodemon-test.json",
-    "start": "npm run build && node dist/index.js",
-    "build": "tsc && cpx \"src/public/**/*\" dist/public",
-    "dev": "nodemon --config nodemon.json",
-    "watch": "tsc --watch"
+    "testmode:backend": "nodemon --config nodemon-test.json",
+    "start:backend": "npm run build && node dist/index.js",
+    "build": "tsc",
+    "dev:backend": "nodemon --config nodemon.json",
+    "watch": "tsc --watch",
+    "dev": "concurrently \"npm run dev:backend\" \"cd frontend && npm run dev\"",
+    "start": "concurrently \"npm run start:backend\" \"cd frontend && npm run build && npm run preview\"",
+    "testmode": "concurrently \"npm run testmode:backend\" \"cd frontend && npm run dev\""
   },
   "keywords": [],
   "author": "",
@@ -17,7 +20,7 @@
     "@types/body-parser": "^1.19.5",
     "@types/express": "^4.17.21",
     "@types/qrcode-terminal": "^0.12.2",
-    "cpx": "^1.5.0",
+    "concurrently": "^9.1.2",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"

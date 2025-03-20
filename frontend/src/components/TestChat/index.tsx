@@ -41,6 +41,8 @@ export const TestChat = () => {
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLButtonElement | null>(null);
 
+  console.log(JSON.stringify(messages))
+
   const fetchChatData = async () => {
     const response = await fetch('/api/chat');
     if (response.ok) {

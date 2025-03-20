@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { ChatHistoryItem, MockChat, TestMessage } from '../types';
 import { randomUUID } from 'crypto';
+import { getMessageHistoryLimit } from './botSettings';
 
 export const fetchTestMessages: ({
   limit,
@@ -29,7 +30,7 @@ export let testChatData: MockChat = {
     _serialized: randomUUID(),
   },
   isGroup: false,
-  fetchMessages: fetchTestMessages,
+  fetchMessages: () => fetchTestMessages({limit: getMessageHistoryLimit()}),
   sendStateTyping: () => addLog('typing'),
   sendStateRecording: () => addLog('recording'),
   clearState: () => addLog('clearing typing state'),

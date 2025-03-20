@@ -204,29 +204,43 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
 
     const assistantMessageID = randomUUID();
 
+    const getAssistantMessageMedia: () => Promise<MessageMedia> = () =>
+      new Promise((resolve) => {
+        if (
+          response.messageContent &&
+          typeof response.messageContent !== 'string'
+        ) {
+          resolve(response.messageContent);
+        } else if (response.messageMedia) {
+          resolve(response.messageMedia);
+        }
+      });
+
     const assistantTestMessage: TestMessage = {
       id: {
         fromMe: true,
         _serialized: assistantMessageID,
       },
-      body: response.rawText,
+      body:
+        response.messageContent && typeof response.messageContent === 'string'
+          ? response.messageContent
+          : response.messageContent && !response.messageMedia
+          ? response.rawText
+          : '',
       hasQuotedMsg: false,
       timestamp: parseInt(new Date().toString()),
-      type: 'chat',
+      type:
+        response.messageContent && typeof response.messageContent !== 'string'
+          ? 'audio'
+          : response.messageContent
+          ? 'chat'
+          : 'image',
       fromMe: true,
       from: 'test',
-      downloadMedia: getMessageMedia,
+      downloadMedia: getAssistantMessageMedia,
       getQuotedMessage,
       react: (emoji: string) => undefined,
     };
-
-    let newImageUrl;
-    if (response.messageMedia) {
-      newImageUrl = base64ToBlobUrl(
-        response.messageMedia.data,
-        response.messageMedia.mimetype,
-      );
-    }
 
     // Add assistant response to history
     chatHistory.push({
@@ -242,7 +256,14 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
       media:
         typeof response.messageContent !== 'string'
           ? response.messageContent
+          : response.messageMedia
+          ? response.messageMedia
           : undefined,
+      mediaType: response.messageMedia
+        ? 'image'
+        : response.messageContent !== 'string'
+        ? 'audio'
+        : undefined,
     });
 
     // Keep only last 50 messages
