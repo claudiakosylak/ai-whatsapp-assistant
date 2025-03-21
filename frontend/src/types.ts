@@ -35,7 +35,7 @@ export type TestMessage = {
   type: 'image' | 'sticker' | 'text' | 'ptt' | 'audio' | 'chat';
   fromMe: boolean;
   downloadMedia: () => Promise<MessageMedia>;
-  getQuotedMessage: () => Promise<TestMessage>;
+  getQuotedMessage: () => Promise<TestMessage | undefined>;
   react: (emoji: string) => void;
 };
 
@@ -71,7 +71,7 @@ export type BotMode =
   | 'OPENAI_CHAT'
   | 'GEMINI';
 
-export type AudioMode = 'ELEVEN_LABS' | 'OPENAI';
+export type AudioMode = 'ELEVEN_LABS' | 'OPENAI' | 'CUSTOM'
 
 export type MockChat = {
   id: {

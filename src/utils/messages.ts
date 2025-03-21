@@ -14,7 +14,6 @@ import {
   GeminiContextContent,
   GeminiContextPart,
   MockChat,
-  MockChatHistoryMessage,
   OpenAIMessage,
   ProcessMessageParam,
   TestMessage,

@@ -150,6 +150,7 @@ export const BotSettings = () => {
           >
             <option value="ELEVEN_LABS">Eleven Labs API</option>
             <option value="OPENAI">OpenAI</option>
+            <option value="CUSTOM">Custom</option>
           </select>
         </SettingsItem>
         <button

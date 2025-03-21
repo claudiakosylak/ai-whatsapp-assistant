@@ -71,7 +71,7 @@ export type BotMode =
   | 'OPENAI_CHAT'
   | 'GEMINI';
 
-export type AudioMode = 'ELEVEN_LABS' | 'OPENAI';
+export type AudioMode = 'ELEVEN_LABS' | 'OPENAI' | 'CUSTOM'
 
 export type MockChat = {
   id: {

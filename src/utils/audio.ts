@@ -5,7 +5,7 @@ import path from 'path';
 import { MessageMedia } from 'whatsapp-web.js';
 import { Readable } from 'stream';
 import { ElevenLabsClient } from 'elevenlabs';
-import { ELEVEN_LABS_API_KEY, OPENAI_API_KEY } from '../config';
+import { CUSTOM_AUDIO_BASE_URL, ELEVEN_LABS_API_KEY, OPENAI_API_KEY } from '../config';
 import { addLog } from './controlPanel';
 import OpenAI, { toFile } from 'openai';
 import { WhatsappResponse, WhatsappResponseAsText } from '../types';
@@ -207,12 +207,37 @@ export const transcribeVoiceWithOpenAI = async (
   }
 };
 
+export const transcribeVoiceCustom = async (media: MessageMedia): Promise<string> => {
+  try {
+    const response = await fetch(`${CUSTOM_AUDIO_BASE_URL}/transcription`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({audio_base64: media.data, mimetype: media.mimetype})
+    })
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(JSON.stringify(data))
+    } else {
+      addLog(`[CustomTranscriptionAPI] Transcribed text: ${data.content.substring(0, 100)}`)
+      return data.content;
+    }
+  } catch (error: any) {
+    addLog(`Error transcribing voice message with custom api: ${error.message}`)
+    throw error;
+  }
+}
+
 export async function transcribeVoice(media: MessageMedia): Promise<string> {
   try {
-    if (getAudioMode() === 'ELEVEN_LABS') {
-      return await transcribeVoiceWithElevenLabs(media);
-    } else {
-      return await transcribeVoiceWithOpenAI(media);
+    switch (getAudioMode()) {
+      case 'ELEVEN_LABS':
+        return await transcribeVoiceWithElevenLabs(media);
+      case 'CUSTOM':
+        return await transcribeVoiceCustom(media);
+      default:
+        return await transcribeVoiceWithOpenAI(media);
     }
   } catch (e: any) {
     if ((e.status && e.status === 401) || (e.statusCode && e.statusCode === 401)) {
