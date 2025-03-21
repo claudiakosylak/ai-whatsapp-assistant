@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { RefObject, useState } from 'react';
 import { AudioInputType } from '.';
 import { AudioPlayer } from '../AudioPlayer';
 
