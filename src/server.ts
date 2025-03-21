@@ -135,10 +135,12 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     }
   }
 
-  const getQuotedMessage: () => Promise<TestMessage> = () => {
+  const getQuotedMessage: () => Promise<TestMessage | undefined> = () => {
     return new Promise((resolve) => {
       if (replyingMessage) {
         resolve(replyingMessage);
+      } else {
+        resolve(undefined)
       }
     });
   };

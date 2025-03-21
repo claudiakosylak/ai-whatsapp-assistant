@@ -2,14 +2,15 @@ import { ReplyingMessage } from '.';
 
 type Props = {
   replyingMessage: ReplyingMessage;
+  isActiveReply: boolean;
   closeReplyingMessage?: () => void;
 };
 
-export const ReplyBox = ({ replyingMessage, closeReplyingMessage }: Props) => {
+export const ReplyBox = ({ replyingMessage, isActiveReply, closeReplyingMessage }: Props) => {
   return (
     <div
       className={`reply-box ${
-        closeReplyingMessage ? 'reply-box-repyling' : 'reply-box-message'
+        isActiveReply ? 'reply-box-replying' : 'reply-box-message'
       }`}
     >
       <div className="reply-content">
@@ -46,11 +47,11 @@ export const ReplyBox = ({ replyingMessage, closeReplyingMessage }: Props) => {
           <img
             src={replyingMessage.imageUrl}
             className={
-              closeReplyingMessage ? 'reply-image' : 'reply-image-replied'
+                isActiveReply ? 'reply-image' : 'reply-image-replied'
             }
           />
         )}
-        {closeReplyingMessage && (
+        {isActiveReply && (
           <button
             className="reply-close"
             onClick={closeReplyingMessage}

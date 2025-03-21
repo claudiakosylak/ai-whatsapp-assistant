@@ -108,7 +108,7 @@ export const ChatMessage = ({
           }`}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px'}}>
-            {repliedMessage && <ReplyBox replyingMessage={repliedMessage} />}
+            {repliedMessage && <ReplyBox replyingMessage={repliedMessage} isActiveReply={false} />}
             <div className="message-content">
               {isGroup && <strong>{message.name}: </strong>}
               {message.content ? (

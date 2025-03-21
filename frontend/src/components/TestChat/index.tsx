@@ -191,6 +191,7 @@ export const TestChat = () => {
           <ReplyBox
             replyingMessage={replyingMessage}
             closeReplyingMessage={() => setReplyingMessage(null)}
+            isActiveReply={true}
           />
         )}
         <div className="chat-input-top" id="chatInputTop">

@@ -50,8 +50,9 @@ export const shouldProcessGroupMessage = async (
   if (chatData.isGroup) {
     const { command } = parseCommand(message.body);
     const botName = getBotName();
-    const isSelfMention = message.hasQuotedMsg
-      ? (await message.getQuotedMessage()).fromMe
+    const quotedMessage = await message.getQuotedMessage()
+    const isSelfMention = (message.hasQuotedMsg && quotedMessage)
+      ? quotedMessage.fromMe
       : false;
     const isMentioned =
       message.body.toLowerCase().includes(botName.toLowerCase()) &&

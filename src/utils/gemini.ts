@@ -39,12 +39,14 @@ export const processGeminiResponse = async (
     messageList.unshift({ role: 'user', parts: [{ text: '' }] });
   }
 
-  console.log(`message list in gemini: `, JSON.stringify(messageList))
-
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
 
-  const repliedMessage = await message?.getQuotedMessage();
+    let repliedMessage
+    if (message.getQuotedMessage) {
+      repliedMessage = await message.getQuotedMessage();
+    }
+
   if (
     repliedMessage &&
     (getIsImage(repliedMessage) || getIsDocument(repliedMessage))
