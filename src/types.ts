@@ -20,6 +20,7 @@ export type ChatHistoryItem = {
   media: MessageMedia | undefined;
   mediaType?: 'image' | 'audio';
   reaction?: string;
+  repliedMessage?: TestMessage;
 };
 
 export type TestMessage = {

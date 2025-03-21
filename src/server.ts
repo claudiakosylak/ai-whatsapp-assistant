@@ -135,32 +135,11 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     }
   }
 
-  const getReplyingMessageMedia: () => Promise<MessageMedia> = () => {
-    return new Promise((resolve) => {
-      if (replyingMessage) {
-        resolve(replyingMessage.downloadMedia())
-      }
-    })
-  }
-
   const getQuotedMessage: () => Promise<TestMessage> = () => {
     return new Promise((resolve) => {
-      const quotedMessage: TestMessage = {
-        id: {
-          fromMe: replyingMessage ? replyingMessage.id.fromMe : false,
-          _serialized: replyingMessageId,
-        },
-        body: replyingMessage ? replyingMessage.body : '',
-        hasQuotedMsg: false,
-        timestamp: replyingMessage ? replyingMessage.timestamp : 0,
-        type: replyingMessage ? replyingMessage.type : 'chat',
-        fromMe: replyingMessage ? replyingMessage.fromMe : false,
-        from: 'test',
-        downloadMedia: getReplyingMessageMedia,
-        getQuotedMessage: getQuotedMessage,
-        react: (emoji: string) => undefined,
-      };
-      resolve(quotedMessage);
+      if (replyingMessage) {
+        resolve(replyingMessage);
+      }
     });
   };
 
@@ -197,6 +176,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     message: userTestMessage,
     media: userMessageMedia,
     mediaType: imageBase64 ? 'image' : 'audio',
+    repliedMessage: replyingMessage,
   });
 
   try {

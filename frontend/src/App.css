@@ -268,7 +268,7 @@ textarea:focus {
   margin-right: 25px;
 }
 
-.message:has(img) {
+.message:has(> .message-content > img) {
   padding: 0;
   overflow: hidden;
 }
@@ -344,17 +344,25 @@ textarea:focus {
   right: 5px; /* Moves into place, shifting the content */
 }
 .reply-box {
-  position: absolute;
-  height: 50px;
   width: calc(100% - 25px);
   background-color: var(--reply-box-bg);
   top: calc(-100% + 2px);
-  border-radius: 0px 0 4px 4px;
   padding: 10px;
   display: flex;
   margin: 0 auto;
   border-left: solid 5px var(--accent);
   justify-content: space-between;
+  gap: 10px;
+}
+
+.reply-box-replying {
+  position: absolute;
+  height: 50px;
+  border-radius: 0px 0 4px 4px;
+}
+
+.reply-box-message {
+  border-radius: 4px;
 }
 
 .reply-close {
@@ -381,7 +389,7 @@ textarea:focus {
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
-  height: 100%;
+  max-width: 100%;
 }
 
 .reply-content p {
@@ -393,6 +401,13 @@ textarea:focus {
 .reply-image {
   width: 40px;
   height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.reply-image-replied {
+  width: 25px;
+  height: 24px;
   object-fit: cover;
   border-radius: 4px;
 }

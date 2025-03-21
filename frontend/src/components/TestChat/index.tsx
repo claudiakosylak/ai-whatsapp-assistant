@@ -6,6 +6,7 @@ import { AddMedia } from './AddMedia';
 import { ImageInput } from './ImageInput';
 import { readImageFile } from '../../helpers/images';
 import { AudioInput } from './AudioInput';
+import { ReplyBox } from './ReplyBox';
 
 export type AudioInputType = {
   audioUrl: string;
@@ -22,10 +23,7 @@ export type DummyChatItem = {
     mimetype: string;
   };
   mediaType?: 'image' | 'audio';
-  message: {
-    hasQuotedMsg: boolean;
-    getQuotedMessage: () => Promise<TestMessage | undefined>;
-  }
+  repliedMessage?: TestMessage;
 };
 
 export type ReplyingMessage = {
@@ -83,14 +81,6 @@ export const TestChat = () => {
 
     const hasMedia = imageBase64 || audioBase64;
 
-    const getQuotedMessage: () => Promise<TestMessage> = () => {
-      return new Promise((resolve) => {
-        if (replyingMessage) {
-          resolve(replyingMessage.message.message);
-        }
-      });
-    };
-
     const dummyChatItem: DummyChatItem = {
       name: activeUser,
       content: textInput,
@@ -102,11 +92,9 @@ export const TestChat = () => {
             mimetype: mimeType || '',
           }
         : undefined,
-      message: {
-        hasQuotedMsg: replyingMessage ? true : false,
-        getQuotedMessage,
-      }
+      repliedMessage: replyingMessage?.message.message,
     };
+
     const newMessages = messages ? [...messages] : [];
     newMessages.push(dummyChatItem);
     setMessages(newMessages);
@@ -152,7 +140,12 @@ export const TestChat = () => {
     return !textInput && !imageInput && !audioInput;
   }, [textInput, imageInput, audioInput]);
 
+
   if (!chat || !messages) return null;
+
+  const findMessage = (messageId: string) => {
+    return messages.find((msg) => msg.id === messageId)
+  }
 
   return (
     <div className="chat-container">
@@ -172,6 +165,7 @@ export const TestChat = () => {
               message={msg}
               isGroup={chat.isGroup}
               key={msg.id}
+              findMessage={findMessage}
               replyToMessage={(messageId: string, imageUrl?: string) => {
                 const message = messages.find((mess) => mess.id === messageId);
                 if (message) {
@@ -194,38 +188,10 @@ export const TestChat = () => {
       </div>
       <form className="chat-input" id="chatForm" onSubmit={sendNewMessage}>
         {replyingMessage && (
-          <div className="reply-box">
-            <div className="reply-content">
-              <p style={{ fontWeight: 600 }}>{replyingMessage.message.name}</p>
-              <p
-                style={{
-                  display: 'flex',
-                  gap: '10px',
-                  alignItems: 'center',
-                  fontSize: '14px',
-                }}
-              >
-                {replyingMessage.message.content || (
-                  <>
-                    <i className="fa-solid fa-image"></i>
-                    Image
-                  </>
-                )}
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {replyingMessage.imageUrl && (
-                <img src={replyingMessage.imageUrl} className="reply-image" />
-              )}
-              <button
-                className="reply-close"
-                onClick={() => setReplyingMessage(null)}
-                type="button"
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-          </div>
+          <ReplyBox
+            replyingMessage={replyingMessage}
+            closeReplyingMessage={() => setReplyingMessage(null)}
+          />
         )}
         <div className="chat-input-top" id="chatInputTop">
           {chat.isGroup && (

@@ -1,21 +1,34 @@
-import { DummyChatItem } from '.';
+import { useEffect, useState } from 'react';
+import { DummyChatItem, ReplyingMessage } from '.';
 import { base64ToBlobUrl } from '../../helpers/images';
 import { ChatHistoryItem } from '../../types';
 import { AudioPlayer } from '../AudioPlayer';
+import { ReplyBox } from './ReplyBox';
 
 type Props = {
   isGroup: boolean;
   message: ChatHistoryItem | DummyChatItem;
+  findMessage: (
+    messageId: string,
+  ) => ChatHistoryItem | DummyChatItem | undefined;
   replyToMessage: (messageId: string, imageUrl?: string) => void;
 };
 
-export const ChatMessage = ({ message, isGroup, replyToMessage }: Props) => {
+export const ChatMessage = ({
+  message,
+  isGroup,
+  findMessage,
+  replyToMessage,
+}: Props) => {
+  const [repliedMessage, setRepliedMessage] = useState<
+    ReplyingMessage | undefined
+  >();
   let imageUrl;
   let audioUrl;
 
   if (message.media) {
     let url = base64ToBlobUrl(message.media.data, message.media.mimetype);
-    if (message.mediaType === 'image') {
+    if (message.mediaType === 'image' && !repliedMessage) {
       imageUrl = url;
     } else {
       audioUrl = url;
@@ -27,13 +40,36 @@ export const ChatMessage = ({ message, isGroup, replyToMessage }: Props) => {
     reaction = message.reaction;
   }
 
-  let quotedMessage;
-  if (message.message.hasQuotedMsg) {
-    const getQuotedMessage = async () => {
-      quotedMessage = await message.message.getQuotedMessage();
+  useEffect(() => {
+    const fetchQuotedMessage = async () => {
+      if (message.repliedMessage) {
+        try {
+          const replied: ReplyingMessage = {
+            message: findMessage(
+              message.repliedMessage.id._serialized,
+            ) as ChatHistoryItem,
+          };
+          if (
+            replied &&
+            replied.message.mediaType === 'image' &&
+            replied.message.media
+          ) {
+            let url = base64ToBlobUrl(
+              replied.message.media.data,
+              replied.message.media.mimetype,
+            );
+            replied.imageUrl = url;
+          }
+
+          setRepliedMessage(replied);
+        } catch (error) {
+          console.error('Error fetching quoted message:', error);
+        }
+      }
     };
-    getQuotedMessage();
-  }
+
+    fetchQuotedMessage();
+  }, [message, findMessage]);
 
   return (
     <>
@@ -65,27 +101,30 @@ export const ChatMessage = ({ message, isGroup, replyToMessage }: Props) => {
           )}
         </div>
       )}
-      {(message.content || audioUrl) && (
+      {(message.content || audioUrl || repliedMessage) && (
         <div
           className={`message ${message.name} ${
             reaction ? 'reaction-message' : ''
           }`}
         >
-          <div className="message-content">
-            {isGroup && <strong>{message.name}: </strong>}
-            {message.content ? (
-              message.content
-            ) : audioUrl ? (
-              <AudioPlayer audioUrl={audioUrl} />
-            ) : null}
-          </div>
-          <div
-            className="reply-icon"
-            onClick={() => {
-              replyToMessage(message.id);
-            }}
-          >
-            <i className="fa-solid fa-reply" id={`reply-${message.id}`}></i>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px'}}>
+            {repliedMessage && <ReplyBox replyingMessage={repliedMessage} />}
+            <div className="message-content">
+              {isGroup && <strong>{message.name}: </strong>}
+              {message.content ? (
+                message.content
+              ) : audioUrl ? (
+                <AudioPlayer audioUrl={audioUrl} />
+              ) : null}
+            </div>
+            <div
+              className="reply-icon"
+              onClick={() => {
+                replyToMessage(message.id);
+              }}
+            >
+              <i className="fa-solid fa-reply" id={`reply-${message.id}`}></i>
+            </div>
           </div>
           {reaction && (
             <div
