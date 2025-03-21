@@ -1,4 +1,6 @@
 import { useTheme } from '../ThemeProvider';
+import { FaMoon } from "react-icons/fa";
+import { FaSun } from "react-icons/fa";
 
 export const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
@@ -6,7 +8,7 @@ export const ThemeToggle = () => {
   return (
     <div className="theme-switch-wrapper">
       <span className="theme-icon">
-        <i className={`fas fa-${theme === 'light' ? 'moon' : 'sun'}`}></i>
+        {theme === 'light' ? <FaMoon /> : <FaSun />}
       </span>
       <label className="theme-switch" htmlFor="themeCheckbox">
         <input

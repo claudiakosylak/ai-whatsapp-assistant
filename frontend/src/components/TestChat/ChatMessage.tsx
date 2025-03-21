@@ -4,6 +4,7 @@ import { base64ToBlobUrl } from '../../helpers/images';
 import { ChatHistoryItem } from '../../types';
 import { AudioPlayer } from '../AudioPlayer';
 import { ReplyBox } from './ReplyBox';
+import { FaReply } from 'react-icons/fa';
 
 type Props = {
   isGroup: boolean;
@@ -87,7 +88,7 @@ export const ChatMessage = ({
                 replyToMessage(message.id, imageUrl);
               }}
             >
-              <i className="fa-solid fa-reply" id={`reply-${message.id}`}></i>
+              <FaReply id={`reply-${message.id}`} className="fa-reply" />
             </div>
           </div>
           {reaction && !message.content && (
@@ -107,8 +108,15 @@ export const ChatMessage = ({
             reaction ? 'reaction-message' : ''
           }`}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px'}}>
-            {repliedMessage && <ReplyBox replyingMessage={repliedMessage} isActiveReply={false} />}
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+          >
+            {repliedMessage && (
+              <ReplyBox
+                replyingMessage={repliedMessage}
+                isActiveReply={false}
+              />
+            )}
             <div className="message-content">
               {isGroup && <strong>{message.name}: </strong>}
               {message.content ? (
@@ -123,7 +131,7 @@ export const ChatMessage = ({
                 replyToMessage(message.id);
               }}
             >
-              <i className="fa-solid fa-reply" id={`reply-${message.id}`}></i>
+              <FaReply id={`reply-${message.id}`} className="fa-reply" />
             </div>
           </div>
           {reaction && (

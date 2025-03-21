@@ -38,6 +38,9 @@ body {
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .button-disabled {
@@ -410,6 +413,11 @@ textarea:focus {
   height: 24px;
   object-fit: cover;
   border-radius: 4px;
+}
+
+.theme-icon {
+  display: flex;
+  align-items: center;
 }
 
 .theme-switch-wrapper {

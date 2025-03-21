@@ -1,6 +1,7 @@
 import { RefObject, useState } from 'react';
 import { AudioInputType } from '.';
 import { AudioPlayer } from '../AudioPlayer';
+import { FaStop } from "react-icons/fa";
 
 type Props = {
   audioInput: AudioInputType | undefined;
@@ -98,7 +99,7 @@ export const AudioInput = ({
             className="button delete-button"
             onClick={() => mediaRecorder.stop()}
           >
-            <i className="fa-solid fa-stop"></i>
+            <FaStop />
           </button>
         </>
       )}

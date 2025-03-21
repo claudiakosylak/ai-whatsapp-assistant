@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChatHistoryItem, MockChat } from '../../types';
 import { DummyChatItem } from '.';
+import { BsThreeDotsVertical } from "react-icons/bs";
 
 type Props = {
   chat: MockChat;
@@ -73,10 +74,7 @@ export const ChatSettings = ({
           alignSelf: 'flex-start',
         }}
       >
-        <i
-          className="fa-solid fa-ellipsis-vertical"
-          style={{ fontSize: '20px', verticalAlign: 'top' }}
-        ></i>
+        <BsThreeDotsVertical className='fa-ellipsis-vertical' style={{ fontSize: '20px', verticalAlign: 'top' }}/>
       </button>
       {isSettingsModalOpen && (
         <div className="modal chat-settings" ref={settingsModalRef}>

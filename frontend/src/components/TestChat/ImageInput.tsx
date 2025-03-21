@@ -1,4 +1,5 @@
 import { RefObject } from 'react';
+import { FaTrash } from "react-icons/fa";
 
 type Props = {
   imageInput: string | undefined;
@@ -45,7 +46,7 @@ export const ImageInput = ({
                 }
               }}
             >
-              <i className="fa-solid fa-trash"></i>
+              <FaTrash />
             </button>
           </>
         )}

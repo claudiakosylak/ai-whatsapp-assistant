@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { AudioInputType } from './TestChat';
 import { useTheme } from '../ThemeProvider';
+import { FaPause } from "react-icons/fa";
+import { FaPlay } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 
 // Create a single shared AudioContext for the application
 // This prevents creating multiple contexts that might conflict
@@ -279,19 +282,11 @@ export const AudioPlayer = ({
             className="button audio-control-button"
           >
             {isPlaying ? (
-              <i className="fa-solid fa-pause"></i>
+              <FaPause />
             ) : (
-              <i className="fa-solid fa-play"></i>
+              <FaPlay />
             )}
           </button>
-          {/* <button
-            onClick={stopAudio}
-            style={{ padding: '5px 10px', margin: '5px' }}
-            className="button"
-            type="button"
-          >
-            <i className="fa-solid fa-stop"></i>
-          </button> */}
           {showDelete && (
             <button
               type="button"
@@ -300,7 +295,7 @@ export const AudioPlayer = ({
               style={{ padding: '5px 10px', borderRadius: '0 10px 10px 0' }}
               onClick={handleDeleteClick}
             >
-              <i className="fa-solid fa-trash"></i>
+              <FaTrash />
             </button>
           )}
         </div>

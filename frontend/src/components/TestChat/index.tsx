@@ -7,6 +7,7 @@ import { ImageInput } from './ImageInput';
 import { readImageFile } from '../../helpers/images';
 import { AudioInput } from './AudioInput';
 import { ReplyBox } from './ReplyBox';
+import { IoSend } from 'react-icons/io5';
 
 export type AudioInputType = {
   audioUrl: string;
@@ -140,12 +141,11 @@ export const TestChat = () => {
     return !textInput && !imageInput && !audioInput;
   }, [textInput, imageInput, audioInput]);
 
-
   if (!chat || !messages) return null;
 
   const findMessage = (messageId: string) => {
-    return messages.find((msg) => msg.id === messageId)
-  }
+    return messages.find((msg) => msg.id === messageId);
+  };
 
   return (
     <div className="chat-container">
@@ -237,7 +237,7 @@ export const TestChat = () => {
             } send-button`}
             disabled={isSendDisabled}
           >
-            <i className="fa-solid fa-paper-plane"></i>
+            <IoSend />
           </button>
         </div>
         <ImageInput

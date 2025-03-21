@@ -1,4 +1,6 @@
 import { ReplyingMessage } from '.';
+import { FaImage } from "react-icons/fa";
+import { IoMdClose } from "react-icons/io";
 
 type Props = {
   replyingMessage: ReplyingMessage;
@@ -37,7 +39,7 @@ export const ReplyBox = ({ replyingMessage, isActiveReply, closeReplyingMessage 
               fontSize: '14px',
             }}
           >
-            <i className="fa-solid fa-image"></i>
+            <FaImage />
             Image
           </p>
         )}
@@ -57,7 +59,7 @@ export const ReplyBox = ({ replyingMessage, isActiveReply, closeReplyingMessage 
             onClick={closeReplyingMessage}
             type="button"
           >
-            <i className="fa-solid fa-xmark"></i>
+            <IoMdClose />
           </button>
         )}
       </div>
