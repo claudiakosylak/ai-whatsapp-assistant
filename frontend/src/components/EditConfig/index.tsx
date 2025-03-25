@@ -21,8 +21,6 @@ export const EditConfig = () => {
     fetchConfig();
   }, []);
 
-  console.log({config})
-
   const hasChanged = JSON.stringify(config) !== JSON.stringify(originalConfig);
 
   const handleSubmit = async (e: React.FormEvent) => {
