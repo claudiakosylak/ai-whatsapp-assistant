@@ -34,7 +34,6 @@ import {
 import { randomUUID } from 'crypto';
 import { MessageMedia } from 'whatsapp-web.js';
 import { TestMessage } from './types';
-import { base64ToBlobUrl } from './utils/images';
 import { processMessage } from './utils/whatsapp';
 import { ENV_PATH } from './constants';
 

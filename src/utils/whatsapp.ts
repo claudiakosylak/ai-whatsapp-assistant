@@ -128,7 +128,7 @@ export const processMessage = async (
       chatData.sendStateTyping();
       const response = await getResponseText(message, messageList);
       chatData.clearState();
-      if (enableAudioResponse && response && response.messageContent) {
+      if (enableAudioResponse && response && response.messageContent && response.speakMessage) {
         chatData.sendStateRecording();
         const audioResponse = await convertToAudioResponse(response);
         chatData.clearState();
