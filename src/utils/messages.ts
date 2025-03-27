@@ -143,6 +143,28 @@ export const prepareContextMessageList = async (
       // Validate if the message was written less than maxHoursLimit hours ago; if older, it's not considered
       if (!isMessageAgeValid(msg)) break;
 
+      // add cached function calls so ai doesn't do them again 
+      const cachedFunctionCalls = getFromFunctionCache(msg.id._serialized);
+      if (cachedFunctionCalls && getBotMode() === 'GEMINI') {
+        const calls = JSON.parse(cachedFunctionCalls);
+        for (let call of calls) {
+          if (call.name && call.args && call.result) {
+            const function_response_part = {
+              name: call.name,
+              response: { result: call.result },
+            };
+            messageList.push({
+              role: 'user',
+              parts: [{ functionResponse: function_response_part }],
+            });
+            messageList.push({
+              role: 'model',
+              parts: [{ functionCall: { name: call.name, args: call.args }}],
+            });
+          }
+        }
+      }
+
       // Check if the message includes media or if it is of another type
       const isImage = getIsImage(msg);
       const isAudio = getIsAudio(msg);
@@ -181,27 +203,6 @@ export const prepareContextMessageList = async (
 
       if (messageListItem) {
         messageList.push(messageListItem);
-      }
-
-      const cachedFunctionCalls = getFromFunctionCache(msg.id._serialized);
-      if (cachedFunctionCalls && getBotMode() === 'GEMINI') {
-        const calls = JSON.parse(cachedFunctionCalls);
-        for (let call of calls) {
-          if (call.name && call.args && call.result) {
-            const function_response_part = {
-              name: call.name,
-              response: { result: call.result },
-            };
-            messageList.push({
-              role: 'model',
-              parts: [{ functionCall: { name: call.name, args: call.args }}],
-            });
-            messageList.push({
-              role: 'user',
-              parts: [{ functionResponse: function_response_part }],
-            });
-          }
-        }
       }
     } catch (e: any) {
       console.error(
