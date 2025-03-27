@@ -87,11 +87,14 @@ export const processGeminiResponse = async (
   removeBotName(lastMessage);
   let media: MessageMedia | undefined;
   let emojiHolder: string | undefined;
-  const doEmojiReaction = (emoji: string) => {
+  const doEmojiReaction = async (emoji: string) => {
+    addLog(`in emoji function message: ${JSON.stringify(message)}`)
+    addLog(`in emoji function emoji: ${emoji}`)
     if (message && emoji) {
       try {
-        message.react(emoji);
+        await message.react(emoji);
         emojiHolder = emoji;
+        addLog(`in emoji function emojieholder ${emojiHolder}`)
         return { function: 'emojiReaction', result: 'success' };
       } catch (e) {
         addLog(`Error with emoji reaction: ${e}`);
@@ -201,6 +204,7 @@ export const processGeminiResponse = async (
 
     for (let call of calls) {
       if (call && call.name) {
+        addLog(`Call : ${JSON.stringify(call)}`)
         const result = await functions[call.name](call.args);
         const function_response_part = {
           name: call.name,
