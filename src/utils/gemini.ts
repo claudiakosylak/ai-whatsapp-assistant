@@ -6,7 +6,11 @@ import {
   GoogleGenAI,
   Type,
 } from '@google/genai';
-import { GeminiContextContent, TestMessage, WhatsappResponseAsText } from '../types';
+import {
+  GeminiContextContent,
+  TestMessage,
+  WhatsappResponseAsText,
+} from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getPrompt } from './botSettings';
@@ -42,14 +46,16 @@ export const processGeminiResponse = async (
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
 
-    let repliedMessage
-    if (message.getQuotedMessage) {
-      repliedMessage = await message.getQuotedMessage();
-    }
+  let repliedMessage;
+  if (message.getQuotedMessage) {
+    repliedMessage = await message.getQuotedMessage();
+  }
 
   if (
     repliedMessage &&
-    (getIsImage(repliedMessage) || getIsDocument(repliedMessage) || getIsVideo (repliedMessage))
+    (getIsImage(repliedMessage) ||
+      getIsDocument(repliedMessage) ||
+      getIsVideo(repliedMessage))
   ) {
     let imageUri;
     const media = await repliedMessage.downloadMedia();
@@ -84,10 +90,10 @@ export const processGeminiResponse = async (
     if (message && emoji) {
       try {
         message.react(emoji);
-        return;
+        return { function: 'emojiReaction', result: 'success' };
       } catch (e) {
         addLog(`Error with emoji reaction: ${e}`);
-        return;
+        return { function: 'emojiReaction', result: 'error' };
       }
     }
   };
@@ -95,7 +101,7 @@ export const processGeminiResponse = async (
   const emojiReactionFunctionDeclaration = {
     name: 'emojiReaction',
     description:
-      'When a user requests a response via emoji, responds with an appropriate emoji.',
+      'When a user requests a response via emoji, responds with an appropriate emoji. Ignore requests for emojis from anything but the very last user message. Examples of messages that require you to use your emojiReaction function include: "Give me a thumbs up", "React to this message with a smiley face", "give me a unicorn emoji".',
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -146,7 +152,7 @@ export const processGeminiResponse = async (
 
   let response: GenerateContentResponse;
 
-  let call;
+  let calls = [];
   let responseText;
 
   try {
@@ -178,8 +184,7 @@ export const processGeminiResponse = async (
     if (!responseContent.parts) throw new Error('no parts');
     for (let part of responseContent.parts) {
       if (part.functionCall) {
-        call = part.functionCall;
-        break;
+        calls.push(part.functionCall);
       }
       const blob = part.inlineData;
       if (blob && blob.data && blob.mimeType) {
@@ -192,8 +197,10 @@ export const processGeminiResponse = async (
       }
     }
 
-    if (call && call.name) {
-      return await functions[call.name](call.args);
+    for (let call of calls) {
+      if (call && call.name) {
+        const result = await functions[call.name](call.args);
+      }
     }
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
@@ -202,6 +209,10 @@ export const processGeminiResponse = async (
       messageContent: 'There was an error processing the request.',
       rawText: 'Error',
     };
+  }
+
+  if (!responseText && !media && calls.length > 0) {
+    return;
   }
   return {
     from,
