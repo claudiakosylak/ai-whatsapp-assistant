@@ -244,7 +244,7 @@ export const processGeminiResponse = async (
           break;
         }
         if (part.text) {
-          responseText = (responseText || '') + part.text;
+          responseText = part.text;
         }
       }
     }
