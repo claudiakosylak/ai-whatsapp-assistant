@@ -4,6 +4,7 @@ import {
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
 import { MessageMedia } from 'whatsapp-web.js';
+import { FunctionCall, FunctionResponse } from '@google/genai';
 
 export type OpenAIMessage = {
   role: 'user' | 'assistant';
@@ -93,6 +94,8 @@ export type GeminiFileData = {
 export type GeminiContextPart = {
   fileData?: GeminiFileData;
   text?: string;
+  functionCall?: FunctionCall;
+  functionResponse?: FunctionResponse;
 };
 
 export type GeminiContextContent = {

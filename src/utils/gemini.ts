@@ -200,6 +200,52 @@ export const processGeminiResponse = async (
     for (let call of calls) {
       if (call && call.name) {
         const result = await functions[call.name](call.args);
+        const function_response_part = {
+          name: call.name,
+          response: {result}
+        }
+        body.contents.push({role: 'model', parts: [{functionCall: call}]})
+        body.contents.push({role: 'user', parts: [{functionResponse: function_response_part}]})
+      }
+    }
+    if (calls.length > 0) {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        },
+      );
+
+      response = await res.json();
+
+      if (
+        !res.ok ||
+        !response ||
+        !response.candidates ||
+        !response.candidates[0] ||
+        !response.candidates[0].content ||
+        !response.candidates[0].content.parts
+      ) {
+        throw new Error(JSON.stringify(response));
+      }
+      let responseContent: Content = response.candidates[0].content;
+      calls = []
+
+      if (!responseContent.parts) throw new Error('no parts');
+      for (let part of responseContent.parts) {
+        const blob = part.inlineData;
+        if (blob && blob.data && blob.mimeType) {
+          const base64Data = blob.data.replace(/^data:image\/\w+;base64,/, '');
+          media = new MessageMedia(blob.mimeType, base64Data, null, null);
+          break;
+        }
+        if (part.text) {
+          responseText = (responseText || '') + part.text;
+        }
       }
     }
   } catch (error) {
