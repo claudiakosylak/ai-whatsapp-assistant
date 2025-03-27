@@ -47,6 +47,8 @@ export const processGeminiResponse = async (
     messageList.unshift({ role: 'user', parts: [{ text: '' }] });
   }
 
+  addLog(`Gemini messagelist: ${JSON.stringify(messageList)}`)
+
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
 
