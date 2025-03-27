@@ -255,7 +255,7 @@ export const processGeminiResponse = async (
 
     addLog(`Response text after function calls: ${responseText}`)
     if (emojiHolder && responseText) {
-      responseText = responseText.replace(emojiHolder, '')
+      responseText = responseText.replace(emojiHolder, '').trim()
     }
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
@@ -265,6 +265,10 @@ export const processGeminiResponse = async (
       rawText: 'Error',
     };
   }
+
+  addLog(`Calls at end: ${JSON.stringify(calls)}`)
+  addLog(`Media at end: ${media}`)
+  addLog(`Response text at very end: ${responseText}`)
 
   if (!responseText && !media && calls.length > 0) {
     return;
