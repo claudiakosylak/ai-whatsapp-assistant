@@ -86,10 +86,13 @@ export const processGeminiResponse = async (
 
   removeBotName(lastMessage);
   let media: MessageMedia | undefined;
+  let hasReacted;
+
   const doEmojiReaction = async (emoji: string) => {
     if (message && emoji) {
       try {
         await message.react(emoji);
+        hasReacted = true;
         return { function: 'emojiReaction', result: 'success' };
       } catch (e) {
         addLog(`Error with emoji reaction: ${e}`);
@@ -154,6 +157,7 @@ export const processGeminiResponse = async (
 
   let calls = [];
   let responseText;
+  let respondWithAudio;
 
   try {
     const res = await fetch(
@@ -199,18 +203,21 @@ export const processGeminiResponse = async (
 
     for (let call of calls) {
       if (call && call.name) {
-        addLog(`Call : ${JSON.stringify(call)}`)
+        addLog(`Call : ${JSON.stringify(call)}`);
         const result = await functions[call.name](call.args);
         const function_response_part = {
           name: call.name,
-          response: {result}
-        }
-        body.contents.push({role: 'model', parts: [{functionCall: call}]})
-        body.contents.push({role: 'user', parts: [{functionResponse: function_response_part}]})
+          response: { result },
+        };
+        body.contents.push({ role: 'model', parts: [{ functionCall: call }] });
+        body.contents.push({
+          role: 'user',
+          parts: [{ functionResponse: function_response_part }],
+        });
       }
     }
 
-    addLog(`Response text before function calls: ${responseText}`)
+    addLog(`Response text before function calls: ${responseText}`);
     if (calls.length > 0) {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
@@ -236,7 +243,7 @@ export const processGeminiResponse = async (
         throw new Error(JSON.stringify(response));
       }
       let responseContent: Content = response.candidates[0].content;
-      calls = []
+      calls = [];
 
       if (!responseContent.parts) throw new Error('no parts');
       for (let part of responseContent.parts) {
@@ -250,24 +257,28 @@ export const processGeminiResponse = async (
           responseText = part.text;
         }
       }
-      addLog(`Response text after function calls: ${responseText}`)
+      addLog(`Response text after function calls: ${responseText}`);
     }
 
     if (responseText) {
-      responseText = responseText.trim()
+      responseText = responseText.trim();
     }
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
-    return {
-      from,
-      messageContent: 'There was an error processing the request.',
-      rawText: 'Error',
-    };
+    if (hasReacted) {
+      return;
+    } else {
+      return {
+        from,
+        messageContent: 'There was an error processing the request.',
+        rawText: 'Error',
+      };
+    }
   }
 
-  addLog(`Calls at end: ${JSON.stringify(calls)}`)
-  addLog(`Media at end: ${media}`)
-  addLog(`Response text at very end: ${responseText}`)
+  addLog(`Calls at end: ${JSON.stringify(calls)}`);
+  addLog(`Media at end: ${media}`);
+  addLog(`Response text at very end: ${responseText}`);
 
   if (!responseText && !media && calls.length > 0) {
     return;
