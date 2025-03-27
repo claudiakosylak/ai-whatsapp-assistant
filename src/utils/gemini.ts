@@ -86,15 +86,10 @@ export const processGeminiResponse = async (
 
   removeBotName(lastMessage);
   let media: MessageMedia | undefined;
-  let emojiHolder: string | undefined;
   const doEmojiReaction = async (emoji: string) => {
-    addLog(`in emoji function message: ${JSON.stringify(message)}`)
-    addLog(`in emoji function emoji: ${emoji}`)
     if (message && emoji) {
       try {
         await message.react(emoji);
-        emojiHolder = emoji;
-        addLog(`in emoji function emojieholder ${emojiHolder}`)
         return { function: 'emojiReaction', result: 'success' };
       } catch (e) {
         addLog(`Error with emoji reaction: ${e}`);
@@ -106,7 +101,7 @@ export const processGeminiResponse = async (
   const emojiReactionFunctionDeclaration = {
     name: 'emojiReaction',
     description:
-      'When a user requests a response via emoji, responds with an appropriate emoji. Ignore requests for emojis from anything but the very last user message. Examples of messages that require you to use your emojiReaction function include: "Give me a thumbs up", "React to this message with a smiley face", "give me a unicorn emoji".',
+      'When a user requests a response via emoji, responds with an appropriate emoji.',
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -260,12 +255,6 @@ export const processGeminiResponse = async (
 
     if (responseText) {
       responseText = responseText.trim()
-      addLog(`Response text length: ${responseText.length}`)
-    }
-
-
-    if (emojiHolder && responseText && responseText.length === 1) {
-      responseText = undefined;
     }
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
