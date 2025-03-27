@@ -208,6 +208,8 @@ export const processGeminiResponse = async (
         body.contents.push({role: 'user', parts: [{functionResponse: function_response_part}]})
       }
     }
+
+    addLog(`Response text before function calls: ${responseText}`)
     if (calls.length > 0) {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
@@ -248,6 +250,8 @@ export const processGeminiResponse = async (
         }
       }
     }
+
+    addLog(`Response text after function calls: ${responseText}`)
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
     return {
