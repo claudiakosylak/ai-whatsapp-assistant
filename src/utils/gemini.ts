@@ -86,10 +86,12 @@ export const processGeminiResponse = async (
 
   removeBotName(lastMessage);
   let media: MessageMedia | undefined;
+  let emojiHolder: string | undefined;
   const doEmojiReaction = (emoji: string) => {
     if (message && emoji) {
       try {
         message.react(emoji);
+        emojiHolder = emoji;
         return { function: 'emojiReaction', result: 'success' };
       } catch (e) {
         addLog(`Error with emoji reaction: ${e}`);
@@ -252,6 +254,9 @@ export const processGeminiResponse = async (
     }
 
     addLog(`Response text after function calls: ${responseText}`)
+    if (emojiHolder && responseText) {
+      responseText = responseText.replace(emojiHolder, '')
+    }
   } catch (error) {
     addLog(`Error fetching gemini response: ${error}`);
     return {
