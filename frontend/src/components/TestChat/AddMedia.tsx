@@ -1,14 +1,14 @@
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { FaPlus } from "react-icons/fa";
-import { FaMicrophone } from "react-icons/fa";
-import { FaImage } from "react-icons/fa";
+import { FaMicrophone, FaVideo, FaImage } from "react-icons/fa";
 
 type Props = {
   imageInputRef: RefObject<HTMLInputElement | null>;
   audioInputRef: RefObject<HTMLButtonElement | null>;
+  videoInputRef: RefObject<HTMLInputElement | null>;
 };
 
-export const AddMedia = ({ imageInputRef, audioInputRef}: Props) => {
+export const AddMedia = ({ imageInputRef, audioInputRef, videoInputRef}: Props) => {
   const settingsModalRef = useRef<HTMLDivElement>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState<boolean>(false);
 
@@ -57,6 +57,17 @@ export const AddMedia = ({ imageInputRef, audioInputRef}: Props) => {
             }}
           >
             <FaImage />
+          </button>
+          <button
+            type="button"
+            id="videoInputButton"
+            className="button"
+            onClick={() => {
+              videoInputRef && videoInputRef.current?.click();
+              setIsMediaModalOpen(false);
+            }}
+          >
+            <FaVideo />
           </button>
           <button
             type="button"

@@ -11,7 +11,7 @@ import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getPrompt } from './botSettings';
 import { Message, MessageMedia } from 'whatsapp-web.js';
-import { getIsDocument, getIsImage } from './messages';
+import { getIsDocument, getIsImage, getIsVideo } from './messages';
 import { getImageMessage, setToImageMessageCache } from '../cache';
 
 const removeBotName = (message: GeminiContextContent) => {
@@ -49,7 +49,7 @@ export const processGeminiResponse = async (
 
   if (
     repliedMessage &&
-    (getIsImage(repliedMessage) || getIsDocument(repliedMessage))
+    (getIsImage(repliedMessage) || getIsDocument(repliedMessage) || getIsVideo (repliedMessage))
   ) {
     let imageUri;
     const media = await repliedMessage.downloadMedia();

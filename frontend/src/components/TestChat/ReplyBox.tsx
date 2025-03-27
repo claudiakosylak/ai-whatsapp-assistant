@@ -1,6 +1,6 @@
 import { ReplyingMessage } from '.';
-import { FaImage } from "react-icons/fa";
-import { IoMdClose } from "react-icons/io";
+import { FaMicrophone, FaVideo, FaImage } from 'react-icons/fa';
+import { IoMdClose } from 'react-icons/io';
 
 type Props = {
   replyingMessage: ReplyingMessage;
@@ -8,7 +8,11 @@ type Props = {
   closeReplyingMessage?: () => void;
 };
 
-export const ReplyBox = ({ replyingMessage, isActiveReply, closeReplyingMessage }: Props) => {
+export const ReplyBox = ({
+  replyingMessage,
+  isActiveReply,
+  closeReplyingMessage,
+}: Props) => {
   return (
     <div
       className={`reply-box ${
@@ -39,20 +43,33 @@ export const ReplyBox = ({ replyingMessage, isActiveReply, closeReplyingMessage 
               fontSize: '14px',
             }}
           >
-            <FaImage />
-            Image
+            {replyingMessage.message.mediaType === 'image' ? (
+              <>
+                <FaImage />
+                Image
+              </>
+            ) : replyingMessage.message.mediaType === 'audio' ? (
+              <>
+                <FaMicrophone />
+                Audio
+              </>
+            ) : replyingMessage.message.mediaType === 'video' ? (
+              <>
+                <FaVideo />
+                Video
+              </>
+            ) : null}
           </p>
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        {replyingMessage.imageUrl && (
-          <img
-            src={replyingMessage.imageUrl}
-            className={
-                isActiveReply ? 'reply-image' : 'reply-image-replied'
-            }
-          />
-        )}
+        {replyingMessage.imageUrl &&
+          replyingMessage.message.mediaType === 'image' && (
+            <img
+              src={replyingMessage.imageUrl}
+              className={isActiveReply ? 'reply-image' : 'reply-image-replied'}
+            />
+          )}
         {isActiveReply && (
           <button
             className="reply-close"

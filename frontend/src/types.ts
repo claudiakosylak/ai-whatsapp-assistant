@@ -18,7 +18,7 @@ export type ChatHistoryItem = {
   rawText: string;
   message: TestMessage;
   media: MessageMedia | undefined;
-  mediaType?: 'image' | 'audio';
+  mediaType?: 'image' | 'audio' | 'video';
   reaction?: string;
   repliedMessage?: TestMessage;
 };
@@ -32,7 +32,7 @@ export type TestMessage = {
   body: string;
   hasQuotedMsg: boolean;
   timestamp: number;
-  type: 'image' | 'sticker' | 'text' | 'ptt' | 'audio' | 'chat';
+  type: 'image' | 'sticker' | 'text' | 'ptt' | 'audio' | 'chat' | 'video';
   fromMe: boolean;
   downloadMedia: () => Promise<MessageMedia>;
   getQuotedMessage: () => Promise<TestMessage>;

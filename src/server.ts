@@ -105,6 +105,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     replyingMessageId,
     audioBase64,
     user,
+    fileType,
   } = req.body;
 
   const userMessageId = randomUUID();
@@ -160,7 +161,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     body: message,
     hasQuotedMsg: replyingMessageId !== '',
     timestamp: parseInt(new Date().toString()),
-    type: imageBase64 ? 'image' : audioBase64 ? 'audio' : 'chat',
+    type: fileType || 'chat',
     fromMe: false,
     from: 'test',
     downloadMedia: getMessageMedia,
@@ -177,7 +178,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
     rawText: message,
     message: userTestMessage,
     media: userMessageMedia,
-    mediaType: imageBase64 ? 'image' : 'audio',
+    mediaType: fileType || undefined,
     repliedMessage: replyingMessage,
   });
 

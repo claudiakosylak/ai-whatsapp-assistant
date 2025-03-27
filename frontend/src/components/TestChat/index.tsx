@@ -8,6 +8,7 @@ import { readImageFile } from '../../helpers/images';
 import { AudioInput } from './AudioInput';
 import { ReplyBox } from './ReplyBox';
 import { IoSend } from 'react-icons/io5';
+import { VideoInput } from './VideoInput';
 
 export type AudioInputType = {
   audioUrl: string;
@@ -23,7 +24,7 @@ export type DummyChatItem = {
     data: string;
     mimetype: string;
   };
-  mediaType?: 'image' | 'audio';
+  mediaType?: 'image' | 'audio' | 'video';
   repliedMessage?: TestMessage;
 };
 
@@ -39,16 +40,18 @@ export const TestChat = () => {
   >(null);
   const [activeUser, setActiveUser] = useState<'user' | 'user2'>('user');
   const [activeMediaInput, setActiveMediaInput] = useState<
-    'audio' | 'image' | null
+    'audio' | 'image' | 'video' | null
   >(null);
   const [textInput, setTextInput] = useState('');
   const [imageInput, setImageInput] = useState<string | undefined>(undefined);
+  const [videoInput, setVideoInput] = useState<string | undefined>(undefined);
   const [audioInput, setAudioInput] = useState<AudioInputType | undefined>();
   const [isTyping, setIsTyping] = useState(false);
   const [replyingMessage, setReplyingMessage] =
     useState<ReplyingMessage | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLButtonElement | null>(null);
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchChatData = async () => {
     const response = await fetch('/api/chat');
@@ -65,15 +68,27 @@ export const TestChat = () => {
     let imageBase64;
     let audioBase64;
 
+    const mediaInputRef =
+      activeMediaInput === 'image'
+        ? imageInputRef
+        : activeMediaInput === 'video'
+        ? videoInputRef
+        : undefined;
+
+    console.log({ mediaInputRef });
+
     if (
-      imageInputRef.current &&
-      imageInputRef.current.files &&
-      imageInputRef.current.files[0]
+      mediaInputRef &&
+      mediaInputRef.current &&
+      mediaInputRef.current.files &&
+      mediaInputRef.current.files[0]
     ) {
-      const fileResult = await readImageFile(imageInputRef.current.files[0]);
+      const fileResult = await readImageFile(mediaInputRef.current.files[0]);
       mimeType = fileResult.mimeType;
       imageBase64 = fileResult.base64String;
-      imageInputRef.current.value = '';
+      mediaInputRef.current.value = '';
+      console.log({ mimeType });
+      console.log('base 64 : ', imageBase64.substring(0, 100));
     }
     if (audioInput) {
       mimeType = audioInput.mimeType;
@@ -86,7 +101,7 @@ export const TestChat = () => {
       name: activeUser,
       content: textInput,
       id: '',
-      mediaType: imageBase64 ? 'image' : 'audio',
+      mediaType: activeMediaInput || undefined,
       media: hasMedia
         ? {
             data: imageBase64 || audioBase64 || '',
@@ -108,9 +123,11 @@ export const TestChat = () => {
       mimeType,
       audioBase64,
       replyingMessageId: replyingMessage?.message.id,
+      fileType: activeMediaInput,
     };
     setTextInput('');
     setImageInput(undefined);
+    setVideoInput(undefined);
     setActiveMediaInput(null);
     setAudioInput(undefined);
     setReplyingMessage(null);
@@ -138,8 +155,8 @@ export const TestChat = () => {
   }, [messages]);
 
   const isSendDisabled = useMemo(() => {
-    return !textInput && !imageInput && !audioInput;
-  }, [textInput, imageInput, audioInput]);
+    return !textInput && !imageInput && !audioInput && !videoInput;
+  }, [textInput, imageInput, audioInput, videoInput]);
 
   if (!chat || !messages) return null;
 
@@ -212,6 +229,7 @@ export const TestChat = () => {
             <AddMedia
               imageInputRef={imageInputRef}
               audioInputRef={audioInputRef}
+              videoInputRef={videoInputRef}
             />
           )}
           {activeMediaInput !== 'audio' && (
@@ -244,6 +262,12 @@ export const TestChat = () => {
           imageInputRef={imageInputRef}
           imageInput={imageInput}
           setImageInput={setImageInput}
+          setActiveMediaInput={setActiveMediaInput}
+        />
+        <VideoInput
+          videoInput={videoInput}
+          videoInputRef={videoInputRef}
+          setVideoInput={setVideoInput}
           setActiveMediaInput={setActiveMediaInput}
         />
       </form>

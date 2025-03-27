@@ -29,7 +29,10 @@ export const ChatMessage = ({
 
   if (message.media) {
     let url = base64ToBlobUrl(message.media.data, message.media.mimetype);
-    if (message.mediaType === 'image' && !repliedMessage) {
+    if (
+      (message.mediaType === 'image' || message.mediaType === 'video') &&
+      !repliedMessage
+    ) {
       imageUrl = url;
     } else {
       audioUrl = url;
@@ -52,7 +55,8 @@ export const ChatMessage = ({
           };
           if (
             replied &&
-            replied.message.mediaType === 'image' &&
+            (replied.message.mediaType === 'image' ||
+              replied.message.mediaType === 'video') &&
             replied.message.media
           ) {
             let url = base64ToBlobUrl(
@@ -81,7 +85,11 @@ export const ChatMessage = ({
           }`}
         >
           <div className="message-content">
-            <img src={imageUrl} className="image-preview" />
+            {message.mediaType === 'video' ? (
+              <video src={imageUrl} className='image-preview' />
+            ) : (
+              <img src={imageUrl} className="image-preview" />
+            )}
             <div
               className="reply-icon"
               onClick={() => {
