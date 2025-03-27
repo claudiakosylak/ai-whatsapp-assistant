@@ -258,7 +258,13 @@ export const processGeminiResponse = async (
       addLog(`Response text after function calls: ${responseText}`)
     }
 
-    if (emojiHolder && responseText && responseText.trim().length === 1) {
+    if (responseText) {
+      responseText = responseText.trim()
+      addLog(`Response text length: ${responseText.length}`)
+    }
+
+
+    if (emojiHolder && responseText && responseText.length === 1) {
       responseText = undefined;
     }
   } catch (error) {
