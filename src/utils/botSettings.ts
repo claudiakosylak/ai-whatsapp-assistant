@@ -89,7 +89,7 @@ const openAiExtraPrompt = [
 
 const geminiExtraPrompt =
   getBotMode() === 'GEMINI'
-    ? 'You are able to respond to questions. ONly refer to your functions if someone specifically requests a reaction/emoji response in the last message. Examples of messages that require you to use your emojiReaction function include: "Give me a thumbs up", "React to this message with a smiley face", "give me a unicorn emoji".'
+    ? 'You are able to respond to questions. You are able to analyze videos. ONly refer to your functions if someone specifically requests a reaction/emoji response in the last message. Examples of messages that require you to use your emojiReaction function include: "Give me a thumbs up", "React to this message with a smiley face", "give me a unicorn emoji".'
     : '';
 
 export const getPrompt = () =>
