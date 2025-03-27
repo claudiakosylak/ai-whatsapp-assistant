@@ -24,6 +24,7 @@ import { addLog } from './controlPanel';
 import {
   deleteFromDifyCache,
   getAudioMessage,
+  getFromFunctionCache,
   getImageMessage,
   setToAudioCache,
   setToImageMessageCache,
@@ -50,10 +51,9 @@ export const shouldProcessGroupMessage = async (
   if (chatData.isGroup) {
     const { command } = parseCommand(message.body);
     const botName = getBotName();
-    const quotedMessage = await message.getQuotedMessage()
-    const isSelfMention = (message.hasQuotedMsg && quotedMessage)
-      ? quotedMessage.fromMe
-      : false;
+    const quotedMessage = await message.getQuotedMessage();
+    const isSelfMention =
+      message.hasQuotedMsg && quotedMessage ? quotedMessage.fromMe : false;
     const isMentioned =
       message.body.toLowerCase().includes(botName.toLowerCase()) &&
       !isSelfMention;
@@ -181,6 +181,27 @@ export const prepareContextMessageList = async (
 
       if (messageListItem) {
         messageList.push(messageListItem);
+      }
+
+      const cachedFunctionCalls = getFromFunctionCache(msg.id._serialized);
+      if (cachedFunctionCalls && getBotMode() === 'GEMINI') {
+        const calls = JSON.parse(cachedFunctionCalls);
+        for (let call of calls) {
+          if (call.name && call.args && call.result) {
+            const function_response_part = {
+              name: call.name,
+              response: { result: call.result },
+            };
+            messageList.push({
+              role: 'model',
+              parts: [{ functionCall: { name: call.name, args: call.args }}],
+            });
+            messageList.push({
+              role: 'user',
+              parts: [{ functionResponse: function_response_part }],
+            });
+          }
+        }
       }
     } catch (e: any) {
       console.error(
@@ -337,8 +358,8 @@ export const changeBotMode = (message: Message | TestMessage) => {
       messageString = 'Switched to OpenAI Assistant mode';
       break;
     case 'chat':
-      setBotMode('OPENAI_CHAT')
-      messageString = "Switched to OpenAI Chat mode";
+      setBotMode('OPENAI_CHAT');
+      messageString = 'Switched to OpenAI Chat mode';
       break;
     case 'chat-webui':
       setBotMode('OPEN_WEBUI_CHAT');
@@ -349,11 +370,12 @@ export const changeBotMode = (message: Message | TestMessage) => {
       messageString = 'Switched to Dify mode';
       break;
     case 'gemini':
-      setBotMode("GEMINI")
-      messageString = 'Switched to Gemini mode'
+      setBotMode('GEMINI');
+      messageString = 'Switched to Gemini mode';
       break;
     default:
-      messageString = 'Invalid mode. Use "assistant", "chat", "chat-webui", "dify", or "gemini".';
+      messageString =
+        'Invalid mode. Use "assistant", "chat", "chat-webui", "dify", or "gemini".';
       break;
   }
   addLog(messageString);

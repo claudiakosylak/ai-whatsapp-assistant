@@ -27,7 +27,10 @@ export const deleteFromImageCache = (messageId: string) => {
   imageMessagesCache.del(messageId);
 };
 
-export const setToImageMessageCache = (messageId: string, contentString: string) => {
+export const setToImageMessageCache = (
+  messageId: string,
+  contentString: string,
+) => {
   imageMessagesCache.set(messageId, contentString);
 };
 
@@ -44,4 +47,22 @@ export const deleteFromAudioCache = (messageId: string) => {
 
 export const setToAudioCache = (messageId: string, contentString: string) => {
   audioCache.set(messageId, contentString);
+};
+
+// function call cache so ai doesn't use the same tools again while reading context
+export const functionCallCache = new NodeCache({ stdTTL: NODE_CACHE_TIME });
+
+export const setToFunctionCache = (
+  messageId: string,
+  calls: {
+    name: string;
+    args: Record<string, any> | undefined;
+    result: Record<string, any> | undefined;
+  }[],
+) => {
+  functionCallCache.set(messageId, JSON.stringify(calls));
+};
+
+export const getFromFunctionCache = (messageId: string) => {
+  return functionCallCache.get<string>(messageId);
 };

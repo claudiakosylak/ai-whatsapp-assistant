@@ -16,7 +16,11 @@ import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
 import { getBotName, getPrompt } from './botSettings';
 import { Message, MessageMedia } from 'whatsapp-web.js';
 import { getIsDocument, getIsImage, getIsVideo } from './messages';
-import { getImageMessage, setToImageMessageCache } from '../cache';
+import {
+  getImageMessage,
+  setToFunctionCache,
+  setToImageMessageCache,
+} from '../cache';
 
 const removeBotName = (message: GeminiContextContent) => {
   const botName = getBotName();
@@ -157,7 +161,6 @@ export const processGeminiResponse = async (
 
   let calls = [];
   let responseText;
-  let respondWithAudio;
 
   try {
     const res = await fetch(
@@ -201,10 +204,21 @@ export const processGeminiResponse = async (
       }
     }
 
+    const cacheCallObject: {
+      name: string;
+      args: Record<string, any> | undefined;
+      result: Record<string, any> | undefined;
+    }[] = [];
+
     for (let call of calls) {
       if (call && call.name) {
         addLog(`Call : ${JSON.stringify(call)}`);
         const result = await functions[call.name](call.args);
+        cacheCallObject.push({
+          name: call.name,
+          args: call.args,
+          result,
+        });
         const function_response_part = {
           name: call.name,
           response: { result },
@@ -219,6 +233,7 @@ export const processGeminiResponse = async (
 
     addLog(`Response text before function calls: ${responseText}`);
     if (calls.length > 0) {
+      setToFunctionCache(message.id._serialized, cacheCallObject);
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
         {
