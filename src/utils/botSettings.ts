@@ -8,6 +8,7 @@ import {
   DEFAULT_PROMPT,
   DEFAULT_RESPOND_WITH_VOICE,
 } from '../config';
+import { OpenAIVoice } from '../types';
 import { AudioMode, BotMode } from '../types';
 
 // Bot configuration management
@@ -25,6 +26,13 @@ export let mode: BotMode = (DEFAULT_CHAT_API as BotMode) || 'OPENAI_CHAT';
 
 export let audioMode: AudioMode =
   (DEFAULT_AUDIO_API as AudioMode) || 'ELEVEN_LABS';
+
+export let openAiVoice: OpenAIVoice = 'nova'
+
+export const getOpenAiVoice = () => openAiVoice;
+export const setOpenAiVoice = (val: OpenAIVoice) => {
+  openAiVoice = val
+}
 
 export const getAudioMode = () => audioMode;
 

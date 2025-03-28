@@ -106,3 +106,14 @@ export type GeminiContextContent = {
 export type EmojiReaction = {
   emoji: string;
 };
+
+export type OpenAIVoice =
+  | 'alloy'
+  | 'ash'
+  | 'coral'
+  | 'echo'
+  | 'fable'
+  | 'onyx'
+  | 'nova'
+  | 'sage'
+  | 'shimmer';

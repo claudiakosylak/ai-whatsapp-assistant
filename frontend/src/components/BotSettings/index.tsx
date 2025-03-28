@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState } from 'react';
 import { SettingsItem } from './SettingsItem';
-import { AudioMode, BotMode } from '../../types';
+import { AudioMode, BotMode, OpenAIVoice } from '../../types';
 import { CustomPrompt } from './CustomPrompt';
 import { Accordion } from 'radix-ui';
 import './BotSettings.css';
@@ -14,6 +14,7 @@ type Settings = {
   respondAsVoice: boolean;
   botName: string;
   audioMode: AudioMode;
+  openAiVoice: OpenAIVoice;
 };
 
 const SaveButton = ({ hasChanged }: { hasChanged: boolean }) => {
@@ -28,6 +29,21 @@ const SaveButton = ({ hasChanged }: { hasChanged: boolean }) => {
     </button>
   );
 };
+
+export const openAiVoices = [
+  'alloy',
+  'ash',
+  'ballad',
+  'coral',
+  'echo',
+  'fable',
+  'onyx',
+  'nova',
+  'sage',
+  'shimmer',
+  'verse',
+];
+
 
 export const BotSettings = () => {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -81,7 +97,8 @@ export const BotSettings = () => {
 
     if (
       settings.respondAsVoice !== originalSettings.respondAsVoice ||
-      settings.audioMode !== originalSettings.audioMode
+      settings.audioMode !== originalSettings.audioMode ||
+      settings.openAiVoice !== originalSettings.openAiVoice
     ) {
       status['audio'] = true;
     } else {
@@ -139,7 +156,6 @@ export const BotSettings = () => {
               display: 'flex',
               flexDirection: 'column',
               gap: '10px',
-              marginBottom: '20px',
             }}
           >
             <SettingsItem label="Bot Name:">
@@ -191,7 +207,6 @@ export const BotSettings = () => {
               display: 'flex',
               flexDirection: 'column',
               gap: '10px',
-              marginBottom: '20px',
             }}
           >
             <SettingsItem label="Chat API:">
@@ -220,10 +235,9 @@ export const BotSettings = () => {
               display: 'flex',
               flexDirection: 'column',
               gap: '10px',
-              marginBottom: '20px',
             }}
           >
-            <SettingsItem checkbox label="Respond with voice messages">
+            <SettingsItem checkbox label="Enable voice response">
               <input
                 type="checkbox"
                 name="respondAsVoice"
@@ -242,6 +256,15 @@ export const BotSettings = () => {
                 <option value="OPENAI">OpenAI</option>
               </select>
             </SettingsItem>
+            {settings.audioMode === 'OPENAI' && (
+              <SettingsItem label="Voice:">
+                <select name="openAiVoice" value={settings.openAiVoice} onChange={handleChange} style={{ width: '180px' }}>
+                  {openAiVoices.map((voice) => (
+                    <option key={voice} value={voice}>{voice}</option>
+                  ))}
+                </select>
+              </SettingsItem>
+            )}
             <SaveButton hasChanged={hasChanged['audio']} />
           </form>
         </AccordionItem>

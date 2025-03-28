@@ -11,6 +11,7 @@ import {
   getCustomPrompt,
   getMaxMessageAge,
   getMessageHistoryLimit,
+  getOpenAiVoice,
   isResetCommandEnabled,
   setAudioMode,
   setAudioResponseEnabled,
@@ -19,6 +20,7 @@ import {
   setCustomPrompt,
   setMaxMessageAge,
   setMessageHistoryLimit,
+  setOpenAiVoice,
   setResetCommandEnabled,
 } from './utils/botSettings';
 import {
@@ -141,7 +143,7 @@ apiRouter.post('/messages', async (req: Request, res: Response) => {
       if (replyingMessage) {
         resolve(replyingMessage);
       } else {
-        resolve(undefined)
+        resolve(undefined);
       }
     });
   };
@@ -291,6 +293,7 @@ apiRouter.get('/settings', (req: Request, res: Response) => {
     respondAsVoice: getAudioResponseEnabled(),
     botName: getBotName(),
     audioMode: getAudioMode(),
+    openAiVoice: getOpenAiVoice(),
   };
   res.json({ settings });
 });
@@ -304,6 +307,7 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
     respondAsVoice,
     botName,
     audioMode,
+    openAiVoice,
   } = req.body;
 
   if (messageHistoryLimit && messageHistoryLimit !== getMessageHistoryLimit()) {
@@ -322,16 +326,27 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
     }
   }
 
-  if (resetCommandEnabled !== isResetCommandEnabled()) {
+  if (
+    resetCommandEnabled !== undefined &&
+    resetCommandEnabled !== isResetCommandEnabled()
+  ) {
     setResetCommandEnabled(!!resetCommandEnabled);
     addLog(`Reset command ${resetCommandEnabled ? 'enabled' : 'disabled'}`);
   }
 
-  if (respondAsVoice !== getAudioResponseEnabled()) {
+  if (
+    respondAsVoice !== undefined &&
+    respondAsVoice !== getAudioResponseEnabled()
+  ) {
     setAudioResponseEnabled(!!respondAsVoice);
     addLog(
       `Respond in voice messages ${respondAsVoice ? 'enabled' : 'disabled'}`,
     );
+  }
+
+  if (openAiVoice && openAiVoice !== getOpenAiVoice()) {
+    setOpenAiVoice(openAiVoice);
+    addLog(`Changed OpenAI voice to ${openAiVoice}`);
   }
 
   if (botMode !== getBotMode()) {
@@ -344,7 +359,7 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
     addLog(`Bot name changed to ${botName}`);
   }
 
-  if (audioMode !== getAudioMode()) {
+  if (audioMode !== undefined && audioMode !== getAudioMode()) {
     setAudioMode(audioMode);
     addLog(`Audio handling changed to ${audioMode}`);
   }

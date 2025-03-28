@@ -39,7 +39,7 @@ export const CustomPrompt = () => {
   };
 
   return (
-    <div style={{ marginBottom: '20px' }}>
+    <div>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <textarea

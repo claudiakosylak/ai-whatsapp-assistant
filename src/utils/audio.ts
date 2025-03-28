@@ -9,7 +9,7 @@ import { ELEVEN_LABS_API_KEY, OPENAI_API_KEY } from '../config';
 import { addLog } from './controlPanel';
 import OpenAI, { toFile } from 'openai';
 import { WhatsappResponse, WhatsappResponseAsText } from '../types';
-import { getAudioMode } from './botSettings';
+import { getAudioMode, getOpenAiVoice } from './botSettings';
 import { setError } from './errors';
 
 export const deleteAudioFiles = () => {
@@ -122,7 +122,7 @@ export const getBase64WithOpenAI = async (messageString: string) => {
 
     const response: any = await client.audio.speech.create({
       model: 'tts-1',
-      voice: 'nova',
+      voice: getOpenAiVoice(),
       input: messageString,
       response_format: 'mp3',
     });

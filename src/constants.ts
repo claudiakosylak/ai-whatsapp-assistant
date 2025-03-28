@@ -4,7 +4,7 @@ import { AudioMode, BotMode } from './types';
 export const AUDIO_DIR = path.join(__dirname, 'public/audio'); // Directory for storing audio files
 export const IMAGE_DIR = path.join(__dirname, 'public/images'); // Directory for storing image files
 export const ENV_PATH = path.join(__dirname, '..', '.env');
-export const TEST_PATH = path.join(__dirname, 'test.txt')
+export const TEST_PATH = path.join(__dirname, 'test.txt');
 
 export const botModes: BotMode[] = [
   'OPEN_WEBUI_CHAT',
@@ -27,4 +27,18 @@ export const imageProcessingModes: BotMode[] = [
   'OPENAI_ASSISTANT',
   'OPENAI_CHAT',
   'GEMINI',
+];
+
+export const openAiVoices = [
+  'alloy',
+  'ash',
+  'ballad',
+  'coral',
+  'echo',
+  'fable',
+  'onyx',
+  'nova',
+  'sage',
+  'shimmer',
+  'verse',
 ];

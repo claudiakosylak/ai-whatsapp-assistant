@@ -16,6 +16,8 @@ export const DEFAULT_RESPOND_WITH_VOICE =
   process.env.DEFAULT_RESPOND_WITH_VOICE;
 export const DEFAULT_CHAT_API = process.env.DEFAULT_CHAT_API;
 export const DEFAULT_AUDIO_API = process.env.DEFAULT_AUDIO_API;
+export const DEFAULT_OPENAI_VOICE = process.env.DEFAULT_OPENAI_VOICE;
+export const DEFAULT_ELEVEN_VOICE = process.env.DEFAULT_ELEVEN_VOICE;
 
 // environment variables that will change dynamically without reboot if .env file changed either in ccontrol panel or directly
 export let ELEVEN_LABS_API_KEY = process.env.ELEVEN_LABS_API_KEY;

@@ -9,7 +9,7 @@ type Props = {
 
 export const AccordionItem = ({ title, value, children }: Props) => {
   return (
-    <Accordion.AccordionItem value={value} className="">
+    <Accordion.AccordionItem value={value} className="AccordionItem">
       <Accordion.Header className="AccordionHeader">
         {title}
         <Accordion.Trigger className="AccordionTrigger">
