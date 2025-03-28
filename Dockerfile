@@ -20,5 +20,8 @@ RUN npm install
 RUN npm install vite-node
 
 COPY . .
+WORKDIR /app/frontend
+RUN npm install
+WORKDIR /app/
 
 CMD ["npm", "run", "start"]
