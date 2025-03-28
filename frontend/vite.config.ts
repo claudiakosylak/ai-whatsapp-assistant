@@ -11,12 +11,12 @@ export default defineConfig({
         changeOrigin: true,
       }
     },
-    host: true,
+    host: '0.0.0.0',
     port: 5173,
     strictPort: true,
   },
   preview: {
-    host: true,
+    host: '0.0.0.0',
     port: 4173,
   },
 })
