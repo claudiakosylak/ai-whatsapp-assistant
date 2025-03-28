@@ -27,8 +27,8 @@ Before setting up, ensure you have:
 
 1. Clone this repository:
    ```sh
-   git clone https://github.com/claudiakosylak/openai-whatsapp-assistant.git
-   cd openai-whatsapp-assistant
+   git clone https://github.com/claudiakosylak/ai-whatsapp-assistant.git
+   cd ai-whatsapp-assistant
    ```
 
 2. Install dependencies for backend:
@@ -87,7 +87,7 @@ Before setting up, ensure you have:
 
 ### Gemini API
 
-Currently, the bot supports image analysis, document analysis and emoji reactions via tool call depending on the model used. Image generation is currently supported if using gemini-2.0-flash-exp experimental model, however, document analysis and emoji reactions will not work with this model. The experimental model also will not recognize the custom prompt at this time.
+Currently, the bot supports image analysis, video analysis, document analysis and emoji reactions via tool call depending on the model used. Image generation is currently supported if using gemini-2.0-flash-exp experimental model, however, document analysis and emoji reactions will not work with this model. The experimental model also will not recognize the custom prompt at this time.
 
 ### Dify API
 
@@ -128,7 +128,7 @@ The bot will respond in group chats only if its name is mentioned in the message
 
 Regardless of the selected chat API, all audio transcriptions and bot speech will be processed by the selected audio API. If the correct API keys are not present, the bot will not be able to respond to audio messages or consider them in the message context.
 
-You may enable/disable whether the bot is to respond with voice messages from the control panel.
+If voice response is enabled, you may trigger the bot to speak by requesting it in the contents of your message or by sending your request via an audio message. If using Dify, all messages will get a voice response if voice response is enabled.
 
 ### Control Panel
 
@@ -136,10 +136,20 @@ You may actively change your bot's settings, view logs, test bot behavior throug
 
 #### Custom Prompt and Bot Settings
 
-- Custom Prompt: Update system instructions for the bot.
+- Update system instructions for the bot. If you have an agent set up with Dify or an Assistant through Assistants API, this will be added to the prompt you have set up for your assistant/agent in your corresponding dashboard.
+
+#### Context Settings
 - Bot Name: In group chats, the bot will only respond to messages where its name is mentioned or to direct replies.
 - Message history limit and max message age: This determines how many messages the bot will use as context for its response.    -- Note that if the bot is restarted, all conversation contexts are reset if using Dify API.
 - Enable/disable reset command: Whether sending message with content -reset will reset conversation context.
+
+#### LLM Settings
+You may select which API will handle your responses.
+
+#### Audio Settings
+- Enable voice response: You may enable/disable whether the bot is to respond with voice messages.
+- Audio API: Select which API to use for your audio transcriptions (STT) and speech (TTS).
+- Voice: Voice to use when creating speech (TTS).
 
 Actively selected bot settings will apply to both Whatsapp (if connected) and the test chat box. Settings will reset on bot restart. Update environment variables with prefix DEFAULT_ to set defaults.
 
