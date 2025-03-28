@@ -1,26 +1,27 @@
 import OpenAI from 'openai';
 import { addLog } from './controlPanel';
-import { OpenAIAssistantMessage, OpenAIMessage, TestMessage, WhatsappResponseAsText } from '../types';
+import {
+  OpenAIAssistantMessage,
+  OpenAIMessage,
+  TestMessage,
+  WhatsappResponseAsText,
+} from '../types';
 import { OPENAI_API_KEY, OPENAI_ASSISTANT_ID } from '../config';
-import { getPrompt } from './botSettings';
+import { getAudioResponseEnabled, getPrompt } from './botSettings';
 import { Message } from 'whatsapp-web.js';
 import {
   FunctionToolCall,
   RunStepsPage,
 } from 'openai/resources/beta/threads/runs/steps';
+import { getIsAudio } from './messages';
+import { AssistantTool } from 'openai/resources/beta/assistants';
 
 export const processAssistantResponse = async (
   from: string,
   messages: OpenAIMessage[],
   message: Message | TestMessage,
-): Promise<WhatsappResponseAsText> => {
+): Promise<WhatsappResponseAsText | undefined> => {
   try {
-    const client = new OpenAI({
-      apiKey: OPENAI_API_KEY,
-    });
-
-    const ASSISTANT_ID = OPENAI_ASSISTANT_ID as string;
-
     if (!OPENAI_API_KEY || !OPENAI_ASSISTANT_ID) {
       addLog(
         `Missing OpenAI key or Assistant ID. Please update your environment configuration and try again.`,
@@ -32,10 +33,17 @@ export const processAssistantResponse = async (
         speakMessage: false,
       };
     }
+    const client = new OpenAI({
+      apiKey: OPENAI_API_KEY,
+    });
+
+    const ASSISTANT_ID = OPENAI_ASSISTANT_ID as string;
 
     let thread;
     try {
-      thread = await client.beta.threads.create({ messages: messages as OpenAIAssistantMessage[] });
+      thread = await client.beta.threads.create({
+        messages: messages as OpenAIAssistantMessage[],
+      });
       addLog(`Created new thread: ${thread.id}`);
     } catch (error) {
       addLog(`Error creating thread: ${error}`);
@@ -47,16 +55,39 @@ export const processAssistantResponse = async (
       };
     }
 
-    const doEmojiReaction = (emoji: string) => {
+    let respondWithAudio: boolean = getIsAudio(message) ? true : false;
+
+    let hasReacted;
+
+    const doEmojiReaction = async (emoji: string) => {
       if (message && emoji) {
         try {
-          message.react(emoji);
-          return;
+          await message.react(emoji);
+          hasReacted = true;
+          return { function: 'emojiReaction', result: 'success' };
         } catch (e) {
           addLog(`Error with emoji reaction: ${e}`);
-          return;
+          return { function: 'emojiReaction', result: 'error' };
         }
       }
+    };
+
+    const speak = () => {
+      if (getAudioResponseEnabled()) {
+        respondWithAudio = true;
+        return { function: 'speak', result: 'success' };
+      } else {
+        return { function: 'speak', result: 'Audio messages are not enabled.' };
+      }
+    };
+
+    const speakFunctionDeclaration = {
+      type: 'function' as 'function',
+      function: {
+        name: 'speak',
+        description:
+          'When a user requests that you speak, read a message out loud or to send your response as audio, this will enable it.',
+      },
     };
 
     const emojiReactionFunctionDeclaration = {
@@ -82,6 +113,9 @@ export const processAssistantResponse = async (
       emojiReaction: ({ emoji }: { emoji: string }) => {
         return doEmojiReaction(emoji);
       },
+      speak: () => {
+        return speak();
+      },
     };
 
     let run;
@@ -89,7 +123,7 @@ export const processAssistantResponse = async (
       run = await client.beta.threads.runs.create(thread.id, {
         assistant_id: ASSISTANT_ID,
         additional_instructions: getPrompt(),
-        tools: [emojiReactionFunctionDeclaration],
+        tools: [emojiReactionFunctionDeclaration, speakFunctionDeclaration],
       });
       addLog(`Created new run: ${run.id}`);
     } catch (error) {
@@ -101,6 +135,8 @@ export const processAssistantResponse = async (
         speakMessage: false,
       };
     }
+
+    let calls: AssistantTool[] = [];
 
     try {
       while (run.status !== 'completed' && run.status !== 'requires_action') {
@@ -119,7 +155,9 @@ export const processAssistantResponse = async (
     }
 
     if (run.tools.length > 0) {
-      let toolCall: FunctionToolCall | undefined;
+      calls = run.tools;
+      let toolCalls: FunctionToolCall[] = [];
+      let callResults: { tool_call_id: string; output: string }[] = [];
       try {
         let runSteps: RunStepsPage = await client.beta.threads.runs.steps.list(
           thread.id,
@@ -127,14 +165,39 @@ export const processAssistantResponse = async (
         );
         runSteps.data.forEach(async (step) => {
           if (step.step_details.type === 'tool_calls') {
-            toolCall = step.step_details.tool_calls[0] as FunctionToolCall;
+            for (let tool of step.step_details.tool_calls) {
+              const currentTool = tool as FunctionToolCall;
+              toolCalls.push(currentTool);
+              addLog(`Calling tool function: ${currentTool.function.name}`);
+              const result = await functions[currentTool.function.name](
+                JSON.parse(currentTool.function.arguments),
+              );
+              callResults.push({
+                tool_call_id: currentTool.id,
+                output: JSON.stringify(result),
+              });
+            }
           }
         });
-        if (toolCall) {
-          addLog(`Calling tool function: ${toolCall.function.name}`);
-          return await functions[toolCall.function.name](
-            JSON.parse(toolCall.function.arguments),
-          );
+        run = await client.beta.threads.runs.submitToolOutputs(
+          thread.id,
+          run.id,
+          {
+            tool_outputs: callResults,
+          },
+        );
+
+        try {
+          while (run.status !== 'completed') {
+            run = await client.beta.threads.runs.retrieve(thread.id, run.id);
+            addLog(`Run status: ${run.status}`);
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+          if (run.status === 'completed') {
+            addLog('Run completed!');
+          }
+        } catch (error) {
+          addLog(`Error retrieving run status: ${error}`);
         }
       } catch (e) {
         addLog(`Error retrieving function call: ${e}`);
@@ -156,6 +219,9 @@ export const processAssistantResponse = async (
     const messagesData = messageResponse.data;
     const latestMessage = messagesData[0];
     const latestMessageContent: any = latestMessage.content[0];
+    if (!latestMessageContent && calls.length > 0) {
+      return;
+    }
     addLog(
       `Assistant response: ${latestMessageContent.text.value.substring(
         0,
@@ -164,11 +230,12 @@ export const processAssistantResponse = async (
     );
     const responseString = latestMessageContent.text.value;
     let messageContent = responseString;
+
     const textResponse = {
       from: from,
       messageContent,
       rawText: responseString,
-      speakMessage: true,
+      speakMessage: respondWithAudio,
     };
     return textResponse;
   } catch (error) {
