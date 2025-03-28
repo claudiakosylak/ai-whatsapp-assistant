@@ -40,12 +40,11 @@ export const CustomPrompt = () => {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <h3>Custom Prompt</h3>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <textarea
           name="customPrompt"
-          style={{ width: '100%', height: '100px', margin: '0px 0px 10px 0px' }}
+          style={{ width: '98%', height: '100px', margin: '0px 0px 10px 0px' }}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
         />

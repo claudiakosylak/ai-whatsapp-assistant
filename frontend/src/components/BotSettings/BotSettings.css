@@ -1,0 +1,61 @@
+.AccordionRoot {
+  width: 100%;
+}
+
+.AccordionHeader {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 20px 0;
+}
+
+.AccordionItem:first-of-type {
+  border-top: none;
+}
+
+.AccordionItem {
+  border-top: 1px solid var(--border-color);
+}
+
+.AccordionContent {
+  overflow: hidden;
+}
+.AccordionContent[data-state='open'] {
+  animation: slideDown 300ms ease-out;
+}
+.AccordionContent[data-state='closed'] {
+  animation: slideUp 300ms ease-out;
+}
+
+.AccordionChevron {
+  transition: transform 300ms;
+  color: var(--text-color);
+}
+
+.AccordionTrigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.AccordionTrigger[data-state='open'] > .AccordionChevron {
+  transform: rotate(180deg);
+}
+
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}

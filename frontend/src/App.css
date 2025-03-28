@@ -6,21 +6,17 @@ body {
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 1rem 1rem;
 }
 
 .audio-controls {
   display: flex;
   justify-content: flex-end;
-  /* flex: 1; */
 }
 
 .audio-control-button {
   height: 100%;
   aspect-ratio: 1/1;
-  /* display: flex;
-  justify-content: center;
-  align-items: center; */
 }
 
 .audio-canvas {
@@ -28,7 +24,6 @@ body {
   border: 1px solid var(--primary);
   border-radius: 10px 0 0 10px;
   box-shadow: 0 0 10px var(--shadow);
-  /* background-color: var(--background); */
 }
 
 .button {
@@ -300,6 +295,10 @@ textarea:focus {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.panel:first-of-type {
+  padding-top: 0;
 }
 
 .reaction {
