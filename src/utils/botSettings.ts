@@ -3,6 +3,7 @@ import {
   DEFAULT_BOT_NAME,
   DEFAULT_CHAT_API,
   DEFAULT_CONTEXT_LENGTH,
+  DEFAULT_ELEVEN_VOICE_ID,
   DEFAULT_ENABLE_RESET_COMMAND,
   DEFAULT_MAX_MESSAGE_AGE,
   DEFAULT_PROMPT,
@@ -29,9 +30,15 @@ export let audioMode: AudioMode =
 
 export let openAiVoice: OpenAIVoice = 'nova'
 
+export let elevenVoiceId: string = DEFAULT_ELEVEN_VOICE_ID || 'IuRRIAcbQK5AQk1XevPj'
+
 export const getOpenAiVoice = () => openAiVoice;
 export const setOpenAiVoice = (val: OpenAIVoice) => {
   openAiVoice = val
+}
+export const getElevenVoiceId = () => elevenVoiceId;
+export const setElevenVoiceId = (val: string) => {
+  elevenVoiceId = val
 }
 
 export const getAudioMode = () => audioMode;

@@ -4,11 +4,13 @@ import fs from 'fs';
 import { config } from 'dotenv';
 import { Request, Response } from 'express';
 import {
+  elevenVoiceId,
   getAudioMode,
   getAudioResponseEnabled,
   getBotMode,
   getBotName,
   getCustomPrompt,
+  getElevenVoiceId,
   getMaxMessageAge,
   getMessageHistoryLimit,
   getOpenAiVoice,
@@ -18,6 +20,7 @@ import {
   setBotMode,
   setBotName,
   setCustomPrompt,
+  setElevenVoiceId,
   setMaxMessageAge,
   setMessageHistoryLimit,
   setOpenAiVoice,
@@ -293,6 +296,7 @@ apiRouter.get('/settings', (req: Request, res: Response) => {
     botName: getBotName(),
     audioMode: getAudioMode(),
     openAiVoice: getOpenAiVoice(),
+    elevenVoiceId: getElevenVoiceId(),
   };
   res.json({ settings });
 });
@@ -307,6 +311,7 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
     botName,
     audioMode,
     openAiVoice,
+    elevenVoiceId,
   } = req.body;
 
   if (messageHistoryLimit && messageHistoryLimit !== getMessageHistoryLimit()) {
@@ -346,6 +351,11 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
   if (openAiVoice && openAiVoice !== getOpenAiVoice()) {
     setOpenAiVoice(openAiVoice);
     addLog(`Changed OpenAI voice to ${openAiVoice}`);
+  }
+
+  if (elevenVoiceId && elevenVoiceId !== getElevenVoiceId()) {
+    setElevenVoiceId(elevenVoiceId)
+    addLog(`Changed ElevenLabs voiceID to ${elevenVoiceId}`)
   }
 
   if (botMode !== getBotMode()) {

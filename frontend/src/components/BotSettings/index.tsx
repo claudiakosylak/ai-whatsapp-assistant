@@ -15,6 +15,7 @@ type Settings = {
   botName: string;
   audioMode: AudioMode;
   openAiVoice: OpenAIVoice;
+  elevenVoiceId: string;
 };
 
 const SaveButton = ({ hasChanged }: { hasChanged: boolean }) => {
@@ -43,7 +44,6 @@ export const openAiVoices = [
   'shimmer',
   'verse',
 ];
-
 
 export const BotSettings = () => {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -98,7 +98,8 @@ export const BotSettings = () => {
     if (
       settings.respondAsVoice !== originalSettings.respondAsVoice ||
       settings.audioMode !== originalSettings.audioMode ||
-      settings.openAiVoice !== originalSettings.openAiVoice
+      settings.openAiVoice !== originalSettings.openAiVoice ||
+      settings.elevenVoiceId !== originalSettings.elevenVoiceId
     ) {
       status['audio'] = true;
     } else {
@@ -249,20 +250,43 @@ export const BotSettings = () => {
               <select
                 name="audioMode"
                 value={settings.audioMode}
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  if (originalSettings) {
+                    settings.elevenVoiceId = originalSettings.elevenVoiceId;
+                    settings.openAiVoice = originalSettings.openAiVoice;
+                  }
+                }}
                 style={{ width: '180px' }}
               >
                 <option value="ELEVEN_LABS">Eleven Labs API</option>
                 <option value="OPENAI">OpenAI</option>
               </select>
             </SettingsItem>
-            {settings.audioMode === 'OPENAI' && (
+            {settings.audioMode === 'OPENAI' ? (
               <SettingsItem label="Voice:">
-                <select name="openAiVoice" value={settings.openAiVoice} onChange={handleChange} style={{ width: '180px' }}>
+                <select
+                  name="openAiVoice"
+                  value={settings.openAiVoice}
+                  onChange={handleChange}
+                  style={{ width: '180px' }}
+                >
                   {openAiVoices.map((voice) => (
-                    <option key={voice} value={voice}>{voice}</option>
+                    <option key={voice} value={voice}>
+                      {voice}
+                    </option>
                   ))}
                 </select>
+              </SettingsItem>
+            ) : (
+              <SettingsItem label="Voice ID:">
+                <input
+                  type="text"
+                  name="elevenVoiceId"
+                  value={settings.elevenVoiceId}
+                  onChange={handleChange}
+                  style={{ width: '180px', marginLeft: '10px' }}
+                />
               </SettingsItem>
             )}
             <SaveButton hasChanged={hasChanged['audio']} />
