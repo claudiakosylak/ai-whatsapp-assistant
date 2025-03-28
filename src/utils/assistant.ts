@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { addLog } from './controlPanel';
-import { OpenAIMessage, TestMessage, WhatsappResponseAsText } from '../types';
+import { OpenAIAssistantMessage, OpenAIMessage, TestMessage, WhatsappResponseAsText } from '../types';
 import { OPENAI_API_KEY, OPENAI_ASSISTANT_ID } from '../config';
 import { getPrompt } from './botSettings';
 import { Message } from 'whatsapp-web.js';
@@ -35,7 +35,7 @@ export const processAssistantResponse = async (
 
     let thread;
     try {
-      thread = await client.beta.threads.create({ messages });
+      thread = await client.beta.threads.create({ messages: messages as OpenAIAssistantMessage[] });
       addLog(`Created new thread: ${thread.id}`);
     } catch (error) {
       addLog(`Error creating thread: ${error}`);

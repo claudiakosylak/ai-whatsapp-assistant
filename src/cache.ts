@@ -58,6 +58,7 @@ export const setToFunctionCache = (
     name: string;
     args: Record<string, any> | undefined;
     result: Record<string, any> | undefined;
+    id?: string;
   }[],
 ) => {
   functionCallCache.set(messageId, JSON.stringify(calls));

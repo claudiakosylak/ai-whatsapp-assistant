@@ -47,8 +47,6 @@ export const processGeminiResponse = async (
     messageList.unshift({ role: 'user', parts: [{ text: '' }] });
   }
 
-  addLog(`Gemini messagelist: ${JSON.stringify(messageList)}`)
-
   const lastMessage: GeminiContextContent =
     messageList.pop() as GeminiContextContent;
 
@@ -279,7 +277,7 @@ export const processGeminiResponse = async (
         throw new Error(JSON.stringify(response));
       }
       let responseContent: Content = response.candidates[0].content;
-      calls = [];
+      // calls = [];
 
       if (!responseContent.parts) throw new Error('no parts');
       for (let part of responseContent.parts) {

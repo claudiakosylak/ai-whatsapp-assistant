@@ -121,7 +121,7 @@ export const getBase64WithOpenAI = async (messageString: string) => {
     });
 
     const response: any = await client.audio.speech.create({
-      model: 'tts-1',
+      model: 'gpt-4o-mini-tts',
       voice: getOpenAiVoice(),
       input: messageString,
       response_format: 'mp3',
@@ -193,7 +193,7 @@ export const transcribeVoiceWithOpenAI = async (
     const file = await toFile(audioStream, 'audio.ogg', { type: 'audio/ogg' });
     const transcription = await client.audio.transcriptions.create({
       file: file,
-      model: 'whisper-1',
+      model: 'gpt-4o-mini-tts',
     });
     addLog(
       `[OpenAI] Transcribed text: ${transcription.text.substring(0, 100)}`,

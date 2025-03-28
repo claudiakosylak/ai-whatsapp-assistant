@@ -92,7 +92,7 @@ const openAiExtraPrompt = [
   'OPEN_WEBUI_CHAT',
   'OPENAI_CHAT',
 ].includes(getBotMode())
-  ? `Only generate a response to the last user message in the messages list given to you. Previous messages are ONLY to be used as context if absolutely necessary or if prompted to recall a previous message. Only call the emojiReaction tool if it is requested in the last user message. Examples of messages that require you to use your emojiReaction function include: "Give me a thumbs up", "React to this message with a smiley face", "give me a unicorn emoji". When you call the emojiReaction function, do not also include that same emoji in your text response.`
+  ? `Only generate a response to the last user message in the messages list given to you. Previous messages are ONLY to be used as context if absolutely necessary or if prompted to recall a previous message. Examples of messages that require you to use your emojiReaction function include: "Give me a thumbs up", "React to this message with a smiley face", "give me a unicorn emoji". When you call the emojiReaction function, do not also include that same emoji in your text response.`
   : ``;
 
 const geminiExtraPrompt =

@@ -32,6 +32,10 @@ import {
 import { getChatImageInterpretation } from './images';
 import { imageProcessingModes } from '../constants';
 import { uploadImageToGemini } from './gemini';
+import {
+  ChatCompletionMessageToolCall,
+  ChatCompletionToolMessageParam,
+} from 'openai/resources';
 
 export function parseCommand(input: string): {
   command?: string;
@@ -143,7 +147,7 @@ export const prepareContextMessageList = async (
       // Validate if the message was written less than maxHoursLimit hours ago; if older, it's not considered
       if (!isMessageAgeValid(msg)) break;
 
-      // add cached function calls so ai doesn't do them again 
+      // add cached function calls so ai doesn't do them again
       const cachedFunctionCalls = getFromFunctionCache(msg.id._serialized);
       if (cachedFunctionCalls && getBotMode() === 'GEMINI') {
         const calls = JSON.parse(cachedFunctionCalls);
@@ -159,10 +163,46 @@ export const prepareContextMessageList = async (
             });
             messageList.push({
               role: 'model',
-              parts: [{ functionCall: { name: call.name, args: call.args }}],
+              parts: [{ functionCall: { name: call.name, args: call.args } }],
             });
           }
         }
+      }
+      if (
+        cachedFunctionCalls &&
+        ['OPENAI_CHAT', 'OPEN_WEBUI_CHAT'].includes(getBotMode())
+      ) {
+        const calls = JSON.parse(cachedFunctionCalls);
+        for (let call of calls) {
+          if (call.name && call.args && call.result) {
+            const piece: ChatCompletionToolMessageParam = {
+              role: 'tool',
+              tool_call_id: call.id,
+              content: call.result.toString(),
+            };
+            messageList.push(piece);
+          }
+        }
+        messageList.push({
+          role: 'assistant',
+          tool_calls: calls.map(
+            (call: {
+              name: string;
+              args: Record<string, any> | undefined;
+              result: Record<string, any> | undefined;
+              id?: string;
+            }): ChatCompletionMessageToolCall => {
+              return {
+                id: call.id || '',
+                type: 'function',
+                function: {
+                  name: call.name,
+                  arguments: JSON.stringify(call.args),
+                },
+              };
+            },
+          ),
+        });
       }
 
       // Check if the message includes media or if it is of another type

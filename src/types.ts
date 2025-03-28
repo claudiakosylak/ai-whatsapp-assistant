@@ -1,5 +1,6 @@
 import {
   ChatCompletionAssistantMessageParam,
+  ChatCompletionContentPartText,
   ChatCompletionSystemMessageParam,
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
@@ -7,6 +8,13 @@ import { MessageMedia } from 'whatsapp-web.js';
 import { FunctionCall, FunctionResponse } from '@google/genai';
 
 export type OpenAIMessage = {
+  role: 'user' | 'assistant' | 'tool';
+  content: string | ChatCompletionContentPartText[];
+  tool_call_id?: string;
+  tool_calls?: []
+};
+
+export type OpenAIAssistantMessage = {
   role: 'user' | 'assistant';
   content: string;
 };
