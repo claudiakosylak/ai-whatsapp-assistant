@@ -1,7 +1,6 @@
 import { useMemo, useEffect, useState } from 'react';
 import { SettingsItem } from './SettingsItem';
 import { AudioMode, BotMode } from '../../types';
-import { ChevronDownIcon } from '@radix-ui/react-icons';
 import { CustomPrompt } from './CustomPrompt';
 import { Accordion } from 'radix-ui';
 import './BotSettings.css';
