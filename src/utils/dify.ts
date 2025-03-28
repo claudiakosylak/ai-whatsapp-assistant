@@ -43,6 +43,7 @@ export const processDifyResponse = async (
       messageContent:
         'Dify is not properly configured. Please check your settings.',
       rawText: 'Dify is not properly configured. Please check your settings.',
+      speakMessage: false,
     };
   }
 
@@ -115,6 +116,7 @@ export const processDifyResponse = async (
         messageContent:
           'Sorry, I encountered an error processing your request.',
         rawText: 'Sorry, I encountered an error processing your request.',
+        speakMessage: false,
       };
     }
 
@@ -411,6 +413,7 @@ export const processDifyResponse = async (
           messageContent:
             'Sorry, I encountered an error processing your request.',
           rawText: 'Error',
+          speakMessage: false,
         };
       }
     }
@@ -437,6 +440,7 @@ export const processDifyResponse = async (
         messageContent:
           "I apologize, but I couldn't generate a response. Please try again later.",
         rawText: 'Error',
+        speakMessage: false,
       };
     }
 
@@ -444,6 +448,7 @@ export const processDifyResponse = async (
       from,
       messageContent: responseText.trim(),
       rawText: 'Error',
+      speakMessage: false,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -452,6 +457,7 @@ export const processDifyResponse = async (
       from,
       messageContent: 'Sorry, I encountered an error processing your request.',
       rawText: 'Error',
+      speakMessage: false,
     };
   }
 };

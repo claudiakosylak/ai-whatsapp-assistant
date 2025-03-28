@@ -13,9 +13,9 @@ import {
 } from '../types';
 import { addLog } from './controlPanel';
 import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
-import { getBotName, getPrompt } from './botSettings';
+import { getAudioResponseEnabled, getBotName, getPrompt } from './botSettings';
 import { Message, MessageMedia } from 'whatsapp-web.js';
-import { getIsDocument, getIsImage, getIsVideo } from './messages';
+import { getIsAudio, getIsDocument, getIsImage, getIsVideo } from './messages';
 import {
   getImageMessage,
   setToFunctionCache,
@@ -94,6 +94,8 @@ export const processGeminiResponse = async (
   let media: MessageMedia | undefined;
   let hasReacted;
 
+  let respondWithAudio: boolean = getIsAudio(message) ? true : false;
+
   const doEmojiReaction = async (emoji: string) => {
     if (message && emoji) {
       try {
@@ -106,6 +108,20 @@ export const processGeminiResponse = async (
       }
     }
   };
+
+  const speak = () => {
+    if (getAudioResponseEnabled()) {
+      respondWithAudio = true
+      return {function: 'speak', result: 'success'}
+    } else {
+      return {function: 'speak', result: 'Audio messages are not enabled.'}
+    }
+  }
+
+  const speakFunctionDeclaration = {
+    name: 'speak',
+    description: 'When a user requests that you speak, read a message out loud or to send your response as audio, this will enable it.'
+  }
 
   const emojiReactionFunctionDeclaration = {
     name: 'emojiReaction',
@@ -127,6 +143,9 @@ export const processGeminiResponse = async (
     emojiReaction: ({ emoji }: { emoji: string }) => {
       return doEmojiReaction(emoji);
     },
+    speak: () => {
+      return speak()
+    }
   };
 
   messageList.push(lastMessage);
@@ -145,7 +164,7 @@ export const processGeminiResponse = async (
     };
     body.tools = [
       {
-        functionDeclarations: [emojiReactionFunctionDeclaration],
+        functionDeclarations: [emojiReactionFunctionDeclaration, speakFunctionDeclaration],
       },
     ];
     body.toolConfig = {
@@ -289,13 +308,10 @@ export const processGeminiResponse = async (
         from,
         messageContent: 'There was an error processing the request.',
         rawText: 'Error',
+        speakMessage: false,
       };
     }
   }
-
-  addLog(`Calls at end: ${JSON.stringify(calls)}`);
-  addLog(`Media at end: ${media}`);
-  addLog(`Response text at very end: ${responseText}`);
 
   if (!responseText && !media && calls.length > 0) {
     return;
@@ -309,6 +325,7 @@ export const processGeminiResponse = async (
       : 'There was a problem with your request.',
     messageMedia: media,
     rawText: responseText || 'Error.',
+    speakMessage: respondWithAudio,
   };
 };
 

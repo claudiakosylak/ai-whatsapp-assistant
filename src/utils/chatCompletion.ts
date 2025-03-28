@@ -90,6 +90,7 @@ export const processChatCompletionResponse = async (
         from,
         messageContent: 'There was an error processing the request.',
         rawText: 'Error',
+        speakMessage: false,
       };
     }
 
@@ -108,6 +109,7 @@ export const processChatCompletionResponse = async (
       from: from,
       messageContent,
       rawText: JSON.stringify(responseString),
+      speakMessage: true,
     };
 
     return response;
@@ -117,6 +119,7 @@ export const processChatCompletionResponse = async (
       from,
       messageContent: 'An unexpected error occurred.',
       rawText: 'Error',
+      speakMessage: false,
     };
   }
 };

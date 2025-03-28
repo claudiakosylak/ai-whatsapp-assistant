@@ -58,6 +58,7 @@ export type WhatsappResponseAsText = {
   messageContent: string;
   messageMedia?: MessageMedia;
   rawText: string;
+  speakMessage: boolean;
 };
 
 export type ProcessMessageParam =

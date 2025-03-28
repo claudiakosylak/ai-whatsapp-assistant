@@ -29,6 +29,7 @@ export const processAssistantResponse = async (
         from,
         messageContent: 'There was an error processing the request.',
         rawText: 'Error',
+        speakMessage: false,
       };
     }
 
@@ -42,6 +43,7 @@ export const processAssistantResponse = async (
         from,
         messageContent: 'There was an error processing the request.',
         rawText: 'Error',
+        speakMessage: false,
       };
     }
 
@@ -96,6 +98,7 @@ export const processAssistantResponse = async (
         from,
         messageContent: 'There was an error processing the request.',
         rawText: 'Error',
+        speakMessage: false,
       };
     }
 
@@ -147,6 +150,7 @@ export const processAssistantResponse = async (
         from,
         messageContent: 'There was an error processing the request.',
         rawText: 'Error',
+        speakMessage: false,
       };
     }
     const messagesData = messageResponse.data;
@@ -164,6 +168,7 @@ export const processAssistantResponse = async (
       from: from,
       messageContent,
       rawText: responseString,
+      speakMessage: true,
     };
     return textResponse;
   } catch (error) {
@@ -172,6 +177,7 @@ export const processAssistantResponse = async (
       from,
       messageContent: 'There was an error processing your response.',
       rawText: 'Error',
+      speakMessage: false,
     };
   }
 };
