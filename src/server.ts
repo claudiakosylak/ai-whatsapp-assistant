@@ -358,7 +358,7 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
     addLog(`Changed ElevenLabs voiceID to ${elevenVoiceId}`)
   }
 
-  if (botMode !== getBotMode()) {
+  if (botMode && botMode !== getBotMode()) {
     setBotMode(botMode);
     addLog(`Bot mode changed to ${botMode}`);
   }
@@ -373,7 +373,18 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
     addLog(`Audio handling changed to ${audioMode}`);
   }
 
-  res.json({ message: 'success' });
+  const settings = {
+    messageHistoryLimit: getMessageHistoryLimit(),
+    resetCommandEnabled: isResetCommandEnabled(),
+    maxMessageAge: getMaxMessageAge(),
+    botMode: getBotMode(),
+    respondAsVoice: getAudioResponseEnabled(),
+    botName: getBotName(),
+    audioMode: getAudioMode(),
+    openAiVoice: getOpenAiVoice(),
+    elevenVoiceId: getElevenVoiceId(),
+  };
+  res.json({ settings });
 });
 
 apiRouter.get('/whatsapp-connection', (req: Request, res: Response) => {

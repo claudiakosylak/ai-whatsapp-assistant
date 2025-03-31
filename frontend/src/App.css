@@ -181,12 +181,49 @@ h3 {
 }
 
 input,
-select {
+select,
+.select {
   height: 35px;
   padding: 0 10px;
   background: var(--background);
   color: var(--text-color);
   border: 1px solid var(--border-color);
+}
+
+.select-trigger {
+  width: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.select-trigger p {
+  max-height: 100%;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  text-align: left;
+}
+
+.select-content {
+  background: var(--background);
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px var(--shadow);
+}
+
+.select-option {
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.select-option:hover {
+  background-color: var(--primary-hover);
 }
 
 .input-audio {
@@ -201,7 +238,8 @@ select {
 
 input:focus,
 select:focus,
-textarea:focus {
+textarea:focus,
+.select:focus {
   outline: none;
   border-radius: 2px;
   border-color: var(--primary);

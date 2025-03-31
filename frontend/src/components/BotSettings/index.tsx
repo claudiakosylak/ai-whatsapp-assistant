@@ -5,6 +5,7 @@ import { CustomPrompt } from './CustomPrompt';
 import { Accordion } from 'radix-ui';
 import './BotSettings.css';
 import { AccordionItem } from './AccordionItem';
+import { Dropdown } from '../Dropdown';
 
 type Settings = {
   messageHistoryLimit: string;
@@ -17,6 +18,34 @@ type Settings = {
   openAiVoice: OpenAIVoice;
   elevenVoiceId: string;
 };
+
+const botModeOptions: { id: BotMode; value: BotMode; label: string }[] = [
+  {
+    id: 'OPENAI_CHAT',
+    value: 'OPENAI_CHAT',
+    label: 'Chat Completions (OpenAI)',
+  },
+  {
+    id: 'OPENAI_ASSISTANT',
+    value: 'OPENAI_ASSISTANT',
+    label: 'Assistant (OpenAI)',
+  },
+  {
+    id: 'OPEN_WEBUI_CHAT',
+    value: 'OPEN_WEBUI_CHAT',
+    label: 'Chat Completions (Custom: Open WebUI)',
+  },
+  {
+    id: 'DIFY_CHAT',
+    value: 'DIFY_CHAT',
+    label: 'Dify',
+  },
+  {
+    id: 'GEMINI',
+    value: 'GEMINI',
+    label: 'Gemini',
+  },
+];
 
 const SaveButton = ({ hasChanged }: { hasChanged: boolean }) => {
   return (
@@ -123,6 +152,29 @@ export const BotSettings = () => {
     }));
   };
 
+  const saveContextSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const newSettings = {
+      botName: settings.botName,
+      messageHistoryLimit: settings.messageHistoryLimit,
+      maxMessageAge: settings.maxMessageAge,
+      resetCommandEnabled: settings.resetCommandEnabled,
+    };
+    const response = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newSettings),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setOriginalSettings(data.settings);
+    } else {
+      const errorData = await response.json();
+      setError(errorData.message || 'Failed to save settings.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -132,7 +184,8 @@ export const BotSettings = () => {
       body: JSON.stringify(settings),
     });
     if (response.ok) {
-      setOriginalSettings(settings);
+      const data = await response.json();
+      setOriginalSettings(data.settings);
     } else {
       const errorData = await response.json();
       setError(errorData.message || 'Failed to save settings.');
@@ -152,7 +205,7 @@ export const BotSettings = () => {
         </AccordionItem>
         <AccordionItem title="Context Settings" value="context">
           <form
-            onSubmit={handleSubmit}
+            onSubmit={saveContextSettings}
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -211,7 +264,21 @@ export const BotSettings = () => {
             }}
           >
             <SettingsItem label="Chat API:">
-              <select
+              <Dropdown
+                options={botModeOptions}
+                selected={
+                  botModeOptions.find(
+                    (option) => option.value === settings.botMode,
+                  )?.label || settings.botMode
+                }
+                onChange={(val: string) => {
+                  setSettings((prev) => ({
+                    ...prev!,
+                    ['botMode']: val as BotMode,
+                  }));
+                }}
+              />
+              {/* <select
                 name="botMode"
                 value={settings.botMode}
                 onChange={handleChange}
@@ -224,7 +291,7 @@ export const BotSettings = () => {
                 </option>
                 <option value="DIFY_CHAT">Dify</option>
                 <option value="GEMINI">Gemini</option>
-              </select>
+              </select> */}
             </SettingsItem>
             <SaveButton hasChanged={hasChanged['llm']} />
           </form>
