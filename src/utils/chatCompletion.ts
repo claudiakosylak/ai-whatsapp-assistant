@@ -7,12 +7,10 @@ import { addLog } from './controlPanel';
 import {
   OPEN_WEBUI_BASE_URL,
   OPEN_WEBUI_KEY,
-  OPEN_WEBUI_MODEL,
   OPENAI_API_KEY,
-  OPENAI_MODEL,
 } from '../config';
 import { TestMessage, WhatsappResponseAsText } from '../types';
-import { getAudioResponseEnabled, getBotMode } from './botSettings';
+import { getAudioResponseEnabled, getBotMode, getModels } from './botSettings';
 import { Message } from 'whatsapp-web.js';
 import { getIsAudio } from './messages';
 import { setToFunctionCache } from '../cache';
@@ -35,7 +33,7 @@ export const processChatCompletionResponse = async (
     }
 
     const chatModel =
-      getBotMode() === 'OPENAI_CHAT' ? OPENAI_MODEL : OPEN_WEBUI_MODEL;
+      getBotMode() === 'OPENAI_CHAT' ? getModels()['OPENAI_CHAT'] : getModels()["OPEN_WEBUI_CHAT"];
     let respondWithAudio: boolean = getIsAudio(message) ? true : false;
 
     let hasReacted;
@@ -104,7 +102,7 @@ export const processChatCompletionResponse = async (
     try {
       completion = await client.chat.completions.create({
         messages,
-        model: chatModel,
+        model: chatModel as string,
         tools: [emojiReactionFunctionDeclaration, speakFunctionDeclaration],
         frequency_penalty: 0.5,
         presence_penalty: 0,
@@ -147,7 +145,7 @@ export const processChatCompletionResponse = async (
           setToFunctionCache(message.id._serialized, cacheCallObject);
           completion = await client.chat.completions.create({
             messages,
-            model: chatModel,
+            model: chatModel as string,
             tools: [emojiReactionFunctionDeclaration, speakFunctionDeclaration],
             frequency_penalty: 0.5,
             presence_penalty: 0,

@@ -6,6 +6,7 @@ import { Accordion } from 'radix-ui';
 import './BotSettings.css';
 import { AccordionItem } from './AccordionItem';
 import { Dropdown } from '../Dropdown';
+import e from 'express';
 
 type Settings = {
   messageHistoryLimit: string;
@@ -17,6 +18,7 @@ type Settings = {
   audioMode: AudioMode;
   openAiVoice: OpenAIVoice;
   elevenVoiceId: string;
+  models: Record<BotMode, string | undefined>;
 };
 
 const botModeOptions: { id: BotMode; value: BotMode; label: string }[] = [
@@ -47,6 +49,19 @@ const botModeOptions: { id: BotMode; value: BotMode; label: string }[] = [
   },
 ];
 
+const audioModeOptions: { id: AudioMode; value: AudioMode; label: string }[] = [
+  {
+    id: 'ELEVEN_LABS',
+    value: 'ELEVEN_LABS',
+    label: 'Eleven Labs',
+  },
+  {
+    id: 'OPENAI',
+    value: 'OPENAI',
+    label: 'OpenAI',
+  },
+];
+
 const SaveButton = ({ hasChanged }: { hasChanged: boolean }) => {
   return (
     <button
@@ -60,7 +75,7 @@ const SaveButton = ({ hasChanged }: { hasChanged: boolean }) => {
   );
 };
 
-export const openAiVoices = [
+const openAiVoices = [
   'alloy',
   'ash',
   'ballad',
@@ -118,7 +133,11 @@ export const BotSettings = () => {
       status['context'] = false;
     }
 
-    if (settings.botMode !== originalSettings.botMode) {
+    if (
+      settings.botMode !== originalSettings.botMode ||
+      settings.models[settings.botMode] !==
+        originalSettings.models[settings.botMode]
+    ) {
       status['llm'] = true;
     } else {
       status['llm'] = false;
@@ -175,13 +194,17 @@ export const BotSettings = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const saveLlmSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const newSettings = {
+      botMode: settings.botMode,
+      model: settings.models[settings.botMode as BotMode],
+    };
     const response = await fetch('/api/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settings),
+      body: JSON.stringify(newSettings),
     });
     if (response.ok) {
       const data = await response.json();
@@ -191,6 +214,30 @@ export const BotSettings = () => {
       setError(errorData.message || 'Failed to save settings.');
     }
   };
+
+  const saveAudioSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const newSettings = {
+      audioMode: settings.audioMode,
+      openAiVoice: settings.openAiVoice,
+      elevenVoiceId: settings.elevenVoiceId,
+    };
+    const response = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newSettings),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setOriginalSettings(data.settings);
+    } else {
+      const errorData = await response.json();
+      setError(errorData.message || 'Failed to save settings.');
+    }
+  };
+
+  if (!settings || !originalSettings) return null;
 
   return (
     <>
@@ -256,7 +303,7 @@ export const BotSettings = () => {
         </AccordionItem>
         <AccordionItem title="LLM Settings" value="llm">
           <form
-            onSubmit={handleSubmit}
+            onSubmit={saveLlmSettings}
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -275,30 +322,38 @@ export const BotSettings = () => {
                   setSettings((prev) => ({
                     ...prev!,
                     ['botMode']: val as BotMode,
+                    models: { ...originalSettings.models },
                   }));
                 }}
               />
-              {/* <select
-                name="botMode"
-                value={settings.botMode}
-                onChange={handleChange}
-                style={{ width: '180px' }}
-              >
-                <option value="OPENAI_CHAT">Chat Completions (OpenAI)</option>
-                <option value="OPENAI_ASSISTANT">Assistant (OpenAI)</option>
-                <option value="OPEN_WEBUI_CHAT">
-                  Chat Completions (Custom: Open WebUI)
-                </option>
-                <option value="DIFY_CHAT">Dify</option>
-                <option value="GEMINI">Gemini</option>
-              </select> */}
             </SettingsItem>
+            {['OPEN_WEBUI_CHAT', 'OPENAI_CHAT', 'GEMINI'].includes(
+              settings.botMode,
+            ) && (
+              <SettingsItem label="Model:">
+                <input
+                  type="text"
+                  name="model"
+                  value={settings.models[settings.botMode]}
+                  onChange={(e) => {
+                    setSettings((prev) => ({
+                      ...prev!,
+                      models: {
+                        ...prev!.models,
+                        [settings.botMode]: e.target.value,
+                      },
+                    }));
+                  }}
+                  style={{ width: '180px', marginLeft: '10px' }}
+                />
+              </SettingsItem>
+            )}
             <SaveButton hasChanged={hasChanged['llm']} />
           </form>
         </AccordionItem>
         <AccordionItem title="Audio Settings" value="audio">
           <form
-            onSubmit={handleSubmit}
+            onSubmit={saveAudioSettings}
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -314,36 +369,32 @@ export const BotSettings = () => {
               />
             </SettingsItem>
             <SettingsItem label="Audio API:">
-              <select
-                name="audioMode"
-                value={settings.audioMode}
-                onChange={(e) => {
-                  handleChange(e);
-                  if (originalSettings) {
-                    settings.elevenVoiceId = originalSettings.elevenVoiceId;
-                    settings.openAiVoice = originalSettings.openAiVoice;
-                  }
+              <Dropdown
+                options={audioModeOptions}
+                selected={
+                  audioModeOptions.find(
+                    (option) => option.value === settings.audioMode,
+                  )?.label || settings.audioMode
+                }
+                onChange={(val: string) => {
+                  setSettings((prev) => ({
+                    ...prev!,
+                    ['audioMode']: val as AudioMode,
+                    ['elevenVoiceId']: originalSettings.elevenVoiceId,
+                    ['openAiVoice']: originalSettings.openAiVoice,
+                  }));
                 }}
-                style={{ width: '180px' }}
-              >
-                <option value="ELEVEN_LABS">Eleven Labs API</option>
-                <option value="OPENAI">OpenAI</option>
-              </select>
+              />
             </SettingsItem>
             {settings.audioMode === 'OPENAI' ? (
               <SettingsItem label="Voice:">
-                <select
-                  name="openAiVoice"
-                  value={settings.openAiVoice}
-                  onChange={handleChange}
-                  style={{ width: '180px' }}
-                >
-                  {openAiVoices.map((voice) => (
-                    <option key={voice} value={voice}>
-                      {voice}
-                    </option>
-                  ))}
-                </select>
+              <Dropdown options={openAiVoices.map((voice) => ({id: voice, value: voice, label: voice}))} selected={settings.openAiVoice}
+              onChange={(val: string) => {
+                setSettings((prev) => ({
+                  ...prev!,
+                  ['openAiVoice']: val as OpenAIVoice,
+                }))
+              }} />
               </SettingsItem>
             ) : (
               <SettingsItem label="Voice ID:">

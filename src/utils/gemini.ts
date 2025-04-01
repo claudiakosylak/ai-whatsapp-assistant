@@ -12,8 +12,8 @@ import {
   WhatsappResponseAsText,
 } from '../types';
 import { addLog } from './controlPanel';
-import { GEMINI_API_KEY, GEMINI_MODEL } from '../config';
-import { getAudioResponseEnabled, getBotName, getPrompt } from './botSettings';
+import { GEMINI_API_KEY } from '../config';
+import { getAudioResponseEnabled, getBotName, getModels, getPrompt } from './botSettings';
 import { Message, MessageMedia } from 'whatsapp-web.js';
 import { getIsAudio, getIsDocument, getIsImage, getIsVideo } from './messages';
 import {
@@ -152,7 +152,9 @@ export const processGeminiResponse = async (
     contents: messageList,
   };
 
-  if (GEMINI_MODEL !== 'gemini-2.0-flash-exp') {
+  let model = getModels()['GEMINI']
+
+  if (model !== 'gemini-2.0-flash-exp') {
     body.systemInstruction = {
       parts: [
         {
@@ -183,7 +185,7 @@ export const processGeminiResponse = async (
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -254,7 +256,7 @@ export const processGeminiResponse = async (
     if (calls.length > 0) {
       setToFunctionCache(message.id._serialized, cacheCallObject);
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: {

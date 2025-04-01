@@ -13,6 +13,7 @@ import {
   getElevenVoiceId,
   getMaxMessageAge,
   getMessageHistoryLimit,
+  getModels,
   getOpenAiVoice,
   isResetCommandEnabled,
   setAudioMode,
@@ -23,6 +24,7 @@ import {
   setElevenVoiceId,
   setMaxMessageAge,
   setMessageHistoryLimit,
+  setModels,
   setOpenAiVoice,
   setResetCommandEnabled,
 } from './utils/botSettings';
@@ -38,7 +40,7 @@ import {
 } from './utils/controlPanel';
 import { randomUUID } from 'crypto';
 import { MessageMedia } from 'whatsapp-web.js';
-import { TestMessage } from './types';
+import { BotMode, TestMessage } from './types';
 import { processMessage } from './utils/whatsapp';
 import { ENV_PATH } from './constants';
 
@@ -297,6 +299,7 @@ apiRouter.get('/settings', (req: Request, res: Response) => {
     audioMode: getAudioMode(),
     openAiVoice: getOpenAiVoice(),
     elevenVoiceId: getElevenVoiceId(),
+    models: getModels(),
   };
   res.json({ settings });
 });
@@ -312,6 +315,7 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
     audioMode,
     openAiVoice,
     elevenVoiceId,
+    model,
   } = req.body;
 
   if (messageHistoryLimit && messageHistoryLimit !== getMessageHistoryLimit()) {
@@ -354,13 +358,19 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
   }
 
   if (elevenVoiceId && elevenVoiceId !== getElevenVoiceId()) {
-    setElevenVoiceId(elevenVoiceId)
-    addLog(`Changed ElevenLabs voiceID to ${elevenVoiceId}`)
+    setElevenVoiceId(elevenVoiceId);
+    addLog(`Changed ElevenLabs voiceID to ${elevenVoiceId}`);
   }
 
   if (botMode && botMode !== getBotMode()) {
     setBotMode(botMode);
     addLog(`Bot mode changed to ${botMode}`);
+  }
+
+  const models = getModels();
+  if (model && models[botMode as BotMode] !== model) {
+    setModels(botMode, model);
+    addLog(`Changed LLM model to ${model}`);
   }
 
   if (botName && botName !== getBotName()) {
@@ -383,6 +393,7 @@ apiRouter.put('/settings', (req: Request, res: Response) => {
     audioMode: getAudioMode(),
     openAiVoice: getOpenAiVoice(),
     elevenVoiceId: getElevenVoiceId(),
+    models: getModels(),
   };
   res.json({ settings });
 });

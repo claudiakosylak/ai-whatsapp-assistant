@@ -5,7 +5,10 @@ import {
   DEFAULT_CONTEXT_LENGTH,
   DEFAULT_ELEVEN_VOICE_ID,
   DEFAULT_ENABLE_RESET_COMMAND,
+  DEFAULT_GEMINI_MODEL,
   DEFAULT_MAX_MESSAGE_AGE,
+  DEFAULT_OPEN_WEBUI_MODEL,
+  DEFAULT_OPENAI_MODEL,
   DEFAULT_PROMPT,
   DEFAULT_RESPOND_WITH_VOICE,
 } from '../config';
@@ -24,6 +27,20 @@ let maxMessageAge: number = DEFAULT_MAX_MESSAGE_AGE
   : 24;
 
 export let mode: BotMode = (DEFAULT_CHAT_API as BotMode) || 'OPENAI_CHAT';
+
+export let models: Record<BotMode, string | undefined> = {
+  OPEN_WEBUI_CHAT: DEFAULT_OPEN_WEBUI_MODEL,
+  OPENAI_CHAT: DEFAULT_OPENAI_MODEL || 'gpt-4.5-preview',
+  GEMINI: DEFAULT_GEMINI_MODEL || 'gemini-2.0-flash',
+  OPENAI_ASSISTANT: undefined,
+  DIFY_CHAT: undefined,
+}
+
+export const getModels = () => models;
+
+export const setModels = (botMode: BotMode, val: string) => {
+  models[botMode] = val
+}
 
 export let audioMode: AudioMode =
   (DEFAULT_AUDIO_API as AudioMode) || 'ELEVEN_LABS';
